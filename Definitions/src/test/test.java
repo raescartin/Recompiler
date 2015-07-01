@@ -1,7 +1,8 @@
 /*******************************************************************************
  * Copyright (c) 2015 Rubén Alejandro Escartín Aparicio.
- * All rights reserved.
+ * License: https://www.gnu.org/licenses/gpl-2.0.html GPL version 2
  *******************************************************************************/
+
 package test;
 
 import java.io.FileInputStream;
