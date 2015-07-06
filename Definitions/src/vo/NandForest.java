@@ -46,7 +46,7 @@ public class NandForest {//multiple nand trees
 	public HashMap<NandNode,NandNode>  nodes = new HashMap<NandNode,NandNode>();//used to keep record of UNIQUE nodes
 	public NandForest(int numberOfInputs) {
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
-			this.in.add(new NandNode(BigInteger.valueOf(i)));
+			this.in.add(new NandNode(BigInteger.valueOf(i+1)));//must add 1 so all id's are ordered consistently 
 			this.nodes.put(this.in.get(i), this.in.get(i));
 		}
 	}

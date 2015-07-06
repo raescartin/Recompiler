@@ -151,7 +151,7 @@ public class Definition implements java.io.Serializable{ /**
 				for(Node inNode:this.in){
 					ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
 					for (int i = 0; i < nodeSize.get(inNode); i++) {
-						nandNodes.add(new NandNode(BigInteger.valueOf(i)));
+						nandNodes.add(new NandNode(BigInteger.valueOf(i+1)));
 					}
 					nodeToNands.put(inNode, nandNodes);
 					nandForest.in.addAll(nandNodes);
