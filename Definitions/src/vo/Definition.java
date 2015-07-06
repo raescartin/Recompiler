@@ -351,7 +351,6 @@ public class Definition implements java.io.Serializable{ /**
 				return string;
 			}
 			public boolean apply(Instance instance, Definition appliedDefinition) {
-				//FIXME:subnodes?
 				//TODO: expand out of nodes
 				//TODO: remove from out of nodes
 				//TODO: replace only non outside referenced instances
@@ -420,7 +419,7 @@ public class Definition implements java.io.Serializable{ /**
 						inArray.add(nodeMap.get(node));
 					}
 					for (Node node : appliedDefinition.out) {
-						Node outNode=nodeMap.get(node);//FIXME: the nodes represent the same but are different
+						Node outNode=nodeMap.get(node);
 						if(outNode==this.out.get(0)){//if change of root update rootIn
 							outNode.outOfInstance.definition.rootIn.remove(this);//previous instance definition remove rootIn(this) //TODO: CHANGE TO HASH
 							if(!appliedDefinition.rootIn.contains(this)){//FIXME:needed because not Hash

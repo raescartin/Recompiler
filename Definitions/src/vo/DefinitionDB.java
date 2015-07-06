@@ -92,7 +92,7 @@ public class DefinitionDB implements java.io.Serializable{
 					tempDef.out.add(instance.in.get(i));
 				}
 			}
-			this.optimize(tempDef);
+			this.optimize(tempDef);//FIXME: XOR is not correctly rebuild
 			//copy back the optimized non recursive part of definition restoring recursion
 			//in and out nodes don't change
 			
@@ -233,7 +233,8 @@ public class DefinitionDB implements java.io.Serializable{
 				while (rootIndex<instance.definition.rootIn.size()&&applied==false) {//loop while not modified (if one rootIn used, rest worthless)
 					appliedDefinition=instance.definition.rootIn.get(rootIndex);
 					if(definition!=appliedDefinition){//prevent applying definition to self
-						applied=definition.apply(instance,appliedDefinition);//TODO:apply should remove to instanceIndex the number of deleted instances
+						applied=definition.apply(instance,appliedDefinition);
+						if (applied) instanceIndex-=appliedDefinition.instances.size()-1;//FIXME:should always remove to instanceIndex the number of deleted instances
 						appliedOnce=appliedOnce||applied;
 					}
 					rootIndex++;

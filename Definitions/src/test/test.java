@@ -77,11 +77,11 @@ class test {
     	xor.setOut(xor.add(and, xor.add(or, xor.in.get(0),xor.in.get(1)).out.get(0),xor.add(nand, xor.in.get(0),xor.in.get(1)).out.get(0)).out.get(0));   	
     	definitionDB.put("xor",xor);
     	System.out.print(definitionDB.toString());
-   	 	//XOR test definition//
-    	Definition xorTest = new Definition(2,"xorTest");
-    	xorTest.setOut(xorTest.add(xor,xorTest.in.get(0),xorTest.in.get(1)).out.get(0));   	
-    	definitionDB.put("xorTest",xorTest);
-    	System.out.print(definitionDB.toString());
+//   	 	//XOR test definition//
+//    	Definition xorTest = new Definition(2,"xorTest");
+//    	xorTest.setOut(xorTest.add(xor,xorTest.in.get(0),xorTest.in.get(1)).out.get(0));   	
+//    	definitionDB.put("xorTest",xorTest);
+//    	System.out.print(definitionDB.toString());
     	//IF definition//
     	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!!
     	Definition ifdef = new Definition(3,"if");
