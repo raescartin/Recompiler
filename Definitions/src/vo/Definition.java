@@ -7,6 +7,7 @@ package vo;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -150,7 +151,7 @@ public class Definition implements java.io.Serializable{ /**
 				for(Node inNode:this.in){
 					ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
 					for (int i = 0; i < nodeSize.get(inNode); i++) {
-						nandNodes.add(new NandNode());
+						nandNodes.add(new NandNode(BigInteger.valueOf(i)));
 					}
 					nodeToNands.put(inNode, nandNodes);
 					nandForest.in.addAll(nandNodes);

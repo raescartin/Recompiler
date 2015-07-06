@@ -5,12 +5,17 @@
 package vo;
 
 import java.util.ArrayList;
+import java.math.BigInteger;
 
 import utils.FixedBitSet;
 
 public class NandNode{
 	NandNode in1;
 	NandNode in2;
+	BigInteger id;
+	public NandNode(BigInteger thisId) {
+		this.id=thisId;
+	}
 	public FixedBitSet eval(FixedBitSet[] inValues, ArrayList<NandNode> in) {
 		if(this.in1==null||this.in2==null){//leaf
 			return inValues[in.indexOf(this)];

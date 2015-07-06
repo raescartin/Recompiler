@@ -319,6 +319,14 @@ public class Node {
 						definition.remove(instance);
 					}
 				}
+				//continue evaluation of superior nodes
+				for(Node node:this.subnodes){
+					if(node.outOfInstance!=null){
+						for(Node inNode:node.outOfInstance.in){
+							inNode.fusion(definition,nodes);
+						}
+					}
+				}
 			}else{//this.subnodes.isEmpty()
 				if(this.outOfInstance!=null){//if this.subnodes.isEmpty()&&this.outOfInstance==null it's always an in node
 					for(Node node:this.outOfInstance.in){//expand instance in nodes

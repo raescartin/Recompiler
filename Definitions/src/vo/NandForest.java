@@ -4,6 +4,7 @@
  *******************************************************************************/
 package vo;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -45,13 +46,13 @@ public class NandForest {//multiple nand trees
 	public HashMap<NandNode,NandNode>  nodes = new HashMap<NandNode,NandNode>();//used to keep record of UNIQUE nodes
 	public NandForest(int numberOfInputs) {
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
-			this.in.add(new NandNode());
+			this.in.add(new NandNode(BigInteger.valueOf(i)));
 			this.nodes.put(this.in.get(i), this.in.get(i));
 		}
 	}
 	public NandNode add(NandNode in1,NandNode in2){
 		NandNode node;
-		if(in1.hashCode()<in2.hashCode()){//Order so A NAND B == B NAND A, always represented as A NAND B
+		if(in1.id.compareTo(in2.id) > 0) {//in1.id<in2.id){//Order so A NAND B == B NAND A, always represented as A NAND B
 			node=in1;
 			in1=in2;
 			in2=node;
@@ -63,7 +64,7 @@ public class NandForest {//multiple nand trees
 				node = in1.in1;// old nodes may remain for the garbage collector to deal//FIXME:remove node from this.nodes if unused
 					
 		}else{//add new node really needed
-			node = new NandNode();
+			node = new NandNode(new BigInteger(String.valueOf(in1.id) + String.valueOf(in2.id)));
 			node.in1=in1;
 			node.in2=in2;
 			if(this.nodes.containsKey(node)){//if a node with same childs already exists return existing node, else return new node
