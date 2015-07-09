@@ -135,9 +135,76 @@ class test {
     	Node addOut = add.add(add, xorwithoutN,addAndOut).out.get(0);
     	C.add(addOut);
     	C.add(xorn);
-    	definitionDB.put("add",add);//FIXME
+    	definitionDB.put("add",add);
     	System.out.print(definitionDB.toString());
-
+    	//zeros definition////logic definition of zeros value
+    	Definition zeros = new Definition(1,"zero");
+    	zeros.setOut(zeros.add(xor,zeros.in.get(0),zeros.in.get(0)).out.get(0));
+    	definitionDB.put("zero",zeros);
+    	System.out.print(definitionDB.toString());
+    	//ones definition////logic definition of ones value
+    	Definition ones = new Definition(1,"one");
+    	Node zeroNode = ones.add(zeros, ones.in.get(0)).out.get(0);
+    	ones.setOut(ones.add(not,zeroNode).out.get(0));
+    	definitionDB.put("one",ones);
+    	System.out.print(definitionDB.toString());
+    	//dec definition////definition to decrement an integer by one
+    	Definition dec = new Definition(1,"dec");
+    	Node dec0 = dec.in.get(0).add(new Node());
+    	Node decRest = dec.in.get(0).add(new Node());
+    	Node decN = dec.in.get(0).add(new Node());
+    	Node decN0 = dec.add(zeros, decN).out.get(0);
+    	Node decN1 = dec.add(ones, decN).out.get(0);
+    	Node n0 = new Node();
+    	Node decElse= new Node();
+    	Node decR = new Node();
+    	n0.add(dec0);
+    	n0.add(decRest);
+    	n0.add(decN0);
+    	decR.add(dec0);
+    	decR.add(decRest);
+    	dec.setOut(dec.add(ifdef,decN,n0,decElse).out.get(0));
+    	Node decRout = dec.add(dec,decR).out.get(0);
+    	decElse.add(decRout);
+    	decElse.add(decN1);
+    	definitionDB.put("dec",dec);
+    	System.out.print(definitionDB.toString());
+//    	//cmp definition////definition to test if two values are equal, returns a bit
+//    	Definition cmp = new Definition(2,"cmp");
+//    	Node cmpA0 = cmp.in.get(0).add(new Node());
+//    	Node cmpARest = cmp.in.get(0).add(new Node());
+//    	Node cmpAN = cmp.in.get(0).add(new Node());
+//    	Node cmpB0 = cmp.in.get(1).add(new Node());
+//    	Node cmpBRest = cmp.in.get(1).add(new Node());
+//    	Node cmpBN = cmp.in.get(1).add(new Node());
+//    	Node cmpAwithoutN = new Node();
+//    	cmpAwithoutN.add(cmpA0);
+//    	cmpAwithoutN.add(cmpARest);
+//    	Node cmpBwithoutN = new Node();
+//    	cmpBwithoutN.add(cmpB0);
+//    	cmpBwithoutN.add(cmpBRest);
+//    	Node cmpXor = cmp.add(xor, cmpA0,cmpB0).out.get(0);
+//    	Node cmpR = cmp.add(cmp, cmpAwithoutN,cmpBwithoutN).out.get(0);
+//    	Node cmpIf = cmp.add(ifdef, cmpXor,cmpR,cmpXor).out.get(0);
+//    	cmp.setOut(cmpIf);
+//    	//EQ0 definition////definition to test if a value is zero
+//    	Definition eq0 = new Definition(1,"eq0");
+//    	definitionDB.put("eq0",eq0);
+//    	//forDef definition////for loop definition
+//    	Definition forDef = new Definition(2,"for");
+//    	forDef.add(if,,);
+//    	forDef.setOut(node);
+//    	definitionDB.put("for",forDef);
+//    	System.out.print(definitionDB.toString());
+//    	//MUL definition//
+//    	Definition mul = new Definition(2,"mul");
+//    	Node mulDec = mul.add(dec,add.in.get(0)).out.get(0);
+//    	Node mulR = mul.add(mul, add.in.get(0),mulDec).out.get(0);
+//    	Node added = mul.add(add, add.in.get(0),add.in.get(1)).out.get(0);
+//    	mul.add(ifdef,add.in.get(0),added,0);
+//    	
+//    	Node decremented = mul.add(dec, add.in.get(0)).out.get(0);
+//    	mul.add(mul,added,decremented);
     	
     	//ASSEMBLER
     	//Declare instruction set
