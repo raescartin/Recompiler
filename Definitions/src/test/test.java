@@ -49,32 +49,38 @@ class test {
     	//DEFINITIONS AND DEFINITIONDB//
 		//=========================================================================================================================================
     	//NAND definition//
-    	Definition nand = new Definition(2,"nand");
-    	Node nandOut = new Node();
-    	nandOut.idForDefinition.put(nand, 2);
-    	nand.setOut(nandOut);
+    	Definition nand = new Definition(2,1,"nand");
         //Declare DATABASE
         DefinitionDB  definitionDB = new DefinitionDB(nand);
         System.out.print(definitionDB.toString());
         //NOT definition//
-    	Definition not = new Definition(1,"not");
-    	not.setOut(not.add(nand,not.in.get(0),not.in.get(0)).out.get(0));
+    	Definition not = new Definition(1,1,"not");
+    	not.add(nand,not.in.get(0),not.in.get(0),not.out.get(0));
      	definitionDB.put("not",not);
      	System.out.print(definitionDB.toString());
         //AND definition//
-    	Definition and = new Definition(2,"and");
-    	Node andOut=and.add(nand,and.in.get(0),and.in.get(1)).out.get(0);
-    	and.setOut(and.add(not,andOut).out.get(0));
+    	Definition and = new Definition(2,1,"and");
+    	Node and0= new Node();
+    	and.add(nand,and.in.get(0),and.in.get(1),and0);
+    	and.add(not,and0,and.out.get(0));
      	definitionDB.put("and",and);
      	System.out.print(definitionDB.toString());
      	//OR definition//
-    	Definition or = new Definition(2,"or");
-    	or.setOut(or.add(nand, or.add(not,or.in.get(0)).out.get(0),or.add(not,or.in.get(1)).out.get(0)).out.get(0));
+    	Definition or = new Definition(2,1,"or");
+    	Node or0 = new Node();
+    	Node or1 = new Node();
+    	or.add(not,or.in.get(0),or0);
+    	or.add(not,or.in.get(1),or1);
+    	or.add(nand, or0,or1,or.out.get(0));
      	definitionDB.put("or",or);
      	System.out.print(definitionDB.toString());
     	 //XOR definition//
-    	Definition xor = new Definition(2,"xor");
-    	xor.setOut(xor.add(and, xor.add(or, xor.in.get(0),xor.in.get(1)).out.get(0),xor.add(nand, xor.in.get(0),xor.in.get(1)).out.get(0)).out.get(0));   	
+    	Definition xor = new Definition(2,1,"xor");
+    	Node xor0 = new Node();
+    	Node xor1 = new Node();
+    	xor.add(or, xor.in.get(0),xor.in.get(1),xor0);
+    	xor.add(nand, xor.in.get(0),xor.in.get(1),xor1);
+    	xor.add(and,xor0,xor1,xor.out.get(0));   	
     	definitionDB.put("xor",xor);
     	System.out.print(definitionDB.toString());
 //   	 	//XOR test definition//
@@ -84,16 +90,15 @@ class test {
 //    	System.out.print(definitionDB.toString());
     	//IF definition//
     	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!!
-    	Definition ifdef = new Definition(3,"if");
-    	Node a=ifdef.in.get(0);
-    	Node b=ifdef.in.get(1);
-    	Node c=ifdef.in.get(2);
-    	Node notA=ifdef.add(not,a).out.get(0);
-    	Node notAorB=ifdef.add(or,notA,b).out.get(0);
-    	Node aOrC=ifdef.add(or,a,c).out.get(0);
-    	Node notAorBandAorC=ifdef.add(and,notAorB,aOrC).out.get(0);
-    	ifdef.setOut(notAorBandAorC);
-    	definitionDB.put("if",ifdef);
+    	Definition ifDef = new Definition(3,1,"if");
+    	Node ifdef0 = new Node();
+    	Node ifdef1 = new Node();
+    	Node ifdef2 = new Node();
+    	ifDef.add(not,ifDef.in.get(0),ifdef0);
+    	ifDef.add(or,ifdef0,ifDef.in.get(1),ifdef1);
+    	ifDef.add(or,ifDef.in.get(0),ifDef.in.get(2),ifdef2);
+    	ifDef.add(and,ifdef1,ifdef2,ifDef.out.get(0));
+    	definitionDB.put("if",ifDef);
     	System.out.print(definitionDB.toString());
     	
 //    	//RECURSIVE XOR //TODO: should optimize to simply XOR
@@ -104,7 +109,7 @@ class test {
     	//ADD definition//
     	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) //FIXME
     	//A+B=C == C0..n-1 = (a0..n-1 xor b0..n-1) + (a1..n and b1..n) && Cn = An XOR Bn 
-    	Definition add = new Definition(2,"add");
+    	Definition add = new Definition(2,1,"add");
 //    	Node A=add.in.get(0);
 //    	Node B=add.in.get(1);
     	Node A0 = add.in.get(0).add(new Node());
@@ -113,48 +118,52 @@ class test {
     	Node B0 = add.in.get(1).add(new Node());
     	Node Brest = add.in.get(1).add(new Node());
     	Node Bn = add.in.get(1).add(new Node());
-    	Node C = new Node();
-    	add.setOut(C);
     	Node Awithout0 = new Node();
     	Awithout0.add(Arest);
     	Awithout0.add(An);
     	Node Bwithout0 = new Node();
     	Bwithout0.add(Brest);
     	Bwithout0.add(Bn);
-    	Node xorOut = add.add(xor, add.in.get(0),add.in.get(1)).out.get(0);
-    	Node xor0 = new Node();
+    	Node xorOut = new Node();
+    	add.add(xor, add.in.get(0),add.in.get(1),xorOut);
+    	Node addxor0 = new Node();
     	Node xorrest = new Node();
     	Node xorn = new Node();
-    	xorOut.add(xor0);
+    	xorOut.add(addxor0);
     	xorOut.add(xorrest);
     	xorOut.add(xorn);
     	Node xorwithoutN = new Node();
-    	xorwithoutN.add(xor0);
+    	xorwithoutN.add(addxor0);
     	xorwithoutN.add(xorrest);
-    	Node addAndOut = add.add(and, Awithout0,Bwithout0).out.get(0);
-    	Node addOut = add.add(add, xorwithoutN,addAndOut).out.get(0);
-    	C.add(addOut);
-    	C.add(xorn);
+    	Node addAndOut = new Node();
+    	add.add(and, Awithout0,Bwithout0,addAndOut);
+    	Node addOut = new Node();
+    	add.add(add, xorwithoutN,addAndOut,addOut);
+    	add.out.get(0).add(addOut);
+    	add.out.get(0).add(xorn);
     	definitionDB.put("add",add);
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zeros value
-    	Definition zeros = new Definition(1,"zero");
-    	zeros.setOut(zeros.add(xor,zeros.in.get(0),zeros.in.get(0)).out.get(0));
-    	definitionDB.put("zero",zeros);
+    	Definition zeros = new Definition(1,1,"zeros");
+    	zeros.add(xor,zeros.in.get(0),zeros.in.get(0),zeros.out.get(0));
+    	definitionDB.put("zeros",zeros);
     	System.out.print(definitionDB.toString());
     	//ones definition////logic definition of ones value
-    	Definition ones = new Definition(1,"one");
-    	Node zeroNode = ones.add(zeros, ones.in.get(0)).out.get(0);
-    	ones.setOut(ones.add(not,zeroNode).out.get(0));
-    	definitionDB.put("one",ones);
+    	Definition ones = new Definition(1,1,"ones");
+    	Node zeroNode = new Node();
+    	ones.add(zeros, ones.in.get(0),zeroNode);
+    	ones.add(not,zeroNode,ones.out.get(0));
+    	definitionDB.put("ones",ones);
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
-    	Definition dec = new Definition(1,"dec");
+    	Definition dec = new Definition(1,1,"dec");
     	Node dec0 = dec.in.get(0).add(new Node());
     	Node decRest = dec.in.get(0).add(new Node());
     	Node decN = dec.in.get(0).add(new Node());
-    	Node decN0 = dec.add(zeros, decN).out.get(0);
-    	Node decN1 = dec.add(ones, decN).out.get(0);
+    	Node decN0 = new Node();
+    	dec.add(zeros, decN,decN0);
+    	Node decN1 = new Node();
+    	dec.add(ones, decN,decN1);
     	Node n0 = new Node();
     	Node decElse= new Node();
     	Node decR = new Node();
@@ -163,39 +172,51 @@ class test {
     	n0.add(decN0);
     	decR.add(dec0);
     	decR.add(decRest);
-    	dec.setOut(dec.add(ifdef,decN,n0,decElse).out.get(0));
-    	Node decRout = dec.add(dec,decR).out.get(0);
+    	dec.add(ifDef,decN,n0,decElse,dec.out.get(0));
+    	Node decRout = new Node();
+    	dec.add(dec,decR,decRout);
     	decElse.add(decRout);
     	decElse.add(decN1);
     	definitionDB.put("dec",dec);
     	System.out.print(definitionDB.toString());
-//    	//cmp definition////definition to test if two values are equal, returns a bit
-//    	Definition cmp = new Definition(2,"cmp");
-//    	Node cmpA0 = cmp.in.get(0).add(new Node());
-//    	Node cmpARest = cmp.in.get(0).add(new Node());
-//    	Node cmpAN = cmp.in.get(0).add(new Node());
-//    	Node cmpB0 = cmp.in.get(1).add(new Node());
-//    	Node cmpBRest = cmp.in.get(1).add(new Node());
-//    	Node cmpBN = cmp.in.get(1).add(new Node());
-//    	Node cmpAwithoutN = new Node();
-//    	cmpAwithoutN.add(cmpA0);
-//    	cmpAwithoutN.add(cmpARest);
-//    	Node cmpBwithoutN = new Node();
-//    	cmpBwithoutN.add(cmpB0);
-//    	cmpBwithoutN.add(cmpBRest);
-//    	Node cmpXor = cmp.add(xor, cmpA0,cmpB0).out.get(0);
-//    	Node cmpR = cmp.add(cmp, cmpAwithoutN,cmpBwithoutN).out.get(0);
-//    	Node cmpIf = cmp.add(ifdef, cmpXor,cmpR,cmpXor).out.get(0);
-//    	cmp.setOut(cmpIf);
-//    	//EQ0 definition////definition to test if a value is zero
-//    	Definition eq0 = new Definition(1,"eq0");
-//    	definitionDB.put("eq0",eq0);
-//    	//forDef definition////for loop definition
-//    	Definition forDef = new Definition(2,"for");
-//    	forDef.add(if,,);
-//    	forDef.setOut(node);
-//    	definitionDB.put("for",forDef);
-//    	System.out.print(definitionDB.toString());
+    	//cmp definition////definition to test if two values are equal, returns a bit
+    	Definition cmp = new Definition(2,1,"cmp");
+    	Node cmpA0 = cmp.in.get(0).add(new Node());
+    	Node cmpARest = cmp.in.get(0).add(new Node());
+    	Node cmpAN = cmp.in.get(0).add(new Node());
+    	Node cmpB0 = cmp.in.get(1).add(new Node());
+    	Node cmpBRest = cmp.in.get(1).add(new Node());
+    	Node cmpBN = cmp.in.get(1).add(new Node());
+    	Node cmpAwithoutN = new Node();
+    	cmpAwithoutN.add(cmpA0);
+    	cmpAwithoutN.add(cmpARest);
+    	Node cmpBwithoutN = new Node();
+    	cmpBwithoutN.add(cmpB0);
+    	cmpBwithoutN.add(cmpBRest);
+    	Node cmpXor = new Node();
+    	cmp.add(xor, cmpAN,cmpBN,cmpXor);
+    	Node cmpR = new Node();
+    	cmp.add(cmp, cmpAwithoutN,cmpBwithoutN,cmpR);
+    	Node cmpXnor = new Node();
+    	cmp.add(not, cmpXor,cmpXnor);
+    	cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0));
+    	definitionDB.put("cmp",cmp);
+    	System.out.print(definitionDB.toString());
+    	//EQ0 definition////definition to test if a value is zero
+    	Definition eq0 = new Definition(1,1,"eq0");
+    	Node eq=new Node();
+    	eq0.add(zeros,eq0.in.get(0),eq);
+    	eq0.add(cmp,eq,eq0.in.get(0),eq0.out.get(0));
+    	definitionDB.put("eq0",eq0);
+    	//forDef definition////for loop definition
+    	Definition forDef = new Definition(2,1,"for");
+    	Node forDef0 = new Node();
+    	Node forDef1 = new Node();
+    	forDef.add(zeros,forDef.out.get(1),forDef1);
+    	forDef.add(forDef,forDef.in.get(0),forDef.in.get(1),forDef0);
+    	forDef.add(ifDef,forDef.in.get(0),forDef0,forDef1,forDef.out.get(0));
+    	definitionDB.put("for",forDef);
+    	System.out.print(definitionDB.toString());
 //    	//MUL definition//
 //    	Definition mul = new Definition(2,"mul");
 //    	Node mulDec = mul.add(dec,add.in.get(0)).out.get(0);

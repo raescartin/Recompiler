@@ -22,11 +22,11 @@ public class Node {
 	public ArrayList<Node> supernodes;//ArrayList, since there can be repetition //care:supernodes are nodes with subnodes, not fathers
 	public ArrayList<Node> subnodes;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?//care:subnodes are nodes part of a supernode, not children
 	public Instance outOfInstance;
-	public HashSet<Instance> inOfInstances;
-	
+	public HashSet<Instance> inOfInstances;	
 	//DEBUGGING ONLY
 	public HashMap<Definition,Integer> idForDefinition;//id of node for each definition where it's used
 	//END OF DEBUGGING ONLY
+	
 	public Node() { 
 		this.supernodes = new ArrayList<Node>();//care:supernodes are nodes with subnodes, not fathers
 		this.subnodes = new ArrayList<Node>();//care:subnodes are nodes part of a supernode, not children

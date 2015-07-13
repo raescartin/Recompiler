@@ -72,7 +72,7 @@ public class DefinitionDB implements java.io.Serializable{
 			//Optimize the non recursive part of definition as a temporary definition
 			//TODO: take care of indirect recursion (definition can be non recursive, but contain instances of recursive definitions
 			//TODO: add->multiply = simple recursion -> nested recursion
-			Definition tempDef = new Definition(0,"temp");//(recursive is set to false)
+			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
 			for(Node node : definition.nodes){
 					node.idForDefinition.put(tempDef , tempDef.nodes.size());//debugging only
 					tempDef.nodes.add(node);//All?
@@ -276,7 +276,7 @@ public class DefinitionDB implements java.io.Serializable{
 		String name = null;
 		numDefinitions=stream.read();
 		for (int i = 0; i < numDefinitions; i++) {
-			Definition definition = new Definition(0,name);
+			Definition definition = new Definition(0,0,name);
 			defMap.put(i, definition);
 		}
 		for (int i = 0; i < numDefinitions; i++) {

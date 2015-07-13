@@ -9,8 +9,8 @@ import java.util.ArrayList;
 
 //A program is a sequence of asm instructions
 public class Program extends Definition{
-	public Program(String name, int numberOfInputs) {
-		super(numberOfInputs, name);
+	public Program(String name, int numberOfInputs, int numberOfOutputs) {
+		super(numberOfInputs,numberOfOutputs, name);
 		// TODO Auto-generated constructor stub
 	}
 	/**

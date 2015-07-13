@@ -8,3 +8,9 @@ add [7(0&1&2),8(3&4&5);6(17&12)] = xor [7(0&1&2),8(3&4&5);9(10&11&12)] and [13(1
 if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
 
 Optimize dropping ops before logical one or zero (already?). Remember to conserve size.
+
+
+map tempdef to def in order to not have the same node in two definitions
+
+change add to add as arguments out nodes too
+fix "setOut"

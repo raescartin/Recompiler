@@ -86,7 +86,7 @@ public class Definition implements java.io.Serializable{ /**
 			//END OF DEBUGGING ONLY
 			
 			//CONSTRUCTOR
-			public Definition(int numberOfInputs, String name){
+			public Definition(int numberOfInputs,int numberOfOutputs, String name){
 				this.name=name;
 				this.in = new ArrayList<Node>();
 				this.out = new ArrayList<Node>();
@@ -95,13 +95,18 @@ public class Definition implements java.io.Serializable{ /**
 				this.recursiveInstances = new HashSet<Instance>();
 				this.containedDefinitions = new HashMap<Definition,HashSet<Instance>>(); 
 				this.rootIn = new ArrayList<Definition>();
+				//DEBUGGING ONLY
+				this.nodes = new HashSet<Node> ();
+				//END OF DEBUGGING ONLY
 				for (int i = 0; i < numberOfInputs; i++) {
 					in.add(new Node());
-					in.get(i).idForDefinition.put(this, i);//debugging only
+					in.get(i).idForDefinition.put(this, this.nodes.size());//debugging only
+					this.nodes.add(in.get(i));
 				}
-				//DEBUGGING ONLY
-				nodes = new HashSet<Node> ();
-				//END OF DEBUGGING ONLY
+				for (int i = 0; i < numberOfOutputs; i++) {
+					out.add(new Node());
+					out.get(i).idForDefinition.put(this, this.nodes.size());//debugging only
+				}			
 			}
 			public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
 				//PRE: this definition is not recursive and doesn't contain recursive definitions
@@ -267,18 +272,17 @@ public class Definition implements java.io.Serializable{ /**
 			public Instance add(Definition def,Node ... nodes){
 				
 				Instance instance = new Instance();//node == instance of a definition
-				for(Node node:nodes){
+				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
+				for(Node node:instance.in){
 					this.add(node);
 					node.inOfInstances.add(instance);
 				}
-				instance.in= new ArrayList<Node>(Arrays.asList(nodes));
+				instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 				instance.definition=def;
-				for (int i = 0; i < def.out.size(); i++) {//nºinst outs = nºdef outs
-					Node outNode = new Node();
+				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
+					if(outNode==this.out.get(0)) def.rootIn.add(this);
 					outNode.outOfInstance=instance;
-					outNode.idForDefinition.put(this, this.nodes.size());//FIXME: error with size
-					this.nodes.add(outNode);
-					instance.out.add(outNode);
+					this.add(outNode);
 				}
 				this.instances.add(instance);
 				if(def==this||def.recursive){
@@ -305,17 +309,6 @@ public class Definition implements java.io.Serializable{ /**
 					node.idForDefinition.put(this, this.nodes.size());//debugging only
 					this.nodes.add(node);
 				}
-			}
-			public void setOut(Node node){
-				//if this doesn't contains node then add node and add node to outs
-				//if this contains node add node to outs
-				if(this.out.isEmpty()&&node.outOfInstance!=null&&node.outOfInstance.definition!=null){//avoid applying definition to self, first def->instance second def->definition 
-					if(!node.outOfInstance.definition.rootIn.contains(this)){//FIXME:needed because not hash						
-						node.outOfInstance.definition.rootIn.add(this);
-					}
-				}
-				this.add(node);
-				this.out.add(node);
 			}
 			public String toString() {
 				String string = new String();
