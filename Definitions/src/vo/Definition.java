@@ -100,12 +100,11 @@ public class Definition implements java.io.Serializable{ /**
 				//END OF DEBUGGING ONLY
 				for (int i = 0; i < numberOfInputs; i++) {
 					in.add(new Node());
-					in.get(i).idForDefinition.put(this, this.nodes.size());//debugging only
-					this.nodes.add(in.get(i));
+					this.add(in.get(i));
 				}
 				for (int i = 0; i < numberOfOutputs; i++) {
 					out.add(new Node());
-					out.get(i).idForDefinition.put(this, this.nodes.size());//debugging only
+					this.add(out.get(i));
 				}			
 			}
 			public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
@@ -187,7 +186,7 @@ public class Definition implements java.io.Serializable{ /**
 					nodeSize.put(midSubnode,size-node.subnodes.size()+1);
 					expand(midSubnode,nodeSize);
 				}
-				if(node.outOfInstance!=null&&this.instances.contains(node.outOfInstance)){//the node is out of instance
+				if(node.outOfInstance!=null){//the node is out of instance
 					if(node.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
 						if(!nodeSize.containsKey(node.outOfInstance.in.get(0))||nodeSize.get(node.outOfInstance.in.get(0))<nodeSize.get(node)){
 							nodeSize.put(node.outOfInstance.in.get(0), nodeSize.get(node));
@@ -270,11 +269,12 @@ public class Definition implements java.io.Serializable{ /**
 				}
 			}
 			public Instance add(Definition def,Node ... nodes){
-				
+				for(Node node:nodes){
+					this.add(node);	
+				}
 				Instance instance = new Instance();//node == instance of a definition
 				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
 				for(Node node:instance.in){
-					this.add(node);
 					node.inOfInstances.add(instance);
 				}
 				instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
@@ -282,7 +282,6 @@ public class Definition implements java.io.Serializable{ /**
 				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 					if(outNode==this.out.get(0)) def.rootIn.add(this);
 					outNode.outOfInstance=instance;
-					this.add(outNode);
 				}
 				this.instances.add(instance);
 				if(def==this||def.recursive){
@@ -306,8 +305,17 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			public void add(Node node){
 				if(!this.nodes.contains(node)){
-					node.idForDefinition.put(this, this.nodes.size());//debugging only
+					node.idForDefinition=this.nodes.size();//debugging only
+					node.definition=this;
 					this.nodes.add(node);
+					for(Node supernode:node.supernodes){
+						supernode.definition=this;
+						this.add(supernode);
+					}
+					for(Node subnode:node.subnodes){
+						subnode.definition=this;
+						this.add(subnode);
+					}	
 				}
 			}
 			public String toString() {
@@ -319,13 +327,13 @@ public class Definition implements java.io.Serializable{ /**
 				string+=this.name;
 				string+=(" [");
 				for (Node node: this.in) {
-					string+=node.toString(this);
+					string+=node.toString();
 					string+=(",");
 				}
 				string=string.substring(0, string.length() - 1);//remove last enumeration ","
 				string+=(";");
 				for (Node node: this.out) {
-					string+=node.toString(this);
+					string+=node.toString();
 					string+=(",");
 				}
 				string=string.substring(0, string.length() - 1);//remove last enumeration ","
@@ -523,12 +531,69 @@ public class Definition implements java.io.Serializable{ /**
 			        return null; 
 			    }
 			}
-			public void remove(Instance instance) {
-				// TODO Auto-generated method stub
-				
+//			public void copy(Definition definition,HashMap<Node,Node> defToTempNodes){
+//				for(Node node : definition.nodes){
+//					Node tempNode;
+//					if(defToTempNodes.containsKey(node)){
+//						tempNode =defToTempNodes.get(node);
+//					
+//					}else{
+//						tempNode = new Node();
+//					}
+//					defToTempNodes.put(node, tempNode);
+//					this.nodes.add(tempNode);
+//					tempNode.definition=this;
+//					tempNode.copy(node,defToTempNodes);
+//				}
+//				for(Node node:definition.in){//copy definition in nodes
+//					this.in.add(defToTempNodes.get(node));
+//				}
+//				for(Node node:definition.out){//copy definition out nodes
+//					this.out.add(defToTempNodes.get(node));
+//				}
+//				for(Instance copiedInstance:definition.instances){
+//					ArrayList<Node> nodes = new ArrayList<Node>();
+//					for(Node node:copiedInstance.in){
+//						nodes.add(defToTempNodes.get(node));
+//					}
+//					for(Node node:copiedInstance.out){
+//						nodes.add(defToTempNodes.get(node));
+//					}
+//					if(copiedInstance.definition==definition){//recursive instance
+//						this.add(this,nodes.toArray(new Node[nodes.size()]));
+//					}else{
+//						this.add(copiedInstance.definition,nodes.toArray(new Node[nodes.size()]));
+//					}
+//				}
+//			    this.containedDefinitions.putAll(definition.containedDefinitions);
+//			}
+			public void removeRecursion() {
+				this.instances.removeAll(this.recursiveInstances);//remove all recursive instances, to make the definition not self recursive
+				for(Instance instance : this.recursiveInstances){//add nodes from recursive instances
+					for (int i = 0; i < instance.out.size(); i++) {//map out nodes to tempDef in
+						instance.out.get(i).outOfInstance=null;
+						this.in.add(instance.out.get(i));
+					}
+					for (int i = 0; i < instance.in.size(); i++) {//map in nodes to nand out
+						instance.in.get(i).inOfInstances.remove(instance);
+						this.out.add(instance.in.get(i));
+					}
+				}
+				this.containedDefinitions.remove(this);
+				this.recursive=false;			
 			}
-			public void add(Definition definition, ArrayList<Node> inNodes,
-					ArrayList<Node> outNodes) {
+			public void recoverRecursion() {
+				for(Instance instance : this.recursiveInstances){
+					this.in.subList(this.in.size()-instance.out.size(), this.in.size()).clear();//remove added nodes
+					this.out.subList(this.out.size()-instance.in.size(), this.out.size()).clear();//remove added nodes
+					ArrayList<Node> nodes = new ArrayList<Node>();
+					nodes.addAll(instance.in);
+					nodes.addAll(instance.out);
+					Node[] nodeArray = nodes.toArray(new Node[nodes.size()]);;
+					this.add(this,nodeArray);
+				}			
+			}
+			public void remove(Instance instance) {
 				// TODO Auto-generated method stub
 				
 			}

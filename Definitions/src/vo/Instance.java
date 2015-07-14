@@ -60,13 +60,13 @@ public class Instance implements java.io.Serializable{
 		String string = new String();
 		string+=(this.definition.name+" [");
 		for (int i = 0; i < this.in.size(); i++) {//print in nodes
-			string+=this.in.get(i).toString(definition);
+			string+=this.in.get(i).toString();
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=(";");
 		for (int i = 0; i < this.out.size(); i++) {//print out nodes
-			string+=this.out.get(i).toString(definition);
+			string+=this.out.get(i).toString();
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","

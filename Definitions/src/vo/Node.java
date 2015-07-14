@@ -23,22 +23,20 @@ public class Node {
 	public ArrayList<Node> subnodes;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?//care:subnodes are nodes part of a supernode, not children
 	public Instance outOfInstance;
 	public HashSet<Instance> inOfInstances;	
+	public Definition definition;
 	//DEBUGGING ONLY
-	public HashMap<Definition,Integer> idForDefinition;//id of node for each definition where it's used
+	public int idForDefinition;//id of node for each definition where it's used
 	//END OF DEBUGGING ONLY
 	
 	public Node() { 
 		this.supernodes = new ArrayList<Node>();//care:supernodes are nodes with subnodes, not fathers
 		this.subnodes = new ArrayList<Node>();//care:subnodes are nodes part of a supernode, not children
 		this.inOfInstances = new HashSet<Instance>();//FIXME:needed?
-		this.idForDefinition = new HashMap<Definition,Integer>();
 	}
 	public Node add(Node node) {//add subnode to supernode
 		this.subnodes.add(node);
 		node.supernodes.add(this);
-		for(Definition def:this.idForDefinition.keySet()){
-			def.add(node);
-		}
+		if(this.definition!=null) this.definition.add(node);
 		return node;
 	}
 	public ArrayList<NandNode> toNands(HashMap<Node, Integer> nodeSize, HashSet<Node> expandedNodes,HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
@@ -132,36 +130,11 @@ public class Node {
 	public String toString() {
 		//for subnodes and supernodes instead of fathers and children
 		String string = new String();
-		string+="(";
-		for (Definition definition : idForDefinition.keySet()) {
-			if(idForDefinition.containsKey(definition)){
-				string+=definition.name+" ";
-				string+=idForDefinition.get(definition);
-			}
-			string+=("/");
-		}
-		string=string.substring(0, string.length() - 1);//remove last enumeration "/"
-		string+=")";
+		string+=this.idForDefinition;
 		if(!this.subnodes.isEmpty()){
 			string+="(";
 			for(Node node: this.subnodes){
 				string+=node.toString();
-				string+=("&");
-			}
-			string=string.substring(0, string.length() - 1);//remove last enumeration ","
-			string+=")";
-		}
-		return string;
-	}
-	public String toString(Definition definition) {
-		String string = new String();
-		if(idForDefinition.containsKey(definition)){
-			string+=idForDefinition.get(definition);
-		}
-		if(!this.subnodes.isEmpty()){
-			string+="(";
-			for(Node node: this.subnodes){
-				string+=node.toString(definition);
 				string+=("&");
 			}
 			string=string.substring(0, string.length() - 1);//remove last enumeration ","
@@ -262,13 +235,25 @@ public class Node {
 		}
 		
 	}
-	public void copy(Node tempNode) {
-		this.supernodes=tempNode.supernodes;
-		this.subnodes=tempNode.subnodes;
-		this.outOfInstance=tempNode.outOfInstance;
-		this.inOfInstances=tempNode.inOfInstances;
-		this.idForDefinition=tempNode.idForDefinition;
+	public void copy(Node node) {
+		this.supernodes=node.supernodes;
+		this.subnodes=node.subnodes;
+		this.outOfInstance=node.outOfInstance;
+		this.inOfInstances=node.inOfInstances;
+		this.idForDefinition=node.idForDefinition;
 		
+	}
+	public void copy(Node node,HashMap<Node,Node> defToTempNodes) {
+		this.idForDefinition=node.idForDefinition;
+		for(Node copiedSubnode:node.subnodes){
+			if(defToTempNodes.containsKey(copiedSubnode)){
+				this.add(defToTempNodes.get(copiedSubnode));
+			}else{
+				Node subnode = new Node();
+				defToTempNodes.put(copiedSubnode, subnode);
+				this.add(subnode);
+			}
+		}
 	}
 	public void fusion(Definition definition,HashSet<Node> nodes) {
 		//fusion of subnodes in a definition
@@ -312,7 +297,10 @@ public class Node {
 					i++;
 				}
 				if(fuse){
-					definition.add(this.outOfInstance.definition,inNodes,outNodes);//add fusion instance
+					ArrayList<Node> inOutNodes = new ArrayList<Node>();
+					nodes.addAll(inNodes);
+					nodes.addAll(outNodes);
+					definition.add(this.outOfInstance.definition,inOutNodes.toArray(new Node[nodes.size()]));//add fusion instance
 					//remove all the fused instances with their nodes
 					for(Node subnode:this.subnodes){
 						Instance instance=subnode.outOfInstance;

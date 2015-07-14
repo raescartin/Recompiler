@@ -40,7 +40,7 @@ public class NandTree {//multiple nodes nand tree
 	public ArrayList<Node> in = new ArrayList<Node>();
 	public ArrayList<Node> out = new ArrayList<Node>();
 	public String name;
-	public class Node{
+	private class Node{
 		public void printNode(){
 			if(this.in1!=null&&this.in2!=null){
 				System.out.print("(");

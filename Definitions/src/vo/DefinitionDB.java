@@ -16,6 +16,8 @@ import java.util.HashSet;
 //-serialized:
 //	-save definitions to file
 //	-load definitions from file
+//-doesn't support indirect recursion (non recursive definition with instances that call the definition)
+//because it doesn't make sense to define such a function (calling a definition not yet defined)
 //IMPLEMENTATION
 //- fix recursion optimization
 //- fusion of NandForest
@@ -70,39 +72,12 @@ public class DefinitionDB implements java.io.Serializable{
 		
 		if(definition.recursive){
 			//Optimize the non recursive part of definition as a temporary definition
-			//TODO: take care of indirect recursion (definition can be non recursive, but contain instances of recursive definitions
-			//TODO: add->multiply = simple recursion -> nested recursion
-			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
-			for(Node node : definition.nodes){
-					node.idForDefinition.put(tempDef , tempDef.nodes.size());//debugging only
-					tempDef.nodes.add(node);//All?
-			}
-			tempDef.in.addAll(definition.in);//copy definition in nodes
-		    tempDef.out.addAll(definition.out);//copy definition out nodes
-		    tempDef.instances.addAll(definition.instances);
-		    tempDef.instances.removeAll(definition.recursiveInstances);//remove all recursive instances, to make the definition not self recursive
-		    tempDef.recursive=false;
-		    tempDef.containedDefinitions.putAll(definition.containedDefinitions);
-		    tempDef.containedDefinitions.remove(definition);
-			for(Instance instance : definition.recursiveInstances){//add nodes from recursive instances
-				for (int i = 0; i < instance.out.size(); i++) {//map out nodes to tempDef in
-					tempDef.in.add(instance.out.get(i));
-				}
-				for (int i = 0; i < instance.in.size(); i++) {//map in nodes to nand out
-					tempDef.out.add(instance.in.get(i));
-				}
-			}
-			this.optimize(tempDef);//FIXME: XOR is not correctly rebuild
-			//copy back the optimized non recursive part of definition restoring recursion
-			//in and out nodes don't change
-			
-			definition.instances=tempDef.instances;
-			definition.instances.addAll(definition.recursiveInstances);//keep recursive instances
-			definition.containedDefinitions=tempDef.containedDefinitions;
-			definition.containedDefinitions.put(definition, definition.recursiveInstances);
-			for(Node node:tempDef.nodes){
-				definition.add(node);
-			}
+//			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
+//			HashMap<Node,Node> DefToTempNodes = new HashMap<Node,Node>();
+//			tempDef.copy(definition,DefToTempNodes);
+			definition.removeRecursion();
+			this.optimize(definition);
+			definition.recoverRecursion();//recover recursion
 			//rootIn is not modified
 //			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
 		}else{//definition is not recursive
