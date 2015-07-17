@@ -70,17 +70,7 @@ public class DefinitionDB implements java.io.Serializable{
 			//intersection optimization of recursive definitions
 			
 		
-		if(definition.recursive){
-			//Optimize the non recursive part of definition as a temporary definition
-//			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
-//			HashMap<Node,Node> DefToTempNodes = new HashMap<Node,Node>();
-//			tempDef.copy(definition,DefToTempNodes);
-			definition.removeRecursion();
-			this.optimize(definition);
-			definition.recoverRecursion();//recover recursion
-			//rootIn is not modified
-//			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
-		}else{//definition is not recursive
+		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
@@ -89,7 +79,20 @@ public class DefinitionDB implements java.io.Serializable{
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				this.toBest(definition);//nand definition to best definition (higher level)//TODO: subnodes
-			}
+			}	
+		}else{//definition has recursion
+			//Optimize the non recursive part of definition as a temporary definition
+//			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
+//			HashMap<Node,Node> DefToTempNodes = new HashMap<Node,Node>();
+//			tempDef.copy(definition,DefToTempNodes);
+			int addedInNodes = 0;
+			int addedOutNodes = 0;
+			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			definition.removeRecursion(addedInNodes, addedOutNodes, removedInstances);
+			this.optimize(definition);
+			definition.recoverRecursion(addedInNodes, addedOutNodes, removedInstances);//recover recursion
+			//rootIn is not modified
+//			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
 		}
 		
 		
@@ -108,7 +111,6 @@ public class DefinitionDB implements java.io.Serializable{
 		definition.nodes.clear();
 		definition.instances.clear();
 		definition.rootIn.clear();
-		definition.containedDefinitions.clear();
 		//FIXME: if a node is both in and out, it gets to in/=out
 		for(Node node:definition.in){
 			definition.add(node);

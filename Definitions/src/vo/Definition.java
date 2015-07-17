@@ -78,9 +78,8 @@ public class Definition implements java.io.Serializable{ /**
 			public ArrayList<Node> out;//NEEDED
 			public ArrayList<Instance> instances;//FIXME: better data structure Hash AND list linkedhashmap?  - replaces def?
 			public ArrayList<Definition> rootIn;//FIXME: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
-			public Boolean recursive;//recursive flag, set to true if it contains any recursive definition
 			public HashSet<Instance> recursiveInstances;//Recursive instances of this definition, contained in this definition
-			public HashMap<Definition,HashSet<Instance>> containedDefinitions;//Definitions directly or indirectly instanced (contained) in this definition
+			public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
 			//DEBUGGING ONLY
 			public HashSet<Node> nodes;
 			//END OF DEBUGGING ONLY
@@ -91,9 +90,8 @@ public class Definition implements java.io.Serializable{ /**
 				this.in = new ArrayList<Node>();
 				this.out = new ArrayList<Node>();
 				this.instances = new ArrayList<Instance>();
-				this.recursive=false;
 				this.recursiveInstances = new HashSet<Instance>();
-				this.containedDefinitions = new HashMap<Definition,HashSet<Instance>>(); 
+				this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 				this.rootIn = new ArrayList<Definition>();
 				//DEBUGGING ONLY
 				this.nodes = new HashSet<Node> ();
@@ -106,6 +104,9 @@ public class Definition implements java.io.Serializable{ /**
 					out.add(new Node());
 					this.add(out.get(i));
 				}			
+			}
+			public Definition() {
+				// TODO Auto-generated constructor stub
 			}
 			public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
 				//PRE: this definition is not recursive and doesn't contain recursive definitions
@@ -273,6 +274,11 @@ public class Definition implements java.io.Serializable{ /**
 					this.add(node);	
 				}
 				Instance instance = new Instance();//node == instance of a definition
+				if(def==this){
+					def.recursiveInstances.add(instance);
+				}else if(!def.recursiveInstances.isEmpty()){
+					this.instancesOfRecursiveDefinitions.add(instance);
+				}
 				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
 				for(Node node:instance.in){
 					node.inOfInstances.add(instance);
@@ -284,23 +290,6 @@ public class Definition implements java.io.Serializable{ /**
 					outNode.outOfInstance=instance;
 				}
 				this.instances.add(instance);
-				if(def==this||def.recursive){
-					this.recursive=true;//set recursive flag
-					};
-				this.containedDefinitions.putAll(def.containedDefinitions);//add all contained definitions in instance
-				//add this definition as contained
-				HashSet<Instance> instances;
-				if(this.containedDefinitions.containsKey(def)){//if definition already contained
-					instances = this.containedDefinitions.get(def);
-					instances.add(instance);
-				}else{
-					instances = new HashSet<Instance>();
-					instances.add(instance);
-					this.containedDefinitions.put(def, instances);
-				}
-				if (def.containedDefinitions.get(def)!=null){
-					this.recursiveInstances.addAll(def.containedDefinitions.get(def));//add all recursive references to this definition
-				}
 				return instance;
 			}
 			public void add(Node node){
@@ -531,67 +520,107 @@ public class Definition implements java.io.Serializable{ /**
 			        return null; 
 			    }
 			}
-//			public void copy(Definition definition,HashMap<Node,Node> defToTempNodes){
-//				for(Node node : definition.nodes){
-//					Node tempNode;
-//					if(defToTempNodes.containsKey(node)){
-//						tempNode =defToTempNodes.get(node);
-//					
-//					}else{
-//						tempNode = new Node();
-//					}
-//					defToTempNodes.put(node, tempNode);
-//					this.nodes.add(tempNode);
-//					tempNode.definition=this;
-//					tempNode.copy(node,defToTempNodes);
-//				}
-//				for(Node node:definition.in){//copy definition in nodes
-//					this.in.add(defToTempNodes.get(node));
-//				}
-//				for(Node node:definition.out){//copy definition out nodes
-//					this.out.add(defToTempNodes.get(node));
-//				}
-//				for(Instance copiedInstance:definition.instances){
-//					ArrayList<Node> nodes = new ArrayList<Node>();
-//					for(Node node:copiedInstance.in){
-//						nodes.add(defToTempNodes.get(node));
-//					}
-//					for(Node node:copiedInstance.out){
-//						nodes.add(defToTempNodes.get(node));
-//					}
-//					if(copiedInstance.definition==definition){//recursive instance
-//						this.add(this,nodes.toArray(new Node[nodes.size()]));
-//					}else{
-//						this.add(copiedInstance.definition,nodes.toArray(new Node[nodes.size()]));
-//					}
-//				}
-//			    this.containedDefinitions.putAll(definition.containedDefinitions);
-//			}
-			public void removeRecursion() {
+			public void copy(Definition definition,HashMap<Node,Node> defToTempNodes){
+				for(Node node : definition.nodes){
+					Node tempNode;
+					if(defToTempNodes.containsKey(node)){
+						tempNode =defToTempNodes.get(node);
+					
+					}else{
+						tempNode = new Node();
+					}
+					defToTempNodes.put(node, tempNode);
+					this.nodes.add(tempNode);
+					tempNode.definition=this;
+					tempNode.copy(node,defToTempNodes);
+				}
+				for(Node node:definition.in){//copy definition in nodes
+					this.in.add(defToTempNodes.get(node));
+				}
+				for(Node node:definition.out){//copy definition out nodes
+					this.out.add(defToTempNodes.get(node));
+				}
+				for(Instance copiedInstance:definition.instances){
+					ArrayList<Node> nodes = new ArrayList<Node>();
+					for(Node node:copiedInstance.in){
+						nodes.add(defToTempNodes.get(node));
+					}
+					for(Node node:copiedInstance.out){
+						nodes.add(defToTempNodes.get(node));
+					}
+					if(copiedInstance.definition==definition){//recursive instance
+						this.add(this,nodes.toArray(new Node[nodes.size()]));
+					}else{
+						this.add(copiedInstance.definition,nodes.toArray(new Node[nodes.size()]));
+					}
+				}
+			}
+			public void removeRecursion(int addedInNodes,int addedOutNodes,HashSet<Instance> removedInstances) {
 				this.instances.removeAll(this.recursiveInstances);//remove all recursive instances, to make the definition not self recursive
 				for(Instance instance : this.recursiveInstances){//add nodes from recursive instances
-					for (int i = 0; i < instance.out.size(); i++) {//map out nodes to tempDef in
+					removedInstances.add(instance);
+					addedInNodes+=instance.out.size();
+					for (int i = 0; i < instance.out.size(); i++) {//add out nodes to tempDef in
 						instance.out.get(i).outOfInstance=null;
 						this.in.add(instance.out.get(i));
 					}
-					for (int i = 0; i < instance.in.size(); i++) {//map in nodes to nand out
+					addedOutNodes+=instance.in.size();
+					for (int i = 0; i < instance.in.size(); i++) {//add in nodes to nand out
 						instance.in.get(i).inOfInstances.remove(instance);
 						this.out.add(instance.in.get(i));
 					}
 				}
-				this.containedDefinitions.remove(this);
-				this.recursive=false;			
+				this.recursiveInstances.clear();
+				this.instances.removeAll(this.instancesOfRecursiveDefinitions);
+				for(Instance instance:this.instancesOfRecursiveDefinitions){
+					this.instancesOfRecursiveDefinitions.remove(instance);
+					HashMap<Node,Node> instanceToDefNodes = new HashMap<Node,Node>();
+					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+						instanceToDefNodes.put(instance.definition.in.get(i), instance.in.get(i));
+					}
+					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
+						instanceToDefNodes.put(instance.definition.out.get(i), instance.in.get(i));
+					}
+					for(Instance definitionInstance:instance.definition.instances){
+						ArrayList<Node> nodes = new ArrayList<Node>();
+						for (Node node: definitionInstance.in) {//map in nodes
+							if(instanceToDefNodes.containsKey(node)){
+								nodes.add(instanceToDefNodes.get(node));
+							}else{
+								Node defNode = new Node();
+								instanceToDefNodes.put(node, defNode);
+								nodes.add(defNode);
+							}
+						}
+						for (Node node: definitionInstance.out) {//map out nodes
+							if(instanceToDefNodes.containsKey(node)){
+								nodes.add(instanceToDefNodes.get(node));
+							}else{
+								Node defNode = new Node();
+								instanceToDefNodes.put(node, defNode);
+								nodes.add(defNode);
+							}
+						}
+						this.add(instance.definition,nodes.toArray(new Node[nodes.size()]));
+						if(definitionInstance.definition==instance.definition){
+							this.recursiveInstances.add(definitionInstance);
+							this.instancesOfRecursiveDefinitions.remove(definitionInstance);
+						}
+					}
+				}
+				if(!this.recursiveInstances.isEmpty()||!this.instancesOfRecursiveDefinitions.isEmpty()){
+					this.removeRecursion(addedInNodes, addedOutNodes, removedInstances);
+				}
 			}
-			public void recoverRecursion() {
-				for(Instance instance : this.recursiveInstances){
-					this.in.subList(this.in.size()-instance.out.size(), this.in.size()).clear();//remove added nodes
-					this.out.subList(this.out.size()-instance.in.size(), this.out.size()).clear();//remove added nodes
+			public void recoverRecursion(int addedInNodes,int addedOutNodes,HashSet<Instance> removedInstances) {
+				this.in.subList(this.in.size()-addedInNodes, this.in.size()).clear();//remove added nodes
+				this.out.subList(this.out.size()-addedOutNodes, this.out.size()).clear();//remove added nodes
+				for(Instance instance : removedInstances){
 					ArrayList<Node> nodes = new ArrayList<Node>();
 					nodes.addAll(instance.in);
 					nodes.addAll(instance.out);
-					Node[] nodeArray = nodes.toArray(new Node[nodes.size()]);;
-					this.add(this,nodeArray);
-				}			
+					this.add(instance.definition,nodes.toArray(new Node[nodes.size()]));
+				}
 			}
 			public void remove(Instance instance) {
 				// TODO Auto-generated method stub
