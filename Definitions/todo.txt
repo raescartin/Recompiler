@@ -1,7 +1,7 @@
 ﻿-define mul
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
 	recursive mul:
-	mul(a,b,c)= mul(a,b-1,d)&
+	mul(a,b,c)= mul(a,b-1,d)&add(d,a,c)
 -interseccion entre iteraciones de los bucles
 -nandfusion
 
@@ -13,3 +13,4 @@
 	if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
 
 -Optimize dropping ops before logical one or zero (already?). Remember to conserve size.
+-independent size of variables 0(n)=0(1) (->cmp ->eq0 ->if)
