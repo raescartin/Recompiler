@@ -283,7 +283,7 @@ public class Definition implements java.io.Serializable{ /**
 				Instance instance = new Instance();//node == instance of a definition
 				if(def==this){
 					def.recursiveInstances.add(instance);
-				}else if(!def.recursiveInstances.isEmpty()){
+				}else if(!def.recursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
 					this.instancesOfRecursiveDefinitions.add(instance);
 				}
 				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
@@ -579,7 +579,9 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				this.recursiveInstances.clear();
 				this.instances.removeAll(this.instancesOfRecursiveDefinitions);
-				for(Instance instance:this.instancesOfRecursiveDefinitions){
+				HashSet<Instance> instances = new HashSet<Instance>();
+				instances.addAll(this.instancesOfRecursiveDefinitions);
+				for(Instance instance:instances){
 					this.instancesOfRecursiveDefinitions.remove(instance);
 					HashMap<Node,Node> instanceToDefNodes = new HashMap<Node,Node>();
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes

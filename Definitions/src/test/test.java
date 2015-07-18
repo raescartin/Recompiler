@@ -219,18 +219,18 @@ class test {
 //    	definitionDB.put("for",forDef);
 //    	System.out.print(definitionDB.toString());
 //    	//MUL definition//
-//    	Definition mul = new Definition(2,1,"mul");
-//    	Node mul0 = new Node();
-//    	Node mul1 = new Node();
-//    	Node mul2 = new Node();
-//    	Node mul3 = new Node();
-//    	mul.add(eq0,mul.in.get(0),mul0);
-//    	mul.add(zeros,mul.in.get(0),mul1);
-//    	mul.add(dec,mul.in.get(1),mul2);
-//    	mul.add(mul,mul.in.get(0),mul2,mul3);
-//    	mul.add(ifDef,mul0,mul1,mul3,mul.out.get(0));
-//    	definitionDB.put("mul",mul);
-//    	System.out.print(definitionDB.toString());
+    	Definition mul = new Definition(2,1,"mul");
+    	Node mul0 = new Node();
+    	Node mul1 = new Node();
+    	Node mul2 = new Node();
+    	Node mul3 = new Node();
+    	mul.add(eq0,mul.in.get(0),mul0);
+    	mul.add(zeros,mul.in.get(0),mul1);
+    	mul.add(dec,mul.in.get(1),mul2);
+    	mul.add(mul,mul.in.get(0),mul2,mul3);
+    	mul.add(ifDef,mul0,mul1,mul3,mul.out.get(0));
+    	definitionDB.put("mul",mul);
+    	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER
     	//Declare instruction set
