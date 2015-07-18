@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import utils.AddedNodes;
+
 //DESCRIPTION
 //-Database of unique definitions, recursively defined by other contained definitions
 //-indexed by name
@@ -85,12 +87,12 @@ public class DefinitionDB implements java.io.Serializable{
 //			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
 //			HashMap<Node,Node> DefToTempNodes = new HashMap<Node,Node>();
 //			tempDef.copy(definition,DefToTempNodes);
-			int addedInNodes = 0;
-			int addedOutNodes = 0;
+			
+			AddedNodes addedNodes = new AddedNodes();
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
-			definition.removeRecursion(addedInNodes, addedOutNodes, removedInstances);
+			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
-			definition.recoverRecursion(addedInNodes, addedOutNodes, removedInstances);//recover recursion
+			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
 //			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
 		}

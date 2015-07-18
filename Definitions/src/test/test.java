@@ -208,24 +208,29 @@ class test {
     	eq0.add(zeros,eq0.in.get(0),eq);
     	eq0.add(cmp,eq,eq0.in.get(0),eq0.out.get(0));
     	definitionDB.put("eq0",eq0);
-    	//forDef definition////for loop definition
-    	Definition forDef = new Definition(2,1,"for");
-    	Node forDef0 = new Node();
-    	Node forDef1 = new Node();
-    	forDef.add(zeros,forDef.out.get(1),forDef1);
-    	forDef.add(forDef,forDef.in.get(0),forDef.in.get(1),forDef0);
-    	forDef.add(ifDef,forDef.in.get(0),forDef0,forDef1,forDef.out.get(0));
-    	definitionDB.put("for",forDef);
     	System.out.print(definitionDB.toString());
+//    	//forDef definition////for loop definition
+//    	Definition forDef = new Definition(2,1,"for");
+//    	Node forDef0 = new Node();
+//    	Node forDef1 = new Node();
+//    	forDef.add(zeros,forDef.in.get(1),forDef1);
+//    	forDef.add(forDef,forDef.in.get(0),forDef.in.get(1),forDef0);
+//    	forDef.add(ifDef,forDef.in.get(0),forDef0,forDef1,forDef.out.get(0));
+//    	definitionDB.put("for",forDef);
+//    	System.out.print(definitionDB.toString());
 //    	//MUL definition//
-//    	Definition mul = new Definition(2,"mul");
-//    	Node mulDec = mul.add(dec,add.in.get(0)).out.get(0);
-//    	Node mulR = mul.add(mul, add.in.get(0),mulDec).out.get(0);
-//    	Node added = mul.add(add, add.in.get(0),add.in.get(1)).out.get(0);
-//    	mul.add(ifdef,add.in.get(0),added,0);
-//    	
-//    	Node decremented = mul.add(dec, add.in.get(0)).out.get(0);
-//    	mul.add(mul,added,decremented);
+//    	Definition mul = new Definition(2,1,"mul");
+//    	Node mul0 = new Node();
+//    	Node mul1 = new Node();
+//    	Node mul2 = new Node();
+//    	Node mul3 = new Node();
+//    	mul.add(eq0,mul.in.get(0),mul0);
+//    	mul.add(zeros,mul.in.get(0),mul1);
+//    	mul.add(dec,mul.in.get(1),mul2);
+//    	mul.add(mul,mul.in.get(0),mul2,mul3);
+//    	mul.add(ifDef,mul0,mul1,mul3,mul.out.get(0));
+//    	definitionDB.put("mul",mul);
+//    	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER
     	//Declare instruction set

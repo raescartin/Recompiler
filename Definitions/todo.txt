@@ -1,16 +1,15 @@
-﻿nandfusion
+﻿-define mul
+	mul(a,b;c) d=0 add(a,d,d) b times c=d
+	recursive mul:
+	mul(a,b,c)= mul(a,b-1,d)&
+-interseccion entre iteraciones de los bucles
+-nandfusion
 
-add [7(18&19&20),8(21&22&23);6(17&25)] = xor [20,23;25] xor [18,21;26] xor [19,22;27] and [19,22;28] and [20,23;29] add [16(26&27),15(28&29);17]  root in: 
-to
-add [7(0&1&2),8(3&4&5);6(17&12)] = xor [7(0&1&2),8(3&4&5);9(10&11&12)] and [13(1&2),14(4&5);15] add [16(10&11),15;17]  root in: 
+	add [7(18&19&20),8(21&22&23);6(17&25)] = xor [20,23;25] xor [18,21;26] xor [19,22;27] and [19,22;28] and [20,23;29] add [16(26&27),15(28&29);17]  root in: 
+	to
+	add [7(0&1&2),8(3&4&5);6(17&12)] = xor [7(0&1&2),8(3&4&5);9(10&11&12)] and [13(1&2),14(4&5);15] add [16(10&11),15;17]  root in: 
 
 
-if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
+	if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
 
-Optimize dropping ops before logical one or zero (already?). Remember to conserve size.
-
-
-map tempdef to def in order to not have the same node in two definitions
-
-change add to add as arguments out nodes too
-fix "setOut"
+-Optimize dropping ops before logical one or zero (already?). Remember to conserve size.

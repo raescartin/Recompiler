@@ -32,7 +32,7 @@ public class NandNode{
 			string+=this.in2.printNode(in);
 			string+=(")");
 		}else{
-			string+=(in.indexOf(this));
+			string+=(this.id);
 		}
 		return string;
 	}

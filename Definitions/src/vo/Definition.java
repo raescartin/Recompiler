@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import utils.AddedNodes;
 import utils.FixedBitSet;
 
 //DESCRIPTION
@@ -117,7 +118,7 @@ public class Definition implements java.io.Serializable{ /**
 				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
 				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
 				//NODE FISSION
-				this.getNodesSize(nodeSize);
+				this.getNodesSize(nodeSize);//get the size of all the definition nodes
 				this.setIns(nodeSize,nodeToNands,nandForest);//from bottom to top//(mapping in and finding inputs size first is needed)
 				for (Node node:this.out) {
 					HashSet<Node> expandedNodes = new HashSet<Node>();
@@ -155,11 +156,17 @@ public class Definition implements java.io.Serializable{ /**
 			private void setIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
 				for(Node inNode:this.in){
 					ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
-					for (int i = 0; i < nodeSize.get(inNode); i++) {
-						nandNodes.add(new NandNode(BigInteger.valueOf(i+1)));
+					if(inNode.subnodes.isEmpty()){
+						nandNodes=nandForest.addIns(nodeSize.get(inNode));
+					}else{
+						for(Node subnode:inNode.subnodes){
+							ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
+							subNandNodes=nandForest.addIns(nodeSize.get(subnode));
+							nodeToNands.put(subnode, subNandNodes);
+							nandNodes.addAll(subNandNodes);
+						}
 					}
 					nodeToNands.put(inNode, nandNodes);
-					nandForest.in.addAll(nandNodes);
 				}
 				
 			}
@@ -555,16 +562,16 @@ public class Definition implements java.io.Serializable{ /**
 					}
 				}
 			}
-			public void removeRecursion(int addedInNodes,int addedOutNodes,HashSet<Instance> removedInstances) {
+			public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
 				this.instances.removeAll(this.recursiveInstances);//remove all recursive instances, to make the definition not self recursive
 				for(Instance instance : this.recursiveInstances){//add nodes from recursive instances
 					removedInstances.add(instance);
-					addedInNodes+=instance.out.size();
+					addedNodes.in+=instance.out.size();
 					for (int i = 0; i < instance.out.size(); i++) {//add out nodes to tempDef in
 						instance.out.get(i).outOfInstance=null;
 						this.in.add(instance.out.get(i));
 					}
-					addedOutNodes+=instance.in.size();
+					addedNodes.out+=instance.in.size();
 					for (int i = 0; i < instance.in.size(); i++) {//add in nodes to nand out
 						instance.in.get(i).inOfInstances.remove(instance);
 						this.out.add(instance.in.get(i));
@@ -577,44 +584,48 @@ public class Definition implements java.io.Serializable{ /**
 					HashMap<Node,Node> instanceToDefNodes = new HashMap<Node,Node>();
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 						instanceToDefNodes.put(instance.definition.in.get(i), instance.in.get(i));
+						instance.definition.in.get(i).mapSubnodes(instanceToDefNodes);
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
-						instanceToDefNodes.put(instance.definition.out.get(i), instance.in.get(i));
+						instanceToDefNodes.put(instance.definition.out.get(i), instance.out.get(i));
+						instance.definition.out.get(i).mapSubnodes(instanceToDefNodes);
 					}
 					for(Instance definitionInstance:instance.definition.instances){
-						ArrayList<Node> nodes = new ArrayList<Node>();
-						for (Node node: definitionInstance.in) {//map in nodes
-							if(instanceToDefNodes.containsKey(node)){
-								nodes.add(instanceToDefNodes.get(node));
-							}else{
-								Node defNode = new Node();
-								instanceToDefNodes.put(node, defNode);
-								nodes.add(defNode);
+							ArrayList<Node> nodes = new ArrayList<Node>();
+							for (Node node: definitionInstance.in) {//map in nodes
+								if(instanceToDefNodes.containsKey(node)){
+									nodes.add(instanceToDefNodes.get(node));
+								}else{
+									Node defNode = new Node();
+									instanceToDefNodes.put(node, defNode);
+									nodes.add(defNode);
+								}
+								node.mapSubnodes(instanceToDefNodes);
 							}
-						}
-						for (Node node: definitionInstance.out) {//map out nodes
-							if(instanceToDefNodes.containsKey(node)){
-								nodes.add(instanceToDefNodes.get(node));
-							}else{
-								Node defNode = new Node();
-								instanceToDefNodes.put(node, defNode);
-								nodes.add(defNode);
+							for (Node node: definitionInstance.out) {//map out nodes
+								if(instanceToDefNodes.containsKey(node)){
+									nodes.add(instanceToDefNodes.get(node));
+								}else{
+									Node defNode = new Node();
+									instanceToDefNodes.put(node, defNode);
+									nodes.add(defNode);
+								}
+								node.mapSubnodes(instanceToDefNodes);
 							}
-						}
-						this.add(instance.definition,nodes.toArray(new Node[nodes.size()]));
-						if(definitionInstance.definition==instance.definition){
-							this.recursiveInstances.add(definitionInstance);
-							this.instancesOfRecursiveDefinitions.remove(definitionInstance);
-						}
+							Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+							if(definitionInstance.definition==instance.definition){
+								this.recursiveInstances.add(newInstance);
+								this.instancesOfRecursiveDefinitions.remove(newInstance);
+							}
 					}
 				}
 				if(!this.recursiveInstances.isEmpty()||!this.instancesOfRecursiveDefinitions.isEmpty()){
-					this.removeRecursion(addedInNodes, addedOutNodes, removedInstances);
+					this.removeRecursion(addedNodes, removedInstances);
 				}
 			}
-			public void recoverRecursion(int addedInNodes,int addedOutNodes,HashSet<Instance> removedInstances) {
-				this.in.subList(this.in.size()-addedInNodes, this.in.size()).clear();//remove added nodes
-				this.out.subList(this.out.size()-addedOutNodes, this.out.size()).clear();//remove added nodes
+			public void recoverRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
+				this.in.subList(this.in.size()-addedNodes.in, this.in.size()).clear();//remove added nodes
+				this.out.subList(this.out.size()-addedNodes.out, this.out.size()).clear();//remove added nodes
 				for(Instance instance : removedInstances){
 					ArrayList<Node> nodes = new ArrayList<Node>();
 					nodes.addAll(instance.in);

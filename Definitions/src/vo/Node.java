@@ -103,12 +103,12 @@ public class Node {
 					}
 				}
 
-				nodeToNands.put(this, nandNodes);//before eval of supernodes
+
 				
 				for (Node supernode : this.supernodes) {
 					if(!expandedNodes.contains(supernode)){//father supernode (up)
 						ArrayList<NandNode> tempNodes=supernode.toNands(nodeSize, expandedNodes, nodeToNands, nandForest);//add to output all the supernodes of a node
-						for(int i = 0; i < supernode.subnodes.size()/2; i++) {
+						for(int i = 0; i < supernode.subnodes.size()/2; i++) {//TODO:check this is needed, dim of left node can be>1?
 							ArrayList<NandNode> leftNode = new ArrayList<NandNode>();
 							leftNode.add(tempNodes.get(i));
 							nodeToNands.put(supernode.subnodes.get(i),leftNode);
@@ -124,6 +124,7 @@ public class Node {
 						nandNodes=nodeToNands.get(this);		
 					}
 				}
+				nodeToNands.put(this, nandNodes);
 		}
 		return nandNodes;
 	}
@@ -321,6 +322,17 @@ public class Node {
 						node.fusion(definition, nodes);
 					}
 				}
+			}
+		}
+	}
+	public void mapSubnodes(HashMap<Node, Node> instanceToDefNodes) {
+		for(Node subnode:this.subnodes){//map subnodes
+			if(instanceToDefNodes.containsKey(subnode)){
+				instanceToDefNodes.get(this).add(instanceToDefNodes.get(subnode));
+			}else{
+				Node newSubnode= new Node();
+				instanceToDefNodes.get(this).add(newSubnode);
+				instanceToDefNodes.put(subnode, newSubnode);
 			}
 		}
 	}
