@@ -325,15 +325,4 @@ public class Node {
 			}
 		}
 	}
-	public void mapSubnodes(HashMap<Node, Node> instanceToDefNodes) {
-		for(Node subnode:this.subnodes){//map subnodes
-			if(instanceToDefNodes.containsKey(subnode)){
-				instanceToDefNodes.get(this).add(instanceToDefNodes.get(subnode));
-			}else{
-				Node newSubnode= new Node();
-				instanceToDefNodes.get(this).add(newSubnode);
-				instanceToDefNodes.put(subnode, newSubnode);
-			}
-		}
-	}
 }

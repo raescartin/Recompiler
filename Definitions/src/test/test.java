@@ -100,6 +100,41 @@ class test {
     	ifDef.add(and,ifdef1,ifdef2,ifDef.out.get(0));
     	definitionDB.put("if",ifDef);
     	System.out.print(definitionDB.toString());
+    	//if a then b else c = (¬AvB)^(AvC)
+    	//size(a)=1 size(b)=n size(c)=m
+    	Definition rifDef = new Definition(3,1,"rif");//recursive ,bit a bit, def of if
+    	Node rifdef0 = new Node();
+    	Node rifdef1 = new Node();
+    	Node rifdef2 = new Node();
+    	Node rifdef3 = new Node();
+    	Node rifdef4 = new Node();
+    	Node rifdef5 = new Node();
+    	Node rifdef6 = new Node();
+    	Node rifdef7 = new Node();
+    	Node rifdef8 = new Node();
+    	Node rifdef9 = new Node();
+    	Node rifdef10 = new Node();
+    	Node rifdef11 = new Node();
+    	Node rifdef12 = new Node();
+    	rifDef.in.get(1).add(rifdef3);
+    	rifDef.in.get(1).add(rifdef4);
+    	rifDef.in.get(1).add(rifdef5);
+    	rifDef.in.get(2).add(rifdef6);
+    	rifDef.in.get(2).add(rifdef7);
+    	rifDef.in.get(2).add(rifdef8);
+    	rifDef.add(not,rifDef.in.get(0),rifdef0);
+    	rifDef.add(or,rifdef0,rifdef5,rifdef1);
+    	rifDef.add(or,rifDef.in.get(0),rifdef8,rifdef2);
+    	rifDef.add(and,rifdef1,rifdef2,rifdef9);//rightmost bit of if computed
+    	rifdef10.add(rifdef3);
+    	rifdef10.add(rifdef4);
+    	rifdef11.add(rifdef6);
+    	rifdef11.add(rifdef7);
+    	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
+    	rifDef.out.get(0).add(rifdef12);
+    	rifDef.out.get(0).add(rifdef9);
+    	definitionDB.put("rif",rifDef);
+    	System.out.print(definitionDB.toString());
     	
 //    	//RECURSIVE XOR //TODO: should optimize to simply XOR
 //    	Definition rxor = new Definition(4);
@@ -224,11 +259,13 @@ class test {
     	Node mul1 = new Node();
     	Node mul2 = new Node();
     	Node mul3 = new Node();
+    	Node mul4 = new Node();
     	mul.add(eq0,mul.in.get(0),mul0);
     	mul.add(zeros,mul.in.get(0),mul1);
     	mul.add(dec,mul.in.get(1),mul2);
     	mul.add(mul,mul.in.get(0),mul2,mul3);
-    	mul.add(ifDef,mul0,mul1,mul3,mul.out.get(0));
+    	mul.add(add,mul3,mul.in.get(0),mul4);
+    	mul.add(rifDef,mul0,mul1,mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
     	definitionDB.put("mul",mul);
     	System.out.print(definitionDB.toString());
     	

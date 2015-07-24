@@ -581,38 +581,78 @@ public class Definition implements java.io.Serializable{ /**
 				this.instances.removeAll(this.instancesOfRecursiveDefinitions);
 				HashSet<Instance> instances = new HashSet<Instance>();
 				instances.addAll(this.instancesOfRecursiveDefinitions);
-				for(Instance instance:instances){
-					this.instancesOfRecursiveDefinitions.remove(instance);
-					HashMap<Node,Node> instanceToDefNodes = new HashMap<Node,Node>();
+				this.instancesOfRecursiveDefinitions.clear();
+				for(Instance instance:instances){//map all the instancesOfRecursiveDefinitions nodes
+					HashMap<Node,Node> definitionToNewNodes = new HashMap<Node,Node>();
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
-						instanceToDefNodes.put(instance.definition.in.get(i), instance.in.get(i));
-						instance.definition.in.get(i).mapSubnodes(instanceToDefNodes);
+						definitionToNewNodes.put(instance.definition.in.get(i), instance.in.get(i));
+						if(instance.in.get(i).subnodes.isEmpty()){
+							for(Node subnode:instance.definition.in.get(i).subnodes){//map subnodes//don't think it's needed to map supernodes
+									Node newSubnode = new Node();
+									instance.in.get(i).add(newSubnode);
+									definitionToNewNodes.put(subnode,newSubnode);
+							}
+						}else{
+							if(instance.in.get(i).subnodes.size()==instance.definition.in.get(i).subnodes.size()){
+								for (int j = 0; j < instance.in.get(i).subnodes.size(); j++) {//map in nodes
+									instance.in.get(i).add(instance.in.get(i).subnodes.get(j));
+									definitionToNewNodes.put(instance.definition.in.get(i).subnodes.get(j),instance.in.get(i).subnodes.get(j));
+								}
+							}
+							//TODO if instance has subnodes difficult!
+						}
+						instance.in.get(i).inOfInstances.remove(instance);
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
-						instanceToDefNodes.put(instance.definition.out.get(i), instance.out.get(i));
-						instance.definition.out.get(i).mapSubnodes(instanceToDefNodes);
+						definitionToNewNodes.put(instance.definition.out.get(i), instance.out.get(i));
+						if(instance.out.get(i).subnodes.isEmpty()){
+							for(Node subnode:instance.definition.out.get(i).subnodes){//map subnodes//don't think it's needed to map supernodes
+								Node newSubnode = new Node();
+								instance.out.get(i).add(newSubnode);
+								definitionToNewNodes.put(subnode,newSubnode);
+							}
+						}else{
+							//TODO if instance has subnodes difficult!
+						}
+						instance.out.get(i).outOfInstance=null;
 					}
 					for(Instance definitionInstance:instance.definition.instances){
 							ArrayList<Node> nodes = new ArrayList<Node>();
 							for (Node node: definitionInstance.in) {//map in nodes
-								if(instanceToDefNodes.containsKey(node)){
-									nodes.add(instanceToDefNodes.get(node));
+								if(definitionToNewNodes.containsKey(node)){
+									nodes.add(definitionToNewNodes.get(node));
 								}else{
-									Node defNode = new Node();
-									instanceToDefNodes.put(node, defNode);
-									nodes.add(defNode);
+									Node newNode = new Node();
+									definitionToNewNodes.put(node, newNode);
+									nodes.add(newNode);
 								}
-								node.mapSubnodes(instanceToDefNodes);
+								for(Node subnode:node.subnodes){//map subnodes//don't think it's needed to map supernodes
+									if(definitionToNewNodes.containsKey(subnode)){
+										node.add(definitionToNewNodes.get(subnode));
+									}else{
+										Node newSubnode = new Node();
+										definitionToNewNodes.get(node).add(newSubnode);
+										definitionToNewNodes.put(subnode, newSubnode);
+									}
+								}
 							}
 							for (Node node: definitionInstance.out) {//map out nodes
-								if(instanceToDefNodes.containsKey(node)){
-									nodes.add(instanceToDefNodes.get(node));
+								if(definitionToNewNodes.containsKey(node)){
+									nodes.add(definitionToNewNodes.get(node));
 								}else{
 									Node defNode = new Node();
-									instanceToDefNodes.put(node, defNode);
+									definitionToNewNodes.put(node, defNode);
 									nodes.add(defNode);
 								}
-								node.mapSubnodes(instanceToDefNodes);
+								for(Node subnode:node.subnodes){//map subnodes//don't think it's needed to map supernodes
+									if(definitionToNewNodes.containsKey(subnode)){
+										node.add(definitionToNewNodes.get(subnode));
+									}else{
+										Node newSubnode = new Node();
+										definitionToNewNodes.get(node).add(newSubnode);
+										definitionToNewNodes.put(subnode, newSubnode);
+									}
+								}
 							}
 							Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
 							if(definitionInstance.definition==instance.definition){

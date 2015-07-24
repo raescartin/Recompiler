@@ -14,3 +14,83 @@
 	if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
 
 -Optimize dropping ops before logical one or zero (already?). Remember to conserve size.
+
+////////////
+BUGS
+////////////
+mul [0(7&8&9),1(23&24&25),6(31&32&33),26,34,47;2(34&35),0(7&8&9),5,27(23&24),3,36(28&29),37(31&32),50(38&39),51(41&42)] = zeros [0(7&8&9);4(28&29&30)] not [9;10] nand [9,10;11] nand [10,11;12] zeros [9;13] nand [9,13;14] nand [12,14;15] not [16;17] nand [17,15;18] and [15,18;3] zeros [7;19] zeros [8;20] if [25,23,26;5] if [3,30,33;35] nand [40,43;44] or [40,43;45] nand [44,45;46] not [47;48] nand [48,46;49] and [46,49;16]  root in: 
+
+con
+removedInstances:[cmp [50(38&39),51(41&42);47] , dec [27(23&24);26] , mul [0(7&8&9),5;6(31&32&33)] , rif [3,36(28&29),37(31&32);34] ]
+bucle infinito en NodeSize()
+0(7&8&9)=3
+1(23&24&25)=3+
+2(34&35)=2+
+3=1
+4(28&29&30)=3
+5=1+
+6(31&32&33)=3
+7=1+
+8=1
+9=1
+10=1
+11=1
+12=1
+13=1+
+14=1+
+15=1+
+16=1
+17=1+
+18=1+
+19=1
+20=1
+21=??+5
+22=??
+23=1
+24=1
+25=1+
+26=1
+27=2
+28=1+
+29=1
+30=1
+31=1+
+32=1
+33=1
+34=1
+35=1
+36=2
+37=2+
+38=1
+39=1
+40=1
+41=1
+42=1+
+43=1
+44=1+
+45=1
+46=1+
+47=1
+48=1
+49=1
+50=2
+51=2+
+PROBLEMA?: nodes 21,22 not removed vienen de las definiciones cuyas instancias se han añadido
+{18=1, 9=1, 0(7&8&9)=3, 19=1, 32=1, 16=1, 37(31&32)=2, 11=1, 44=1, 3=1, 7=1, 51(41&42)=2, 42=1, 43=1, 17=1, 20=1, 29=1, 14=1, 2(34&35)=2, 28=1, 10=1, 21(19&20&38&39&40)=5, 15=1, 38=1, 31=1, 46=1, 33=1, 35=1, 45=1, 47=1, 49=1, 13=1, 39=1, 48=1, 30=1, 50(38&39)=2, 41=1, 6(31&32&33)=3, 22(7&8&41&42&43)=5, 4(28&29&30)=3, 34=1, 40=1, 12=1, 8=1, 36(28&29)=2}
+PROBLEMA: 22(34&35).outOfInstance=rif [3,4(28&29&30),6(31&32&33);2(34&35)] 
+(22 inOfInstance: [cmp [21(19&20),22(7&8);16] ])
+creo que el problema tiene que ver con que se quita instance, pero no sus nodos
+
+{9=[vo.NandNode@3a82f6ef], 26=[vo.NandNode@100fc185], 23=[vo.NandNode@643b1d11], 1(23&24&25)=[vo.NandNode@643b1d11, vo.NandNode@2ef5e5e3, vo.NandNode@36d4b5c], 31=[vo.NandNode@6d00a15d], 33=[vo.NandNode@51efea79], 0(7&8&9)=[vo.NandNode@5034c75a, vo.NandNode@396a51ab, vo.NandNode@3a82f6ef], 32=[vo.NandNode@51081592], 47=[vo.NandNode@7f9a81e8], 7=[vo.NandNode@5034c75a], 24=[vo.NandNode@2ef5e5e3], 25=[vo.NandNode@36d4b5c], 6(31&32&33)=[vo.NandNode@6d00a15d, vo.NandNode@51081592, vo.NandNode@51efea79], 34=[vo.NandNode@9629756], 8=[vo.NandNode@396a51ab], 10=[vo.NandNode@62ee68d8]}
+{9=[vo.NandNode@3a82f6ef], 26=[vo.NandNode@100fc185], 23=[vo.NandNode@643b1d11], 1(23&24&25)=[vo.NandNode@643b1d11, vo.NandNode@2ef5e5e3, vo.NandNode@36d4b5c], 31=[vo.NandNode@6d00a15d], 33=[vo.NandNode@51efea79], 0(7&8&9)=[vo.NandNode@5034c75a, vo.NandNode@396a51ab, vo.NandNode@3a82f6ef], 32=[vo.NandNode@51081592], 47=[vo.NandNode@7f9a81e8], 11=[vo.NandNode@735b5592], 7=[vo.NandNode@5034c75a], 24=[vo.NandNode@2ef5e5e3], 25=[vo.NandNode@36d4b5c], 6(31&32&33)=[vo.NandNode@6d00a15d, vo.NandNode@51081592, vo.NandNode@51efea79], 34=[vo.NandNode@9629756], 12=[vo.NandNode@4520ebad], 8=[vo.NandNode@396a51ab], 10=[vo.NandNode@62ee68d8]}
+{9=[vo.NandNode@3a82f6ef], 26=[vo.NandNode@100fc185], 23=[vo.NandNode@643b1d11], 1(23&24&25)=[vo.NandNode@643b1d11, vo.NandNode@2ef5e5e3, vo.NandNode@36d4b5c], 31=[vo.NandNode@6d00a15d], 33=[vo.NandNode@51efea79], 0(7&8&9)=[vo.NandNode@5034c75a, vo.NandNode@396a51ab, vo.NandNode@3a82f6ef], 32=[vo.NandNode@51081592], 47=[vo.NandNode@7f9a81e8], 11=[vo.NandNode@735b5592], 13=[vo.NandNode@58651fd0], 7=[vo.NandNode@5034c75a], 24=[vo.NandNode@2ef5e5e3], 25=[vo.NandNode@36d4b5c], 14=[vo.NandNode@5419f379], 6(31&32&33)=[vo.NandNode@6d00a15d, vo.NandNode@51081592, vo.NandNode@51efea79], 34=[vo.NandNode@9629756], 12=[vo.NandNode@4520ebad], 8=[vo.NandNode@396a51ab], 10=[vo.NandNode@62ee68d8]}
+15
+3
+{9=[vo.NandNode@3a82f6ef], 26=[vo.NandNode@100fc185], 23=[vo.NandNode@643b1d11], 1(23&24&25)=[vo.NandNode@643b1d11, vo.NandNode@2ef5e5e3, vo.NandNode@36d4b5c], 31=[vo.NandNode@6d00a15d], 33=[vo.NandNode@51efea79], 0(7&8&9)=[vo.NandNode@5034c75a, vo.NandNode@396a51ab, vo.NandNode@3a82f6ef], 32=[vo.NandNode@51081592], 47=[vo.NandNode@7f9a81e8], 11=[vo.NandNode@735b5592], 13=[vo.NandNode@58651fd0], 7=[vo.NandNode@5034c75a], 24=[vo.NandNode@2ef5e5e3], 25=[vo.NandNode@36d4b5c], 14=[vo.NandNode@5419f379], 6(31&32&33)=[vo.NandNode@6d00a15d, vo.NandNode@51081592, vo.NandNode@51efea79], 34=[vo.NandNode@9629756], 12=[vo.NandNode@4520ebad], 8=[vo.NandNode@396a51ab], 10=[vo.NandNode@62ee68d8], 15=[vo.NandNode@7dc7cbad]}
+{9=[vo.NandNode@3a82f6ef], 26=[vo.NandNode@100fc185], 23=[vo.NandNode@643b1d11], 1(23&24&25)=[vo.NandNode@643b1d11, vo.NandNode@2ef5e5e3, vo.NandNode@36d4b5c], 31=[vo.NandNode@6d00a15d], 33=[vo.NandNode@51efea79], 0(7&8&9)=[vo.NandNode@5034c75a, vo.NandNode@396a51ab, vo.NandNode@3a82f6ef], 32=[vo.NandNode@51081592], 47=[vo.NandNode@7f9a81e8], 11=[vo.NandNode@735b5592], 13=[vo.NandNode@58651fd0], 7=[vo.NandNode@5034c75a], 24=[vo.NandNode@2ef5e5e3], 25=[vo.NandNode@36d4b5c], 14=[vo.NandNode@5419f379], 6(31&32&33)=[vo.NandNode@6d00a15d, vo.NandNode@51081592, vo.NandNode@51efea79], 34=[vo.NandNode@9629756], 12=[vo.NandNode@4520ebad], 8=[vo.NandNode@396a51ab], 10=[vo.NandNode@62ee68d8], 15=[vo.NandNode@7dc7cbad]}
+46
+problema:40 supernodes: 21
+y además 40 no es outOfInstance!!!
+
+instancesOfRecursiveDefinitions badly mapped-> fix by constructing simple definitions containing recursive definitions and testing
+TODO:try to force always 3 subnodes or 0
