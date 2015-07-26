@@ -92,5 +92,7 @@ creo que el problema tiene que ver con que se quita instance, pero no sus nodos
 problema:40 supernodes: 21
 y además 40 no es outOfInstance!!!
 
-instancesOfRecursiveDefinitions badly mapped-> fix by constructing simple definitions containing recursive definitions and testing
-TODO:try to force always 3 subnodes or 0
+
+-change subnodes and supernodes to parents and children
+-try to use only parents (no children)
+-try to remove "nodes" from definition

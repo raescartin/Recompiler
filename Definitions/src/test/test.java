@@ -126,13 +126,13 @@ class test {
     	rifDef.add(or,rifdef0,rifdef5,rifdef1);
     	rifDef.add(or,rifDef.in.get(0),rifdef8,rifdef2);
     	rifDef.add(and,rifdef1,rifdef2,rifdef9);//rightmost bit of if computed
-    	rifdef10.add(rifdef3);
-    	rifdef10.add(rifdef4);
-    	rifdef11.add(rifdef6);
-    	rifdef11.add(rifdef7);
+    	rifdef3.add(rifdef10);
+    	rifdef4.add(rifdef10);
+    	rifdef6.add(rifdef11);
+    	rifdef7.add(rifdef11);
     	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
-    	rifDef.out.get(0).add(rifdef12);
-    	rifDef.out.get(0).add(rifdef9);
+    	rifdef12.add(rifDef.out.get(0));
+    	rifdef9.add(rifDef.out.get(0));
     	definitionDB.put("rif",rifDef);
     	System.out.print(definitionDB.toString());
     	

@@ -101,29 +101,29 @@ public class DefinitionDB implements java.io.Serializable{
 		
 		return definition;
 	}
-	private void nodeFusion(Definition def) {
-		HashSet<Node> nodes = new HashSet<Node>();
-		for(Node node:def.out){
-			node.fusion(def,nodes);
-		}
-		
-	}
+//	private void nodeFusion(Definition def) {
+//		HashSet<Node> nodes = new HashSet<Node>();
+//		for(Node node:def.out){
+//			node.fusion(def,nodes);
+//		}
+//		
+//	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition
 		definition.nodes.clear();
 		definition.instances.clear();
 		definition.rootIn.clear();
-		//FIXME: if a node is both in and out, it gets to in/=out
-		for(Node node:definition.in){
+		//FIXME: if a node is both in and out, it gets to in/=out 
+		for(Node node:definition.in){//FIXME: make recursive add of children
 			definition.add(node);
-			for(Node subnode:node.subnodes){
-				definition.add(subnode);
+			for(Node child:node.children){
+				definition.add(child);
 			}
 		}
-		for(Node node:definition.out){
+		for(Node node:definition.out){//FIXME: make recursive add of parents
 			definition.add(node);
-			for(Node subnode:node.subnodes){
-				definition.add(subnode);
+			for(Node parent:node.parents){
+				definition.add(parent);
 			}
 		}
 		
@@ -142,10 +142,10 @@ public class DefinitionDB implements java.io.Serializable{
 								definition.out.set(k, nandToNode.get(nandForest.out.get(i)));//it's and out node
 							}
 						}
-						for (Node supernode :node.supernodes){
-							for (int k = 0; k < supernode.subnodes.size(); k++) {
-								if(supernode.subnodes.get(k)==node){
-									supernode.subnodes.set(k, nandToNode.get(nandForest.out.get(i)));//it's a subnode
+						for (Node parent :node.parents){
+							for (int k = 0; k < parent.parents.size(); k++) {
+								if(parent.parents.get(k)==node){
+									parent.parents.set(k, nandToNode.get(nandForest.out.get(i)));//it's a subnode
 								}
 							}
 						}

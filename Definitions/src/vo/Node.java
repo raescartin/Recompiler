@@ -19,8 +19,8 @@ import utils.FixedBitSet;
 //TODO: no node can be linked 1 on 1 as supernode<->subnode (same node repeated)
 //TODO: index of subnodes
 public class Node {
-	public ArrayList<Node> supernodes;//ArrayList, since there can be repetition //care:supernodes are nodes with subnodes, not fathers
-	public ArrayList<Node> subnodes;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?//care:subnodes are nodes part of a supernode, not children
+	public ArrayList<Node> parents;//ArrayList, since there can be repetition
+	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
 	public Instance outOfInstance;
 	public HashSet<Instance> inOfInstances;	
 	public Definition definition;
@@ -29,13 +29,13 @@ public class Node {
 	//END OF DEBUGGING ONLY
 	
 	public Node() { 
-		this.supernodes = new ArrayList<Node>();//care:supernodes are nodes with subnodes, not fathers
-		this.subnodes = new ArrayList<Node>();//care:subnodes are nodes part of a supernode, not children
+		this.parents = new ArrayList<Node>();
+		this.children = new ArrayList<Node>();
 		this.inOfInstances = new HashSet<Instance>();//FIXME:needed?
 	}
 	public Node add(Node node) {//add subnode to supernode
-		this.subnodes.add(node);
-		node.supernodes.add(this);
+		node.parents.add(this);
+		this.children.add(node);
 		if(this.definition!=null) this.definition.add(node);
 		return node;
 	}
@@ -88,40 +88,10 @@ public class Node {
 							
 					}
 				}
-				//eval subnodes only traversing to parent //ensure traversal bot to top
-				boolean traversed=false;
-				for (Node subnode : this.subnodes) {
-					if(expandedNodes.contains(subnode)){
-						traversed=true;
-					}
-				}
-				if(!traversed){
-					for (Node subnode : this.subnodes) {
-						if(!expandedNodes.contains(subnode)){
-							nandNodes.addAll(subnode.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
-						}
-					}
-				}
-
-
-				
-				for (Node supernode : this.supernodes) {
-					if(!expandedNodes.contains(supernode)){//father supernode (up)
-						ArrayList<NandNode> tempNodes=supernode.toNands(nodeSize, expandedNodes, nodeToNands, nandForest);//add to output all the supernodes of a node
-						for(int i = 0; i < supernode.subnodes.size()/2; i++) {//TODO:check this is needed, dim of left node can be>1?
-							ArrayList<NandNode> leftNode = new ArrayList<NandNode>();
-							leftNode.add(tempNodes.get(i));
-							nodeToNands.put(supernode.subnodes.get(i),leftNode);
-						}
-						ArrayList<NandNode> centerNodes = new ArrayList<NandNode>();
-						centerNodes.addAll(tempNodes.subList(supernode.subnodes.size()/2, tempNodes.size()-supernode.subnodes.size()/2));
-						nodeToNands.put(supernode.subnodes.get(supernode.subnodes.size()/2),centerNodes);//center nodes
-						for(int i = supernode.subnodes.size()/2+1; i < supernode.subnodes.size(); i++) {
-							ArrayList<NandNode> rightNode = new ArrayList<NandNode>();
-							rightNode.add(tempNodes.get(tempNodes.size()-supernode.subnodes.size()+i));//right node
-							nodeToNands.put(supernode.subnodes.get(i),rightNode);
-						}
-						nandNodes=nodeToNands.get(this);		
+				//eval subnodes only traversing to parents
+				for (Node parent : this.parents) {
+					if(!expandedNodes.contains(parent)){
+						nandNodes.addAll(parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
 					}
 				}
 				nodeToNands.put(this, nandNodes);
@@ -132,10 +102,15 @@ public class Node {
 		//for subnodes and supernodes instead of fathers and children
 		String string = new String();
 		string+=this.idForDefinition;
-		if(!this.subnodes.isEmpty()){
+		if(!this.parents.isEmpty()){
 			string+="(";
-			for(Node node: this.subnodes){
+			for(Node node: this.parents){
 				string+=node.toString();
+				if(node.children.size()>1){
+					string+="{";
+					string+=node.children.indexOf(this);
+					string+="}";
+				}
 				string+=("&");
 			}
 			string=string.substring(0, string.length() - 1);//remove last enumeration ","
@@ -150,8 +125,8 @@ public class Node {
 			nodeMap.put(this, nodeIndex);
 			stream.write(nodeIndex);
 			nodeIndex++;
-			stream.write(this.subnodes.size());
-			for (Node node : this.subnodes) {
+			stream.write(this.parents.size());
+			for (Node node : this.parents) {
 				nodeIndex=node.write(stream,nodeMap,nodeIndex);
 			}
 		}
@@ -166,11 +141,11 @@ public class Node {
 			keyNode=stream.read();
 			if(nodeMap.containsKey(keyNode)){
 				node=nodeMap.get(keyNode);
-				this.subnodes.add(node);
+				this.parents.add(node);
 			}else{
 				node = new Node();
 				node.read(stream,nodeMap);
-				this.subnodes.add(node);
+				this.parents.add(node);
 				nodeMap.put(keyNode,node);
 			}
 		}
@@ -178,9 +153,9 @@ public class Node {
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap) {
 		if(!valueMap.containsKey(this)){//Non evaluated node
-			if(!this.subnodes.isEmpty()){
-				for (Node node : this.subnodes) {
-					node.eval(valueMap);
+			if(!this.parents.isEmpty()){
+				for (Node parent : this.parents) {
+					parent.eval(valueMap);
 				}
 			}else{
 				if(this.outOfInstance!=null){
@@ -190,9 +165,9 @@ public class Node {
 		}
 	}
 	public void setInSize(HashMap<Node, Integer> inNodeSize) {
-		if(!this.supernodes.isEmpty()){
-			for(Node supernode: this.supernodes){
-				supernode.setInSize(inNodeSize);
+		if(!this.parents.isEmpty()){
+			for(Node parent: this.parents){
+				parent.setInSize(inNodeSize);
 			}	
 		}else{
 			if(this.outOfInstance!=null){//out node of instance
@@ -219,110 +194,110 @@ public class Node {
 			}
 		}
 	}
-	public void mapOutNode(HashMap<Node, ArrayList<NandNode>> nodeToNands,
-			HashMap<NandNode, Node> nandToNodeOut) {
-		if(nodeToNands.get(this).size()==1){
-			nandToNodeOut.put(nodeToNands.get(this).get(0), this);
-		}else{
-			if(this.subnodes.isEmpty()){
-				for (Node node:this.supernodes) {
-					node.mapOutNode(nodeToNands, nandToNodeOut);
-				}
-			}else{
-				for (Node node:this.subnodes) {
-					node.mapOutNode(nodeToNands, nandToNodeOut);
-				}
-			}
-		}
-		
-	}
-	public void copy(Node node) {
-		this.supernodes=node.supernodes;
-		this.subnodes=node.subnodes;
-		this.outOfInstance=node.outOfInstance;
-		this.inOfInstances=node.inOfInstances;
-		this.idForDefinition=node.idForDefinition;
-		
-	}
-	public void copy(Node node,HashMap<Node,Node> defToTempNodes) {
-		this.idForDefinition=node.idForDefinition;
-		for(Node copiedSubnode:node.subnodes){
-			if(defToTempNodes.containsKey(copiedSubnode)){
-				this.add(defToTempNodes.get(copiedSubnode));
-			}else{
-				Node subnode = new Node();
-				defToTempNodes.put(copiedSubnode, subnode);
-				this.add(subnode);
-			}
-		}
-	}
-	public void fusion(Definition definition,HashSet<Node> nodes) {
-		//fusion of subnodes in a definition
-		if(!nodes.contains(this)){
-			nodes.add(this);
-			if(!this.subnodes.isEmpty()){
-				//for all the subnodes that are out of nand of same supernode in1 and supernode in2
-				//fuse node(out)
-				ArrayList<Node> inNodes = new ArrayList<Node> ();
-				ArrayList<Node> outNodes = new ArrayList<Node> ();
-				boolean fuse=true;
-				int i=1;
-				while(fuse&&i<this.subnodes.size()){//all the subnodes must be of the same definition
-					if(this.subnodes.get(0).outOfInstance==null||this.subnodes.get(i).outOfInstance==null||this.subnodes.get(i).outOfInstance.definition!=this.subnodes.get(0).outOfInstance.definition){
-						fuse=false;
-					}
-					i++;
-				}
-				i=1;
-				while(fuse&&i<this.subnodes.size()){//all the instance inss must have the same supernode each
-					int j=1;
-					while(fuse&&j<this.subnodes.get(0).outOfInstance.in.size()){
-						if(this.subnodes.get(0).outOfInstance.in.get(j).supernodes!=this.subnodes.get(i).outOfInstance.in.get(j).supernodes){
-							fuse=false;
-						}
-						inNodes.addAll(this.subnodes.get(0).outOfInstance.in.get(j).supernodes);
-						j++;
-					}
-					i++;
-				}
-				i=1;
-				while(fuse&&i<this.subnodes.size()){//all the instance outs must have the same supernode each
-					int j=1;
-					while(fuse&&j<this.subnodes.get(0).outOfInstance.out.size()){
-						if(this.subnodes.get(0).outOfInstance.out.get(j).supernodes!=this.subnodes.get(i).outOfInstance.out.get(j).supernodes){
-							fuse=false;
-						}
-						outNodes.addAll(this.subnodes.get(0).outOfInstance.out.get(j).supernodes);
-						j++;
-					}
-					i++;
-				}
-				if(fuse){
-					ArrayList<Node> inOutNodes = new ArrayList<Node>();
-					nodes.addAll(inNodes);
-					nodes.addAll(outNodes);
-					definition.add(this.outOfInstance.definition,inOutNodes.toArray(new Node[nodes.size()]));//add fusion instance
-					//remove all the fused instances with their nodes
-					for(Node subnode:this.subnodes){
-						Instance instance=subnode.outOfInstance;
-						definition.remove(instance);
-					}
-				}
-				//continue evaluation of superior nodes
-				for(Node node:this.subnodes){
-					if(node.outOfInstance!=null){
-						for(Node inNode:node.outOfInstance.in){
-							inNode.fusion(definition,nodes);
-						}
-					}
-				}
-			}else{//this.subnodes.isEmpty()
-				if(this.outOfInstance!=null){//if this.subnodes.isEmpty()&&this.outOfInstance==null it's always an in node
-					for(Node node:this.outOfInstance.in){//expand instance in nodes
-						node.fusion(definition, nodes);
-					}
-				}
-			}
-		}
-	}
+//	public void mapOutNode(HashMap<Node, ArrayList<NandNode>> nodeToNands,
+//			HashMap<NandNode, Node> nandToNodeOut) {
+//		if(nodeToNands.get(this).size()==1){
+//			nandToNodeOut.put(nodeToNands.get(this).get(0), this);
+//		}else{
+//			if(this.subnodes.isEmpty()){
+//				for (Node node:this.supernodes) {
+//					node.mapOutNode(nodeToNands, nandToNodeOut);
+//				}
+//			}else{
+//				for (Node node:this.subnodes) {
+//					node.mapOutNode(nodeToNands, nandToNodeOut);
+//				}
+//			}
+//		}
+//		
+//	}
+//	public void copy(Node node) {
+//		this.parents=node.parents;
+//		this.children=node.children;
+//		this.outOfInstance=node.outOfInstance;
+//		this.inOfInstances=node.inOfInstances;
+//		this.idForDefinition=node.idForDefinition;
+//		
+//	}
+//	public void copy(Node node,HashMap<Node,Node> defToTempNodes) {
+//		this.idForDefinition=node.idForDefinition;
+//		for(Node copiedSubnode:node.subnodes){
+//			if(defToTempNodes.containsKey(copiedSubnode)){
+//				this.add(defToTempNodes.get(copiedSubnode));
+//			}else{
+//				Node subnode = new Node();
+//				defToTempNodes.put(copiedSubnode, subnode);
+//				this.add(subnode);
+//			}
+//		}
+//	}
+//	public void fusion(Definition definition,HashSet<Node> nodes) {
+//		//fusion of subnodes in a definition
+//		if(!nodes.contains(this)){
+//			nodes.add(this);
+//			if(!this.subnodes.isEmpty()){
+//				//for all the subnodes that are out of nand of same supernode in1 and supernode in2
+//				//fuse node(out)
+//				ArrayList<Node> inNodes = new ArrayList<Node> ();
+//				ArrayList<Node> outNodes = new ArrayList<Node> ();
+//				boolean fuse=true;
+//				int i=1;
+//				while(fuse&&i<this.subnodes.size()){//all the subnodes must be of the same definition
+//					if(this.subnodes.get(0).outOfInstance==null||this.subnodes.get(i).outOfInstance==null||this.subnodes.get(i).outOfInstance.definition!=this.subnodes.get(0).outOfInstance.definition){
+//						fuse=false;
+//					}
+//					i++;
+//				}
+//				i=1;
+//				while(fuse&&i<this.subnodes.size()){//all the instance inss must have the same supernode each
+//					int j=1;
+//					while(fuse&&j<this.subnodes.get(0).outOfInstance.in.size()){
+//						if(this.subnodes.get(0).outOfInstance.in.get(j).supernodes!=this.subnodes.get(i).outOfInstance.in.get(j).supernodes){
+//							fuse=false;
+//						}
+//						inNodes.addAll(this.subnodes.get(0).outOfInstance.in.get(j).supernodes);
+//						j++;
+//					}
+//					i++;
+//				}
+//				i=1;
+//				while(fuse&&i<this.subnodes.size()){//all the instance outs must have the same supernode each
+//					int j=1;
+//					while(fuse&&j<this.subnodes.get(0).outOfInstance.out.size()){
+//						if(this.subnodes.get(0).outOfInstance.out.get(j).supernodes!=this.subnodes.get(i).outOfInstance.out.get(j).supernodes){
+//							fuse=false;
+//						}
+//						outNodes.addAll(this.subnodes.get(0).outOfInstance.out.get(j).supernodes);
+//						j++;
+//					}
+//					i++;
+//				}
+//				if(fuse){
+//					ArrayList<Node> inOutNodes = new ArrayList<Node>();
+//					nodes.addAll(inNodes);
+//					nodes.addAll(outNodes);
+//					definition.add(this.outOfInstance.definition,inOutNodes.toArray(new Node[nodes.size()]));//add fusion instance
+//					//remove all the fused instances with their nodes
+//					for(Node subnode:this.subnodes){
+//						Instance instance=subnode.outOfInstance;
+//						definition.remove(instance);
+//					}
+//				}
+//				//continue evaluation of superior nodes
+//				for(Node node:this.subnodes){
+//					if(node.outOfInstance!=null){
+//						for(Node inNode:node.outOfInstance.in){
+//							inNode.fusion(definition,nodes);
+//						}
+//					}
+//				}
+//			}else{//this.subnodes.isEmpty()
+//				if(this.outOfInstance!=null){//if this.subnodes.isEmpty()&&this.outOfInstance==null it's always an in node
+//					for(Node node:this.outOfInstance.in){//expand instance in nodes
+//						node.fusion(definition, nodes);
+//					}
+//				}
+//			}
+//		}
+//	}
 }
