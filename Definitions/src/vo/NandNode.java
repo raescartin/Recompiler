@@ -23,6 +23,12 @@ public class NandNode{
 			return (this.in1.eval(inValues,in)).nand(this.in2.eval(inValues,in));
 		}
 	}
+	public String toString() {
+		//for subnodes and supernodes instead of fathers and children
+		String string = new String();
+		string+=this.id;
+		return string;
+	}
 	public String printNode(ArrayList<NandNode> in){
 		String string = new String();
 		if(this.in1!=null&&this.in2!=null){

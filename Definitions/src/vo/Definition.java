@@ -120,23 +120,51 @@ public class Definition implements java.io.Serializable{ /**
 				//NODE FISSION
 				this.getNodesSize(nodeSize);//get the size of all the definition nodes
 				this.setIns(nodeSize,nodeToNands,nandForest);//from bottom to top//(mapping in and finding inputs size first is needed)
+				///Need to map subnodes of ins to conserve references?
 				for (Node node:this.out) {
 					HashSet<Node> expandedNodes = new HashSet<Node>();
 					nandForest.addOuts(node.toNands(nodeSize,expandedNodes,nodeToNands,nandForest));//FIXME
 				}
 				//IN and OUTS mapped and in nandForest
-				for (Node node:this.in){//FIXME: should be done in setIns
-					node.children.clear();//we clear children here
-					if(nodeSize.get(node)==1){
-						nandToNodeIn.add(node);
-					}else{
-						for (int i = 0; i < nodeSize.get(node); i++) {
-							Node child = new Node();
-							node.add(child);
-							nandToNodeIn.add(child);
+				for (Node inNode:this.in){
+					if(inNode.children.isEmpty()){
+						if(nodeSize.get(inNode)==1){
+							nandToNodeIn.add(inNode);
+						}else{
+							for (int i = 0; i < nodeSize.get(inNode); i++) {
+								Node child = new Node();
+								inNode.add(child);
+								nandToNodeIn.add(child);
+							}
 						}
-					}
-					
+					}else{
+						int newNodes=0;
+						for(Node child:inNode.children){
+							if(child.parents.size()==1){//subnode
+								if(nodeSize.get(child)==1){
+									child.children.clear();
+									nandToNodeIn.add(child);
+								}else{
+									child.children.clear();//we clear children here
+									for (int i = 0; i < nodeSize.get(child); i++) {
+										Node newChild = new Node();
+										child.add(newChild);
+										nandToNodeIn.add(newChild);
+									}
+								}
+							}else{
+								child.children.clear();
+								newNodes+=nodeSize.get(child)-1;
+								nandToNodeIn.add(child);
+							}
+						}
+						for (int i = 0; i < newNodes; i++) {
+							Node newChild = new Node();
+							inNode.add(newChild);
+							nandToNodeIn.add(newChild);
+						}
+						
+					}				
 				}
 				for (Node node:this.out){
 					node.parents.clear();//we clear parents here
@@ -160,10 +188,14 @@ public class Definition implements java.io.Serializable{ /**
 						nandNodes=nandForest.addIns(nodeSize.get(inNode));
 					}else{
 						for(Node child:inNode.children){
-							ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
-							subNandNodes=nandForest.addIns(nodeSize.get(child));
-							nodeToNands.put(child, subNandNodes);
-							nandNodes.addAll(subNandNodes);
+							if(child.parents.size()==1){//subnode
+								ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
+								subNandNodes=nandForest.addIns(nodeSize.get(child));
+								nodeToNands.put(child, subNandNodes);
+								nandNodes.addAll(subNandNodes);
+							}else{
+								nandNodes.addAll(nandForest.addIns(nodeSize.get(child)));
+							}
 						}
 					}
 					nodeToNands.put(inNode, nandNodes);

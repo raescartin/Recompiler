@@ -96,3 +96,4 @@ y además 40 no es outOfInstance!!!
 -change subnodes and supernodes to parents and children
 -try to use only parents (no children)
 -try to remove "nodes" from definition
+-make algorithms recursive for children (children can have children too)
