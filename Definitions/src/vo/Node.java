@@ -37,6 +37,7 @@ public class Node {
 		node.parents.add(this);
 		this.children.add(node);
 		if(this.definition!=null) this.definition.add(node);
+		if(node.definition!=null) node.definition.add(this);
 		return node;
 	}
 	public ArrayList<NandNode> toNands(HashMap<Node, Integer> nodeSize, HashSet<Node> expandedNodes,HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
@@ -89,9 +90,28 @@ public class Node {
 					}
 				}
 				//eval subnodes only traversing to parents
-				for (Node parent : this.parents) {
-					if(!expandedNodes.contains(parent)){
-						nandNodes.addAll(parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
+				if(this.parents.size()==1){//subnode of supernode parent, so map all the subnodes now
+					Node supernode=this.parents.get(0);
+					ArrayList<NandNode> tempNodes=supernode.toNands(nodeSize, expandedNodes, nodeToNands, nandForest);//add to output all the supernodes of a node
+					for(int i = 0; i < supernode.children.size()/2; i++) {
+						ArrayList<NandNode> leftNode = new ArrayList<NandNode>();
+						leftNode.add(tempNodes.get(i));
+						nodeToNands.put(supernode.children.get(i),leftNode);
+					}
+					ArrayList<NandNode> centerNodes = new ArrayList<NandNode>();
+					centerNodes.addAll(tempNodes.subList(supernode.children.size()/2, tempNodes.size()-supernode.children.size()/2));
+					nodeToNands.put(supernode.children.get(supernode.children.size()/2),centerNodes);//center nodes
+					for(int i = supernode.children.size()/2+1; i < supernode.children.size(); i++) {
+						ArrayList<NandNode> rightNode = new ArrayList<NandNode>();
+						rightNode.add(tempNodes.get(tempNodes.size()-supernode.children.size()+i));//right node
+						nodeToNands.put(supernode.children.get(i),rightNode);
+					}
+					nandNodes=nodeToNands.get(this);	
+				}else{
+					for (Node parent : this.parents) {
+						if(!expandedNodes.contains(parent)){
+							nandNodes.addAll(parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
+						}
 					}
 				}
 				nodeToNands.put(this, nandNodes);

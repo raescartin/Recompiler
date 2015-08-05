@@ -126,54 +126,35 @@ public class Definition implements java.io.Serializable{ /**
 					nandForest.addOuts(node.toNands(nodeSize,expandedNodes,nodeToNands,nandForest));//FIXME
 				}
 				//IN and OUTS mapped and in nandForest
+				//map in nandNodes to nodes
+				this.nodes.clear();
+				this.nodes.addAll(this.in);
 				for (Node inNode:this.in){
-					if(inNode.children.isEmpty()){
-						if(nodeSize.get(inNode)==1){
-							nandToNodeIn.add(inNode);
-						}else{
-							for (int i = 0; i < nodeSize.get(inNode); i++) {
-								Node child = new Node();
-								inNode.add(child);
-								nandToNodeIn.add(child);
-							}
-						}
+					if(nodeSize.get(inNode)==1){
+						nandToNodeIn.add(inNode);
 					}else{
-						int newNodes=0;
-						for(Node child:inNode.children){
-							if(child.parents.size()==1){//subnode
-								if(nodeSize.get(child)==1){
-									child.children.clear();
-									nandToNodeIn.add(child);
-								}else{
-									child.children.clear();//we clear children here
-									for (int i = 0; i < nodeSize.get(child); i++) {
-										Node newChild = new Node();
-										child.add(newChild);
-										nandToNodeIn.add(newChild);
-									}
-								}
-							}else{
-								child.children.clear();
-								newNodes+=nodeSize.get(child)-1;
-								nandToNodeIn.add(child);
-							}
+						for(Node child:inNode.children){//TODO: fix for recursive children?
+							nandToNodeIn.add(child);
 						}
-						for (int i = 0; i < newNodes; i++) {
-							Node newChild = new Node();
-							inNode.add(newChild);
-							nandToNodeIn.add(newChild);
+						for (int i = 0; i < nodeSize.get(inNode)-inNode.children.size(); i++) {
+							Node child = new Node();
+							inNode.add(child);
+							nandToNodeIn.add(child);
 						}
+					}
 						
-					}				
-				}
-				for (Node node:this.out){
-					node.parents.clear();//we clear parents here
-					if(nodeSize.get(node)==1){
-						nandToNodeOut.add(node);
+				}	
+				this.nodes.addAll(this.out);
+				for (Node outNode:this.out){
+					if(nodeSize.get(outNode)==1){
+						nandToNodeOut.add(outNode);
 					}else{
-						for (int i = 0; i < nodeSize.get(node); i++) {
+						for(Node parent:outNode.parents){//TODO: fix for recursive parents?
+							nandToNodeOut.add(parent);
+						}
+						for (int i = 0; i < nodeSize.get(outNode)-outNode.parents.size(); i++) {
 							Node parent = new Node();
-							parent.add(node);
+							parent.add(outNode);
 							nandToNodeOut.add(parent);
 						}
 					}
@@ -182,22 +163,23 @@ public class Definition implements java.io.Serializable{ /**
 				return nandForest;
 			}
 			private void setIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
+				//map input nodes to nandNodes
 				for(Node inNode:this.in){
 					ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
-					if(inNode.children.isEmpty()){
+//					if(inNode.children.isEmpty()){
 						nandNodes=nandForest.addIns(nodeSize.get(inNode));
-					}else{
-						for(Node child:inNode.children){
-							if(child.parents.size()==1){//subnode
-								ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
-								subNandNodes=nandForest.addIns(nodeSize.get(child));
-								nodeToNands.put(child, subNandNodes);
-								nandNodes.addAll(subNandNodes);
-							}else{
-								nandNodes.addAll(nandForest.addIns(nodeSize.get(child)));
-							}
-						}
-					}
+//					}else{
+//						for(Node child:inNode.children){
+//							if(child.parents.size()==1){//subnode
+//								ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
+//								subNandNodes=nandForest.addIns(nodeSize.get(child));
+//								nodeToNands.put(child, subNandNodes);
+//								nandNodes.addAll(subNandNodes);
+//							}else{
+//								nandNodes.addAll(nandForest.addIns(nodeSize.get(child)));
+//							}
+//						}
+//					}
 					nodeToNands.put(inNode, nandNodes);
 				}
 				

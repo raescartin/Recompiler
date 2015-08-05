@@ -102,7 +102,7 @@ class test {
     	System.out.print(definitionDB.toString());
     	//if a then b else c = (¬AvB)^(AvC)
     	//size(a)=1 size(b)=n size(c)=m
-    	Definition rifDef = new Definition(3,1,"rif");//recursive ,bit a bit, def of if
+    	Definition rifDef = new Definition(3,1,"rif");//recursive ,bit a bit, def of if (0 is 1 bit long)
     	Node rifdef0 = new Node();
     	Node rifdef1 = new Node();
     	Node rifdef2 = new Node();
@@ -154,11 +154,11 @@ class test {
     	Node Brest = add.in.get(1).add(new Node());
     	Node Bn = add.in.get(1).add(new Node());
     	Node Awithout0 = new Node();
-    	Awithout0.add(Arest);
-    	Awithout0.add(An);
+    	Arest.add(Awithout0);
+    	An.add(Awithout0);
     	Node Bwithout0 = new Node();
-    	Bwithout0.add(Brest);
-    	Bwithout0.add(Bn);
+    	Brest.add(Bwithout0);
+    	Bn.add(Bwithout0);
     	Node xorOut = new Node();
     	add.add(xor, add.in.get(0),add.in.get(1),xorOut);
     	Node addxor0 = new Node();
@@ -168,14 +168,14 @@ class test {
     	xorOut.add(xorrest);
     	xorOut.add(xorn);
     	Node xorwithoutN = new Node();
-    	xorwithoutN.add(addxor0);
-    	xorwithoutN.add(xorrest);
+    	addxor0.add(xorwithoutN);
+    	xorrest.add(xorwithoutN);
     	Node addAndOut = new Node();
     	add.add(and, Awithout0,Bwithout0,addAndOut);
     	Node addOut = new Node();
     	add.add(add, xorwithoutN,addAndOut,addOut);
-    	add.out.get(0).add(addOut);
-    	add.out.get(0).add(xorn);
+    	addOut.add(add.out.get(0));
+    	xorn.add(add.out.get(0));
     	definitionDB.put("add",add);
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zeros value
