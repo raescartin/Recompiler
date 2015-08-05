@@ -74,7 +74,7 @@ class test {
     	or.add(nand, or0,or1,or.out.get(0));
      	definitionDB.put("or",or);
      	System.out.print(definitionDB.toString());
-    	 //XOR definition//
+    	//XOR definition//
     	Definition xor = new Definition(2,1,"xor");
     	Node xor0 = new Node();
     	Node xor1 = new Node();
@@ -83,11 +83,6 @@ class test {
     	xor.add(and,xor0,xor1,xor.out.get(0));   	
     	definitionDB.put("xor",xor);
     	System.out.print(definitionDB.toString());
-//   	 	//XOR test definition//
-//    	Definition xorTest = new Definition(2,"xorTest");
-//    	xorTest.setOut(xorTest.add(xor,xorTest.in.get(0),xorTest.in.get(1)).out.get(0));   	
-//    	definitionDB.put("xorTest",xorTest);
-//    	System.out.print(definitionDB.toString());
     	//IF definition//
     	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!!
     	Definition ifDef = new Definition(3,1,"if");
@@ -142,11 +137,8 @@ class test {
 //    	rxor.addOut(rxor.add(xor,rxor.in.get(1),rxor.in.get(3)).out.get(0));
     	
     	//ADD definition//
-    	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) //FIXME
-    	//A+B=C == C0..n-1 = (a0..n-1 xor b0..n-1) + (a1..n and b1..n) && Cn = An XOR Bn 
+    	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) 
     	Definition add = new Definition(2,1,"add");
-//    	Node A=add.in.get(0);
-//    	Node B=add.in.get(1);
     	Node A0 = add.in.get(0).add(new Node());
     	Node Arest = add.in.get(0).add(new Node());
     	Node An = add.in.get(0).add(new Node());
@@ -178,12 +170,12 @@ class test {
     	xorn.add(add.out.get(0));
     	definitionDB.put("add",add);
     	System.out.print(definitionDB.toString());
-    	//zeros definition////logic definition of zeros value
+    	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");
     	zeros.add(xor,zeros.in.get(0),zeros.in.get(0),zeros.out.get(0));
     	definitionDB.put("zeros",zeros);
     	System.out.print(definitionDB.toString());
-    	//ones definition////logic definition of ones value
+    	//ones definition////logic definition of one values
     	Definition ones = new Definition(1,1,"ones");
     	Node zeroNode = new Node();
     	ones.add(zeros, ones.in.get(0),zeroNode);
@@ -191,27 +183,26 @@ class test {
     	definitionDB.put("ones",ones);
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
+    	//dec [0;1] = not[0{2},2] if [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
     	Definition dec = new Definition(1,1,"dec");
     	Node dec0 = dec.in.get(0).add(new Node());
     	Node decRest = dec.in.get(0).add(new Node());
     	Node decN = dec.in.get(0).add(new Node());
-    	Node decN0 = new Node();
-    	dec.add(zeros, decN,decN0);
-    	Node decN1 = new Node();
-    	dec.add(ones, decN,decN1);
-    	Node n0 = new Node();
-    	Node decElse= new Node();
-    	Node decR = new Node();
-    	n0.add(dec0);
-    	n0.add(decRest);
-    	n0.add(decN0);
-    	decR.add(dec0);
-    	decR.add(decRest);
-    	dec.add(ifDef,decN,n0,decElse,dec.out.get(0));
-    	Node decRout = new Node();
+    	Node decNnot = new Node();
+    	dec.add(not, decN,decNnot);
+    	Node decThen = new Node();
+    	dec0.add(decThen);
+    	decRest.add(decThen);
+    	decNnot.add(decThen);
+    	Node decR= new Node();
+    	dec0.add(decR);
+    	decRest.add(decR);
+    	Node decRout= new Node();
     	dec.add(dec,decR,decRout);
-    	decElse.add(decRout);
-    	decElse.add(decN1);
+    	Node decElse = new Node();
+    	decRout.add(decElse);
+    	decNnot.add(decElse);
+    	dec.add(ifDef,decN,decThen,decElse,dec.out.get(0));
     	definitionDB.put("dec",dec);
     	System.out.print(definitionDB.toString());
     	//cmp definition////definition to test if two values are equal, returns a bit
