@@ -120,21 +120,25 @@ public class Node {
 	}
 	public String toString() {
 		//for subnodes and supernodes instead of fathers and children
-		String string = new String();
-		string+=this.idForDefinition;
+		String string = new String();		
 		if(!this.parents.isEmpty()){
-			string+="(";
-			for(Node node: this.parents){
-				string+=node.toString();
-				if(node.children.size()>1){
-					string+="{";
-					string+=node.children.indexOf(this);
-					string+="}";
+			if(this.parents.size()==1){
+				string+=this.parents.get(0).toString();
+				string+="{";
+				string+=this.parents.get(0).children.indexOf(this);
+				string+="}";
+			}else{
+				string+=this.idForDefinition;
+				string+="(";
+				for(Node node: this.parents){
+					string+=node.toString();
+					string+=("&");
 				}
-				string+=("&");
+				string=string.substring(0, string.length() - 1);//remove last enumeration ","
+				string+=")";
 			}
-			string=string.substring(0, string.length() - 1);//remove last enumeration ","
-			string+=")";
+		}else{
+			string+=this.idForDefinition;
 		}
 		return string;
 	}

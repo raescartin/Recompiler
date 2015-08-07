@@ -183,7 +183,7 @@ class test {
     	definitionDB.put("ones",ones);
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
-    	//dec [0;1] = not[0{2},2] if [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
+    	//dec [0;1] = not[0{2},2] rif [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
     	Definition dec = new Definition(1,1,"dec");
     	Node dec0 = dec.in.get(0).add(new Node());
     	Node decRest = dec.in.get(0).add(new Node());
@@ -202,7 +202,7 @@ class test {
     	Node decElse = new Node();
     	decRout.add(decElse);
     	decNnot.add(decElse);
-    	dec.add(ifDef,decN,decThen,decElse,dec.out.get(0));
+    	dec.add(rifDef,decN,decThen,decElse,dec.out.get(0));
     	definitionDB.put("dec",dec);
     	System.out.print(definitionDB.toString());
     	//cmp definition////definition to test if two values are equal, returns a bit

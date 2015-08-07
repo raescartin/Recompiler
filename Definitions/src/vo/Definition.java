@@ -118,7 +118,7 @@ public class Definition implements java.io.Serializable{ /**
 				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
 				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
 				//NODE FISSION
-				this.getNodesSize(nodeSize);//get the size of all the definition nodes
+				this.getNodesSize(nodeSize);//get the size of all the definition nodes//FIXME not ok sizes with dec
 				this.setIns(nodeSize,nodeToNands,nandForest);//from bottom to top//(mapping in and finding inputs size first is needed)
 				///Need to map subnodes of ins to conserve references?
 				for (Node node:this.out) {
@@ -249,128 +249,131 @@ public class Definition implements java.io.Serializable{ /**
 							this.expand(node.outOfInstance.in.get(1), nodeSize);
 						}
 					}else{//the node is out of an instance different to NAND
-						HashMap<Node, Integer> tempNodeSize = new HashMap<Node, Integer>();
-						//expand outs
-						for (int i = 0; i < node.outOfInstance.out.size(); i++) {
-							if(!nodeSize.containsKey(node.outOfInstance.out.get(i))){
-								this.expand(node.outOfInstance.out.get(i),nodeSize);
+						if(this.instances.contains(node.outOfInstance)){//check definition has not been removed (= is recursive)
+							HashMap<Node, Integer> tempNodeSize = new HashMap<Node, Integer>();
+							//expand outs
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								if(!nodeSize.containsKey(node.outOfInstance.out.get(i))){
+									this.expand(node.outOfInstance.out.get(i),nodeSize);
+								}
+								tempNodeSize.put(node.outOfInstance.definition.out.get(i),nodeSize.get(node.outOfInstance.out.get(i)));
 							}
-							tempNodeSize.put(node.outOfInstance.definition.out.get(i),nodeSize.get(node.outOfInstance.out.get(i)));
-						}
-						//expand ins
-						for (int i = 0; i < node.outOfInstance.in.size(); i++) {
-							if(!nodeSize.containsKey(node.outOfInstance.in.get(i))){
-								this.expand(node.outOfInstance.in.get(i),nodeSize);
+							//expand ins
+							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
+								if(!nodeSize.containsKey(node.outOfInstance.in.get(i))){
+									this.expand(node.outOfInstance.in.get(i),nodeSize);
+								}
+								tempNodeSize.put(node.outOfInstance.definition.in.get(i),nodeSize.get(node.outOfInstance.in.get(i)));
 							}
-							tempNodeSize.put(node.outOfInstance.definition.in.get(i),nodeSize.get(node.outOfInstance.in.get(i)));
-						}
-						//expand definition
-						for (int i = 0; i < node.outOfInstance.out.size(); i++) {
-							node.outOfInstance.definition.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
-						}
-						//expand outs if needed
-						for (int i = 0; i < node.outOfInstance.out.size(); i++) {
-							if(nodeSize.get(node.outOfInstance.out.get(i))<tempNodeSize.get(node.outOfInstance.definition.out.get(i))){
-								nodeSize.put(node.outOfInstance.out.get(i), tempNodeSize.get(node.outOfInstance.definition.out.get(i)));
-								if(node!=node.outOfInstance.definition.out.get(i)){
-									this.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
+							//expand definition
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								node.outOfInstance.definition.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
+							}
+							//expand outs if needed
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								if(nodeSize.get(node.outOfInstance.out.get(i))<tempNodeSize.get(node.outOfInstance.definition.out.get(i))){
+									nodeSize.put(node.outOfInstance.out.get(i), tempNodeSize.get(node.outOfInstance.definition.out.get(i)));
+									if(node!=node.outOfInstance.definition.out.get(i)){
+										this.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
+									}
+								}
+							}
+							//expand ins if needed
+							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
+								if(nodeSize.get(node.outOfInstance.in.get(i))<tempNodeSize.get(node.outOfInstance.definition.in.get(i))){
+									nodeSize.put(node.outOfInstance.in.get(i), tempNodeSize.get(node.outOfInstance.definition.in.get(i)));
+									expand(node.outOfInstance.in.get(i),nodeSize);
 								}
 							}
 						}
-						//expand ins if needed
-						for (int i = 0; i < node.outOfInstance.in.size(); i++) {
-							if(nodeSize.get(node.outOfInstance.in.get(i))<tempNodeSize.get(node.outOfInstance.definition.in.get(i))){
-								nodeSize.put(node.outOfInstance.in.get(i), tempNodeSize.get(node.outOfInstance.definition.in.get(i)));
-								expand(node.outOfInstance.in.get(i),nodeSize);
-							}
-						}
-						
 					}
 				}
 				if(node.inOfInstances!=null){//the node is in of instance
 					for(Instance instance:node.inOfInstances){
-						if(instance.definition.name=="nand"){//NAND //TODO: fix nand checking
-							if(!nodeSize.containsKey(instance.out.get(0))||nodeSize.get(instance.out.get(0))<nodeSize.get(node)){
-								nodeSize.put(instance.out.get(0), nodeSize.get(node));
-								this.expand(instance.out.get(0), nodeSize);
-							}
-							if(!nodeSize.containsKey(instance.in.get(0))||nodeSize.get(instance.in.get(0))<nodeSize.get(node)){
-								nodeSize.put(instance.in.get(0), nodeSize.get(node));
-								if(node!=instance.in.get(0)){
-									this.expand(instance.in.get(0), nodeSize);
+						if(this.instances.contains(instance)){//check definition has not been removed (= is recursive)
+							if(instance.definition.name=="nand"){//NAND //TODO: fix nand checking
+								if(!nodeSize.containsKey(instance.out.get(0))||nodeSize.get(instance.out.get(0))<nodeSize.get(node)){
+									nodeSize.put(instance.out.get(0), nodeSize.get(node));
+									this.expand(instance.out.get(0), nodeSize);
 								}
-							}
-							if(!nodeSize.containsKey(instance.in.get(1))||nodeSize.get(instance.in.get(1))<nodeSize.get(node)){
-								nodeSize.put(instance.in.get(1), nodeSize.get(node));
-								if(node!=instance.in.get(1)){
-									this.expand(instance.in.get(1), nodeSize);
-								}
-							}
-							int size0=nodeSize.get(instance.in.get(0));
-							int size1=nodeSize.get(instance.in.get(1));
-							int sizeOut=nodeSize.get(instance.out.get(0));
-							if(nodeSize.get(node)<size0){
-								nodeSize.put(node, size0);
-							}
-							if(nodeSize.get(node)<size1){
-								nodeSize.put(node, size1);
-							}
-							if(nodeSize.get(node)<sizeOut){
-								nodeSize.put(node, sizeOut);
-							}
-							if(size0<nodeSize.get(node)){
-								nodeSize.put(instance.in.get(0), nodeSize.get(node));
-								if(node!=instance.in.get(0)){
-									this.expand(instance.in.get(0), nodeSize);
-								}
-							}
-							if (size1<nodeSize.get(node)){
-								nodeSize.put(instance.in.get(1), nodeSize.get(node));
-								if(node!=instance.in.get(1)){
-									this.expand(instance.in.get(1), nodeSize);
-								}
-							}
-							if(sizeOut<nodeSize.get(node)){
-								nodeSize.put(instance.out.get(0), nodeSize.get(node));
-								this.expand(instance.out.get(0), nodeSize);
-							}
-						}else{//the node is in of an instance different to NAND
-							HashMap<Node, Integer> tempNodeSize = new HashMap<Node, Integer>();
-							//expand outs
-							for (int i = 0; i < instance.out.size(); i++) {
-								if(!nodeSize.containsKey(instance.out.get(i))){
-									this.expand(instance.out.get(i),nodeSize);
-								}
-								tempNodeSize.put(instance.definition.out.get(i),nodeSize.get(instance.out.get(i)));
-							}
-							//expand ins
-							for (int i = 0; i < instance.in.size(); i++) {
-								if(!nodeSize.containsKey(instance.in.get(i))){
-									this.expand(instance.in.get(i),nodeSize);
-								}
-								tempNodeSize.put(instance.definition.in.get(i),nodeSize.get(instance.in.get(i)));
-							}
-							//expand definition
-							for (int i = 0; i < instance.out.size(); i++) {
-								instance.definition.expand(instance.definition.out.get(i), tempNodeSize);
-							}
-							//expand outs if needed
-							for (int i = 0; i < instance.out.size(); i++) {
-								if(nodeSize.get(instance.out.get(i))<tempNodeSize.get(instance.definition.out.get(i))){
-									nodeSize.put(instance.out.get(i), tempNodeSize.get(instance.definition.out.get(i)));
-									this.expand(instance.definition.out.get(i), tempNodeSize);
-								}
-							}
-							//expand ins if needed
-							for (int i = 0; i < instance.in.size(); i++) {
-								if(nodeSize.get(instance.in.get(i))<tempNodeSize.get(instance.definition.in.get(i))){
-									nodeSize.put(instance.in.get(i), tempNodeSize.get(instance.definition.in.get(i)));
-									if(node!=instance.definition.in.get(i)){
-										expand(instance.in.get(i),nodeSize);
+								if(!nodeSize.containsKey(instance.in.get(0))||nodeSize.get(instance.in.get(0))<nodeSize.get(node)){
+									nodeSize.put(instance.in.get(0), nodeSize.get(node));
+									if(node!=instance.in.get(0)){
+										this.expand(instance.in.get(0), nodeSize);
 									}
 								}
+								if(!nodeSize.containsKey(instance.in.get(1))||nodeSize.get(instance.in.get(1))<nodeSize.get(node)){
+									nodeSize.put(instance.in.get(1), nodeSize.get(node));
+									if(node!=instance.in.get(1)){
+										this.expand(instance.in.get(1), nodeSize);
+									}
+								}
+								int size0=nodeSize.get(instance.in.get(0));
+								int size1=nodeSize.get(instance.in.get(1));
+								int sizeOut=nodeSize.get(instance.out.get(0));
+								if(nodeSize.get(node)<size0){
+									nodeSize.put(node, size0);
+								}
+								if(nodeSize.get(node)<size1){
+									nodeSize.put(node, size1);
+								}
+								if(nodeSize.get(node)<sizeOut){
+									nodeSize.put(node, sizeOut);
+								}
+								if(size0<nodeSize.get(node)){
+									nodeSize.put(instance.in.get(0), nodeSize.get(node));
+									if(node!=instance.in.get(0)){
+										this.expand(instance.in.get(0), nodeSize);
+									}
+								}
+								if (size1<nodeSize.get(node)){
+									nodeSize.put(instance.in.get(1), nodeSize.get(node));
+									if(node!=instance.in.get(1)){
+										this.expand(instance.in.get(1), nodeSize);
+									}
+								}
+								if(sizeOut<nodeSize.get(node)){
+									nodeSize.put(instance.out.get(0), nodeSize.get(node));
+									this.expand(instance.out.get(0), nodeSize);
+								}
+							}else{//the node is in of an instance different to NAND
+								HashMap<Node, Integer> tempNodeSize = new HashMap<Node, Integer>();
+								//expand outs
+								for (int i = 0; i < instance.out.size(); i++) {
+									if(!nodeSize.containsKey(instance.out.get(i))){
+										this.expand(instance.out.get(i),nodeSize);
+									}
+									tempNodeSize.put(instance.definition.out.get(i),nodeSize.get(instance.out.get(i)));
+								}
+								//expand ins
+								for (int i = 0; i < instance.in.size(); i++) {
+									if(!nodeSize.containsKey(instance.in.get(i))){
+										this.expand(instance.in.get(i),nodeSize);
+									}
+									tempNodeSize.put(instance.definition.in.get(i),nodeSize.get(instance.in.get(i)));
+								}
+								//expand definition
+								for (int i = 0; i < instance.out.size(); i++) {
+									instance.definition.expand(instance.definition.out.get(i), tempNodeSize);
+								}
+								//expand outs if needed
+								for (int i = 0; i < instance.out.size(); i++) {
+									if(nodeSize.get(instance.out.get(i))<tempNodeSize.get(instance.definition.out.get(i))){
+										nodeSize.put(instance.out.get(i), tempNodeSize.get(instance.definition.out.get(i)));
+										this.expand(instance.definition.out.get(i), tempNodeSize);
+									}
+								}
+								//expand ins if needed
+								for (int i = 0; i < instance.in.size(); i++) {
+									if(nodeSize.get(instance.in.get(i))<tempNodeSize.get(instance.definition.in.get(i))){
+										nodeSize.put(instance.in.get(i), tempNodeSize.get(instance.definition.in.get(i)));
+										if(node!=instance.definition.in.get(i)){
+											expand(instance.in.get(i),nodeSize);
+										}
+									}
+								}
+								
 							}
-							
 						}
 					}
 				}
@@ -686,10 +689,20 @@ public class Definition implements java.io.Serializable{ /**
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 						definitionToNewNodes.put(instance.definition.in.get(i), instance.in.get(i));
 						instance.in.get(i).inOfInstances.remove(instance);
+						for(Node child:instance.definition.in.get(i).children){//FIXME:recursive nodes
+							Node newChild= new Node();
+							instance.in.get(i).add(newChild);
+							definitionToNewNodes.put(child, newChild);
+						}
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 						definitionToNewNodes.put(instance.definition.out.get(i), instance.out.get(i));
 						instance.out.get(i).outOfInstance=null;
+						for(Node parent:instance.definition.out.get(i).parents){//FIXME:recursive nodes
+							Node newParent= new Node();
+							newParent.add(instance.out.get(i));
+							definitionToNewNodes.put(parent, newParent);
+						}
 					}
 					for(Instance definitionInstance:instance.definition.instances){
 							ArrayList<Node> nodes = new ArrayList<Node>();
@@ -700,16 +713,17 @@ public class Definition implements java.io.Serializable{ /**
 									Node newNode = new Node();
 									definitionToNewNodes.put(node, newNode);
 									nodes.add(newNode);
-								}
-								for(Node parent:node.parents){//map parent nodes //think don't need to map children
-									if(definitionToNewNodes.containsKey(parent)){
-										node.add(definitionToNewNodes.get(parent));
-									}else{
-										Node newParent = new Node();
-										definitionToNewNodes.get(node).add(newParent);
-										definitionToNewNodes.put(parent, newParent);
+									for(Node parent:node.parents){//map parent nodes //think don't need to map children
+										if(definitionToNewNodes.containsKey(parent)){
+											definitionToNewNodes.get(parent).add(definitionToNewNodes.get(node));
+										}else{
+											Node newParent = new Node();
+											newParent.add(definitionToNewNodes.get(node));
+											definitionToNewNodes.put(parent, newParent);
+										}
 									}
 								}
+								
 							}
 							for (Node node: definitionInstance.out) {//map out nodes
 								if(definitionToNewNodes.containsKey(node)){
@@ -718,14 +732,14 @@ public class Definition implements java.io.Serializable{ /**
 									Node defNode = new Node();
 									definitionToNewNodes.put(node, defNode);
 									nodes.add(defNode);
-								}
-								for(Node parent:node.parents){//map parent nodes //think don't need to map children
-									if(definitionToNewNodes.containsKey(parent)){
-										node.add(definitionToNewNodes.get(parent));
-									}else{
-										Node newParent = new Node();
-										definitionToNewNodes.get(node).add(newParent);
-										definitionToNewNodes.put(parent, newParent);
+									for(Node parent:node.parents){//map parent nodes //think don't need to map children
+										if(definitionToNewNodes.containsKey(parent)){
+											definitionToNewNodes.get(parent).add(definitionToNewNodes.get(node));
+										}else{
+											Node newParent = new Node();
+											newParent.add(definitionToNewNodes.get(node));
+											definitionToNewNodes.put(parent, newParent);
+										}
 									}
 								}
 							}
