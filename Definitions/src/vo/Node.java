@@ -101,7 +101,7 @@ public class Node {
 					ArrayList<NandNode> centerNodes = new ArrayList<NandNode>();
 					centerNodes.addAll(tempNodes.subList(supernode.children.size()/2, tempNodes.size()-supernode.children.size()/2));
 					nodeToNands.put(supernode.children.get(supernode.children.size()/2),centerNodes);//center nodes
-					for(int i = supernode.children.size()/2+1; i < supernode.children.size(); i++) {
+					for(int i = tempNodes.size()-supernode.children.size()/2; i < supernode.children.size(); i++) {
 						ArrayList<NandNode> rightNode = new ArrayList<NandNode>();
 						rightNode.add(tempNodes.get(tempNodes.size()-supernode.children.size()+i));//right node
 						nodeToNands.put(supernode.children.get(i),rightNode);
@@ -109,9 +109,9 @@ public class Node {
 					nandNodes=nodeToNands.get(this);	
 				}else{
 					for (Node parent : this.parents) {
-						if(!expandedNodes.contains(parent)){
+//						if(!expandedNodes.contains(parent)){
 							nandNodes.addAll(parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
-						}
+//						}
 					}
 				}
 				nodeToNands.put(this, nandNodes);
@@ -324,4 +324,16 @@ public class Node {
 //			}
 //		}
 //	}
+	public boolean childrenAreSubnodes() {
+		boolean subnodes=false;
+		if(this.children.size()>1){
+			subnodes=true;
+			for(Node node:this.children){
+				if(node.parents.size()!=1){
+					subnodes=false;
+				}
+			}
+		}
+		return subnodes;
+	}
 }
