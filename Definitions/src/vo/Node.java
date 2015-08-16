@@ -91,27 +91,21 @@ public class Node {
 				}
 				//eval subnodes only traversing to parents
 				if(this.parents.size()==1){//subnode of supernode parent, so map all the subnodes now
-					Node supernode=this.parents.get(0);
-					ArrayList<NandNode> tempNodes=supernode.toNands(nodeSize, expandedNodes, nodeToNands, nandForest);//add to output all the supernodes of a node
-					for(int i = 0; i < supernode.children.size()/2; i++) {
-						ArrayList<NandNode> leftNode = new ArrayList<NandNode>();
-						leftNode.add(tempNodes.get(i));
-						nodeToNands.put(supernode.children.get(i),leftNode);
-					}
-					ArrayList<NandNode> centerNodes = new ArrayList<NandNode>();
-					centerNodes.addAll(tempNodes.subList(supernode.children.size()/2, tempNodes.size()-supernode.children.size()/2));
-					nodeToNands.put(supernode.children.get(supernode.children.size()/2),centerNodes);//center nodes
-					for(int i = tempNodes.size()-supernode.children.size()/2; i < supernode.children.size(); i++) {
-						ArrayList<NandNode> rightNode = new ArrayList<NandNode>();
-						rightNode.add(tempNodes.get(tempNodes.size()-supernode.children.size()+i));//right node
-						nodeToNands.put(supernode.children.get(i),rightNode);
+					Node parent=this.parents.get(0);
+					ArrayList<NandNode> tempNodes=parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest);//add to output all the supernodes of a node
+					int i=0;
+					int j=0;
+					for(Node child:parent.children) {
+						j+=nodeSize.get(child);
+						ArrayList<NandNode> childNandNodes = new ArrayList<NandNode>();
+						childNandNodes.addAll(tempNodes.subList(i, j));
+						nodeToNands.put(child,childNandNodes);
+						i=j;
 					}
 					nandNodes=nodeToNands.get(this);	
 				}else{
 					for (Node parent : this.parents) {
-//						if(!expandedNodes.contains(parent)){
 							nandNodes.addAll(parent.toNands(nodeSize, expandedNodes, nodeToNands, nandForest));//add to output all the subnodes that form a node
-//						}
 					}
 				}
 				nodeToNands.put(this, nandNodes);
