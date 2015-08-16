@@ -7,7 +7,6 @@ package vo;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -185,22 +184,96 @@ public class Definition implements java.io.Serializable{ /**
 				
 			}
 			private void getNodesSize(HashMap<Node, Integer> nodeSize) {
+				HashSet<Node> fixedSize1Nodes = new HashSet<Node>();
 				for(Node node: this.out){
-					this.expand(node,nodeSize);
+					this.getSize1Nodes(node,fixedSize1Nodes);
+				}
+				for(Node node: this.out){
+					this.expand(node,nodeSize,fixedSize1Nodes);
 				}
 				
 			}
-			private void expand(Node node, HashMap<Node, Integer> nodeSize) {
+			private void getSize1Nodes(Node node, HashSet<Node> fixedSize1Nodes) {
+				if(node.parents.size()==1){
+					if(node.parents.get(0).children.get(0)==node||node.parents.get(0).children.get(node.parents.get(0).children.size()-1)==node){
+						fixedSize1Nodes.add(node);
+					}
+				}
+				for(Node parent:node.parents){
+					this.getSize1Nodes(parent, fixedSize1Nodes);
+				}
+				if(node.outOfInstance!=null){//the node is out of instance
+					if(node.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
+						//this is out
+						//expand fixed size 1 nodes
+						if(fixedSize1Nodes.contains(node)||fixedSize1Nodes.contains(node.outOfInstance.in.get(0))||fixedSize1Nodes.contains(node.outOfInstance.in.get(1))){
+							fixedSize1Nodes.add(node);
+							fixedSize1Nodes.add(node.outOfInstance.in.get(0));
+							fixedSize1Nodes.add(node.outOfInstance.in.get(1));
+						}
+						this.getSize1Nodes(node.outOfInstance.in.get(0),fixedSize1Nodes);
+						this.getSize1Nodes(node.outOfInstance.in.get(1),fixedSize1Nodes);
+						if(fixedSize1Nodes.contains(node)||fixedSize1Nodes.contains(node.outOfInstance.in.get(0))||fixedSize1Nodes.contains(node.outOfInstance.in.get(1))){
+							fixedSize1Nodes.add(node);
+							fixedSize1Nodes.add(node.outOfInstance.in.get(0));
+							fixedSize1Nodes.add(node.outOfInstance.in.get(1));
+						}
+					}else{//the node is out of an instance different to NAND
+						if(this.instances.contains(node.outOfInstance)){//check definition has not been removed (= is recursive)
+							HashSet<Node> tempFixedSize1Nodes = new HashSet<Node>();
+							//map outs to instance
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								if(fixedSize1Nodes.contains(node.outOfInstance.out.get(i))){
+									tempFixedSize1Nodes.add(node.outOfInstance.definition.out.get(i));
+								}
+							}
+							//expand instance
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								node.outOfInstance.definition.getSize1Nodes(node.outOfInstance.definition.out.get(i), tempFixedSize1Nodes);
+							}
+							//map ins from instance
+							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
+								if(tempFixedSize1Nodes.contains(node.outOfInstance.definition.in.get(i))){
+									fixedSize1Nodes.add(node.outOfInstance.in.get(i));
+								}
+							}
+							//expand ins
+							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
+								this.getSize1Nodes(node.outOfInstance.in.get(i),fixedSize1Nodes);
+							}
+							//map ins to instance
+							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
+								if(fixedSize1Nodes.contains(node.outOfInstance.in.get(i))){
+									tempFixedSize1Nodes.add(node.outOfInstance.definition.in.get(i));
+								}
+							}
+							//expand instance
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								node.outOfInstance.definition.getSize1Nodes(node.outOfInstance.definition.out.get(i), tempFixedSize1Nodes);
+							}
+							//expand outs from instance
+							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
+								if(tempFixedSize1Nodes.contains(node.outOfInstance.definition.out.get(i))){
+									fixedSize1Nodes.add(node.outOfInstance.out.get(i));
+								}
+							}
+						}
+					}
+				}
+				
+			}
+			private void expand(Node node, HashMap<Node, Integer> nodeSize, HashSet<Node> fixedSize1Nodes) {
 				//expand up, then expand down if needed
 				if (!nodeSize.containsKey(node)){
 					nodeSize.put(node, 1);//size 1 if not subnodes nor mapped
 					if (nodeSize.get(node)<node.parents.size()) nodeSize.put(node, node.parents.size());
 				}
+				
 				//expand ins
 				int parentsSize=0;
 				for(Node parent:node.parents){
 					if(!nodeSize.containsKey(parent)){
-						expand(parent,nodeSize);
+						expand(parent,nodeSize, fixedSize1Nodes);
 					}
 					if(node.parents.size()!=1){
 						parentsSize+=nodeSize.get(parent);
@@ -213,7 +286,7 @@ public class Definition implements java.io.Serializable{ /**
 				int childrenSize=0;
 				for(Node child:node.children){
 					if(!nodeSize.containsKey(child)){
-						expand(child,nodeSize);
+						expand(child,nodeSize, fixedSize1Nodes);
 					}
 					if(child.parents.size()==1){
 						childrenSize+=nodeSize.get(child);	
@@ -223,15 +296,23 @@ public class Definition implements java.io.Serializable{ /**
 					nodeSize.put(node, childrenSize);
 				}
 				if(node.parents.size()>1&&nodeSize.get(node)>parentsSize){
-					nodeSize.put(node.parents.get(0),(childrenSize-parentsSize)/2+3);//minimum size for a node divided in subnodes is 3
-					nodeSize.put(node.parents.get(node.parents.size()-1),(childrenSize-parentsSize)/2+3);//minimum size for a node divided in subnodes is 3
-					expand(node.parents.get(0),nodeSize);
-					expand(node.parents.get(node.parents.size()-1),nodeSize);
+					if(!fixedSize1Nodes.contains(node.parents.get(0))){
+						nodeSize.put(node.parents.get(0),(childrenSize-parentsSize)/2+3);//minimum size for a node divided in subnodes is 3
+					}
+					if(!fixedSize1Nodes.contains(node.parents.get(node.parents.size()-1))){
+						nodeSize.put(node.parents.get(node.parents.size()-1),(childrenSize-parentsSize)/2+3);//minimum size for a node divided in subnodes is 3
+					}
+					if(!fixedSize1Nodes.contains(node.parents.get(0))){
+						expand(node.parents.get(0),nodeSize, fixedSize1Nodes);
+					}
+					if(!fixedSize1Nodes.contains(node.parents.get(node.parents.size()-1))){
+						expand(node.parents.get(node.parents.size()-1),nodeSize, fixedSize1Nodes);
+					}
 					//expand ins
 					parentsSize=0;
 					for(Node parent:node.parents){
 						if(!nodeSize.containsKey(parent)){
-							expand(parent,nodeSize);
+							expand(parent,nodeSize, fixedSize1Nodes);
 						}
 						if(node.parents.size()!=1){
 							parentsSize+=nodeSize.get(parent);
@@ -243,7 +324,7 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				if(node.childrenAreSubnodes()){
 					nodeSize.put(node.children.get(node.children.size()/2), nodeSize.get(node)-childrenSize+nodeSize.get(node.children.get(node.children.size()/2)));
-					expand(node.children.get(node.children.size()/2),nodeSize);
+					expand(node.children.get(node.children.size()/2),nodeSize, fixedSize1Nodes);
 				}
 				if(node.outOfInstance!=null){//the node is out of instance
 					if(node.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
@@ -251,11 +332,11 @@ public class Definition implements java.io.Serializable{ /**
 						//expand ins
 						if(!nodeSize.containsKey(node.outOfInstance.in.get(0))||nodeSize.get(node.outOfInstance.in.get(0))<nodeSize.get(node)){
 							nodeSize.put(node.outOfInstance.in.get(0), nodeSize.get(node));
-							this.expand(node.outOfInstance.in.get(0), nodeSize);
+							this.expand(node.outOfInstance.in.get(0), nodeSize, fixedSize1Nodes);
 						}
 						if(!nodeSize.containsKey(node.outOfInstance.in.get(1))||nodeSize.get(node.outOfInstance.in.get(1))<nodeSize.get(node)){
 							nodeSize.put(node.outOfInstance.in.get(1), nodeSize.get(node));
-							this.expand(node.outOfInstance.in.get(1), nodeSize);
+							this.expand(node.outOfInstance.in.get(1), nodeSize, fixedSize1Nodes);
 						}
 						int size0=nodeSize.get(node.outOfInstance.in.get(0));
 						int size1=nodeSize.get(node.outOfInstance.in.get(1));
@@ -267,11 +348,11 @@ public class Definition implements java.io.Serializable{ /**
 						}
 						if(size0<nodeSize.get(node)){
 							nodeSize.put(node.outOfInstance.in.get(0), nodeSize.get(node));
-							this.expand(node.outOfInstance.in.get(0), nodeSize);
+							this.expand(node.outOfInstance.in.get(0), nodeSize, fixedSize1Nodes);
 						}
 						if (size1<nodeSize.get(node)){
 							nodeSize.put(node.outOfInstance.in.get(1), nodeSize.get(node));
-							this.expand(node.outOfInstance.in.get(1), nodeSize);
+							this.expand(node.outOfInstance.in.get(1), nodeSize, fixedSize1Nodes);
 						}
 					}else{//the node is out of an instance different to NAND
 						if(this.instances.contains(node.outOfInstance)){//check definition has not been removed (= is recursive)
@@ -279,27 +360,27 @@ public class Definition implements java.io.Serializable{ /**
 							//expand outs
 							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
 								if(!nodeSize.containsKey(node.outOfInstance.out.get(i))){
-									this.expand(node.outOfInstance.out.get(i),nodeSize);
+									this.expand(node.outOfInstance.out.get(i),nodeSize, fixedSize1Nodes);
 								}
 								tempNodeSize.put(node.outOfInstance.definition.out.get(i),nodeSize.get(node.outOfInstance.out.get(i)));
 							}
 							//expand ins
 							for (int i = 0; i < node.outOfInstance.in.size(); i++) {
 								if(!nodeSize.containsKey(node.outOfInstance.in.get(i))){
-									this.expand(node.outOfInstance.in.get(i),nodeSize);
+									this.expand(node.outOfInstance.in.get(i),nodeSize, fixedSize1Nodes);
 								}
 								tempNodeSize.put(node.outOfInstance.definition.in.get(i),nodeSize.get(node.outOfInstance.in.get(i)));
 							}
 						//expand definition
 						for (int i = 0; i < node.outOfInstance.out.size(); i++) {
-							node.outOfInstance.definition.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
+							node.outOfInstance.definition.expand(node.outOfInstance.definition.out.get(i), tempNodeSize, fixedSize1Nodes);
 						}
 						//expand outs if needed
 						for (int i = 0; i < node.outOfInstance.out.size(); i++) {
 							if(nodeSize.get(node.outOfInstance.out.get(i))<tempNodeSize.get(node.outOfInstance.definition.out.get(i))){
 								nodeSize.put(node.outOfInstance.out.get(i), tempNodeSize.get(node.outOfInstance.definition.out.get(i)));
 								if(node!=node.outOfInstance.definition.out.get(i)){
-									this.expand(node.outOfInstance.definition.out.get(i), tempNodeSize);
+									this.expand(node.outOfInstance.definition.out.get(i), tempNodeSize, fixedSize1Nodes);
 								}
 							}
 						}
@@ -307,30 +388,31 @@ public class Definition implements java.io.Serializable{ /**
 						for (int i = 0; i < node.outOfInstance.in.size(); i++) {
 							if(nodeSize.get(node.outOfInstance.in.get(i))<tempNodeSize.get(node.outOfInstance.definition.in.get(i))){
 								nodeSize.put(node.outOfInstance.in.get(i), tempNodeSize.get(node.outOfInstance.definition.in.get(i)));
-								expand(node.outOfInstance.in.get(i),nodeSize);
+								expand(node.outOfInstance.in.get(i),nodeSize, fixedSize1Nodes);
 							}
 						}
+						
 					}
 						
 					}
-					if(node.inOfInstances!=null){//the node is in of instance
+					if(node.inOfInstances!=null){//the node is in of instance(s)
 						for(Instance instance:node.inOfInstances){
 							if(this.instances.contains(instance)){//check definition has not been removed (= is recursive)
 								if(instance.definition.name=="nand"){//NAND //TODO: fix nand checking
 									if(!nodeSize.containsKey(instance.out.get(0))||nodeSize.get(instance.out.get(0))<nodeSize.get(node)){
 										nodeSize.put(instance.out.get(0), nodeSize.get(node));
-										this.expand(instance.out.get(0), nodeSize);
+										this.expand(instance.out.get(0), nodeSize, fixedSize1Nodes);
 									}
 									if(!nodeSize.containsKey(instance.in.get(0))||nodeSize.get(instance.in.get(0))<nodeSize.get(node)){
 										nodeSize.put(instance.in.get(0), nodeSize.get(node));
 										if(node!=instance.in.get(0)){
-											this.expand(instance.in.get(0), nodeSize);
+											this.expand(instance.in.get(0), nodeSize, fixedSize1Nodes);
 										}
 									}
 									if(!nodeSize.containsKey(instance.in.get(1))||nodeSize.get(instance.in.get(1))<nodeSize.get(node)){
 										nodeSize.put(instance.in.get(1), nodeSize.get(node));
 										if(node!=instance.in.get(1)){
-											this.expand(instance.in.get(1), nodeSize);
+											this.expand(instance.in.get(1), nodeSize, fixedSize1Nodes);
 										}
 									}
 									int size0=nodeSize.get(instance.in.get(0));
@@ -348,44 +430,44 @@ public class Definition implements java.io.Serializable{ /**
 									if(size0<nodeSize.get(node)){
 										nodeSize.put(instance.in.get(0), nodeSize.get(node));
 										if(node!=instance.in.get(0)){
-											this.expand(instance.in.get(0), nodeSize);
+											this.expand(instance.in.get(0), nodeSize, fixedSize1Nodes);
 										}
 									}
 									if (size1<nodeSize.get(node)){
 										nodeSize.put(instance.in.get(1), nodeSize.get(node));
 										if(node!=instance.in.get(1)){
-											this.expand(instance.in.get(1), nodeSize);
+											this.expand(instance.in.get(1), nodeSize, fixedSize1Nodes);
 										}
 									}
 									if(sizeOut<nodeSize.get(node)){
 										nodeSize.put(instance.out.get(0), nodeSize.get(node));
-										this.expand(instance.out.get(0), nodeSize);
+										this.expand(instance.out.get(0), nodeSize, fixedSize1Nodes);
 									}
 								}else{//the node is in of an instance different to NAND
 									HashMap<Node, Integer> tempNodeSize = new HashMap<Node, Integer>();
 									//expand outs
 									for (int i = 0; i < instance.out.size(); i++) {
 										if(!nodeSize.containsKey(instance.out.get(i))){
-											this.expand(instance.out.get(i),nodeSize);
+											this.expand(instance.out.get(i),nodeSize, fixedSize1Nodes);
 										}
 										tempNodeSize.put(instance.definition.out.get(i),nodeSize.get(instance.out.get(i)));
 									}
 									//expand ins
 									for (int i = 0; i < instance.in.size(); i++) {
 										if(!nodeSize.containsKey(instance.in.get(i))){
-											this.expand(instance.in.get(i),nodeSize);
+											this.expand(instance.in.get(i),nodeSize, fixedSize1Nodes);
 										}
 										tempNodeSize.put(instance.definition.in.get(i),nodeSize.get(instance.in.get(i)));
 									}
 									//expand definition
 									for (int i = 0; i < instance.out.size(); i++) {
-										instance.definition.expand(instance.definition.out.get(i), tempNodeSize);
+										instance.definition.expand(instance.definition.out.get(i), tempNodeSize, fixedSize1Nodes);
 									}
 									//expand outs if needed
 									for (int i = 0; i < instance.out.size(); i++) {
 										if(nodeSize.get(instance.out.get(i))<tempNodeSize.get(instance.definition.out.get(i))){
 											nodeSize.put(instance.out.get(i), tempNodeSize.get(instance.definition.out.get(i)));
-											this.expand(instance.definition.out.get(i), tempNodeSize);
+											this.expand(instance.definition.out.get(i), tempNodeSize, fixedSize1Nodes);
 										}
 									}
 									//expand ins if needed
@@ -393,7 +475,7 @@ public class Definition implements java.io.Serializable{ /**
 										if(nodeSize.get(instance.in.get(i))<tempNodeSize.get(instance.definition.in.get(i))){
 											nodeSize.put(instance.in.get(i), tempNodeSize.get(instance.definition.in.get(i)));
 											if(node!=instance.definition.in.get(i)){
-												expand(instance.in.get(i),nodeSize);
+												expand(instance.in.get(i),nodeSize, fixedSize1Nodes);
 											}
 										}
 									}

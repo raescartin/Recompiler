@@ -1,4 +1,5 @@
 ﻿-independent size of variables 0(n)=0(1) (->cmp ->eq0 ->if) <-> recursive def if
+-test a nand with one in bigger than the other (+nodes)
 -fill with 0 on left if the size of one input is less than expected (ifdef)
 -define mul
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
