@@ -74,8 +74,9 @@ public class NandForest {//multiple nand trees
 		}
 		return node;
 	}
-	public void addOuts(ArrayList<NandNode> nodes){
+	public ArrayList<NandNode> addOuts(ArrayList<NandNode> nodes){
 		this.out.addAll(nodes);
+		return nodes;
 	}
 	public ArrayList<FixedBitSet> eval(FixedBitSet ... inValues){
 		ArrayList<FixedBitSet> outs = new ArrayList<FixedBitSet>();

@@ -110,22 +110,17 @@ public class DefinitionDB implements java.io.Serializable{
 //	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition
-		definition.nodes.clear();
 		definition.instances.clear();
 		definition.rootIn.clear();
+		HashSet <Node> inOutNodes = new HashSet <Node>();
 		//FIXME: if a node is both in and out, it gets to in/=out 
 		for(Node node:definition.in){//FIXME: make recursive add of children
-			definition.add(node);
-			for(Node child:node.children){
-				definition.add(child);
-			}
+			node.getChildren(inOutNodes);
 		}
 		for(Node node:definition.out){//FIXME: make recursive add of parents
-			definition.add(node);
-			for(Node parent:node.parents){
-				definition.add(parent);
-			}
+			node.getParents(inOutNodes);
 		}
+		definition.nodes.retainAll(inOutNodes);
 		
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		int i=0;

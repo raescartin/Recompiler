@@ -72,6 +72,7 @@ public class Definition implements java.io.Serializable{ /**
 	 * 
 	 */
 	private static final long serialVersionUID = -3804848616644678453L;
+			public int maxNode=0;//keep track for easy consistency while removing nodes
 			public String name;//not needed, only for debug
 			public HashMap<Node,Integer> tradInts;//not needed, only for debug
 			public ArrayList<Node> in;//NEEDED
@@ -118,69 +119,25 @@ public class Definition implements java.io.Serializable{ /**
 				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
 				//NODE FISSION
 				this.getNodesSize(nodeSize);//get the size of all the definition nodes//FIXME not ok sizes with dec
-				this.setIns(nodeSize,nodeToNands,nandForest);//from bottom to top//(mapping in and finding inputs size first is needed)
-				///Need to map subnodes of ins to conserve references?
-				for (Node node:this.out) {
-					HashSet<Node> expandedNodes = new HashSet<Node>();
-					nandForest.addOuts(node.toNands(nodeSize,expandedNodes,nodeToNands,nandForest));//FIXME
-				}
+				///Need to map subnodes of ins and outs to conserve references!!!
+				this.mapIns(nodeSize,nodeToNands,nandForest,nandToNodeIn);//from bottom to top//(mapping in and finding inputs size first is needed)
+				this.mapOuts(nodeSize,nodeToNands,nandForest,nandToNodeOut);
 				//IN and OUTS mapped and in nandForest
-				//map in nandNodes to nodes
-				this.nodes.clear();
-				this.nodes.addAll(this.in);
-				for (Node inNode:this.in){
-					if(nodeSize.get(inNode)==1){
-						nandToNodeIn.add(inNode);
-					}else{
-						for(Node child:inNode.children){//TODO: fix for recursive children?
-							nandToNodeIn.add(child);
-						}
-						for (int i = 0; i < nodeSize.get(inNode)-inNode.children.size(); i++) {
-							Node child = new Node();
-							inNode.add(child);
-							nandToNodeIn.add(child);
-						}
-					}
-						
-				}	
-				this.nodes.addAll(this.out);
-				for (Node outNode:this.out){
-					if(nodeSize.get(outNode)==1){
-						nandToNodeOut.add(outNode);
-					}else{
-						for(Node parent:outNode.parents){//TODO: fix for recursive parents?
-							nandToNodeOut.add(parent);
-						}
-						for (int i = 0; i < nodeSize.get(outNode)-outNode.parents.size(); i++) {
-							Node parent = new Node();
-							parent.add(outNode);
-							nandToNodeOut.add(parent);
-						}
-					}
-					
-				}
 				return nandForest;
 			}
-			private void setIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
+			private void mapIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn) {
 				//map input nodes to nandNodes
 				for(Node inNode:this.in){
-					ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
-//					if(inNode.children.isEmpty()){
-						nandNodes=nandForest.addIns(nodeSize.get(inNode));
-//					}else{
-//						for(Node child:inNode.children){
-//							if(child.parents.size()==1){//subnode
-//								ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
-//								subNandNodes=nandForest.addIns(nodeSize.get(child));
-//								nodeToNands.put(child, subNandNodes);
-//								nandNodes.addAll(subNandNodes);
-//							}else{
-//								nandNodes.addAll(nandForest.addIns(nodeSize.get(child)));
-//							}
-//						}
-//					}
-					nodeToNands.put(inNode, nandNodes);
-				}
+					inNode.mapInChildren(nodeSize,nodeToNands,nandForest, nandToNodeIn);
+				}			
+			}
+			private void mapOuts(HashMap<Node, Integer> nodeSize,
+					HashMap<Node, ArrayList<NandNode>> nodeToNands,
+					NandForest nandForest, ArrayList<Node> nandToNodeOut) {
+				//map output nodes to nandNodes
+				for(Node outNode:this.out){
+					outNode.mapOutParents(nodeSize,nodeToNands,nandForest, nandToNodeOut);
+				}	
 				
 			}
 			private void getNodesSize(HashMap<Node, Integer> nodeSize) {
@@ -511,15 +468,14 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			public void add(Node node){
 				if(!this.nodes.contains(node)){
-					node.idForDefinition=this.nodes.size();//debugging only
+					node.idForDefinition=this.maxNode;//debugging only
+					this.maxNode++;
 					node.definition=this;
 					this.nodes.add(node);
 					for(Node parent:node.parents){
-						parent.definition=this;
 						this.add(parent);
 					}
 					for(Node child:node.children){
-						child.definition=this;
 						this.add(child);
 					}	
 				}
@@ -527,8 +483,6 @@ public class Definition implements java.io.Serializable{ /**
 			public String toString() {
 				String string = new String();
 				//Print this definition translating node id to integers
-				//TODO: subnodes
-				this.tradInts = new HashMap<Node,Integer>();
 				//System.out.print(this.hashCode());
 				string+=this.name;
 				string+=(" [");
