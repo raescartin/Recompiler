@@ -143,8 +143,8 @@ public class Definition implements java.io.Serializable{ /**
 				//remove redundant subnodes
 				for(Node node:this.nodes){
 					if(node.parents.size()==1){
-						if(node.parents.get(0).parents.size()>1){//FIX 19(9(8&5){0}&9(8&5){1})
-							Node redundantNodeLeft = node.parents.get(0).children.get(0);//FIXME: recursive and not only extreme nodes
+						if(node.parents.get(0).parents.size()>1){
+							Node redundantNodeLeft = node.parents.get(0).children.get(0);//FIXME:not only extreme nodes ¿recursive?
 							Node nodeLeft= node.parents.get(0).parents.get(0);
 							if(nodeSize.get(nodeLeft)==1){
 								for(Node child:redundantNodeLeft.children){

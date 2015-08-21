@@ -214,11 +214,11 @@ class test {
     	Node cmpBRest = cmp.in.get(1).add(new Node());
     	Node cmpBN = cmp.in.get(1).add(new Node());
     	Node cmpAwithoutN = new Node();
-    	cmpAwithoutN.add(cmpA0);
-    	cmpAwithoutN.add(cmpARest);
+    	cmpA0.add(cmpAwithoutN);
+    	cmpARest.add(cmpAwithoutN);
     	Node cmpBwithoutN = new Node();
-    	cmpBwithoutN.add(cmpB0);
-    	cmpBwithoutN.add(cmpBRest);
+    	cmpB0.add(cmpBwithoutN);
+    	cmpBRest.add(cmpBwithoutN);
     	Node cmpXor = new Node();
     	cmp.add(xor, cmpAN,cmpBN,cmpXor);
     	Node cmpR = new Node();
@@ -252,11 +252,10 @@ class test {
     	Node mul3 = new Node();
     	Node mul4 = new Node();
     	mul.add(eq0,mul.in.get(0),mul0);
-    	mul.add(zeros,mul.in.get(0),mul1);
-    	mul.add(dec,mul.in.get(1),mul2);
-    	mul.add(mul,mul.in.get(0),mul2,mul3);
-    	mul.add(add,mul3,mul.in.get(0),mul4);
-    	mul.add(rifDef,mul0,mul1,mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
+    	mul.add(dec,mul.in.get(0),mul2);
+    	mul.add(mul,mul2,mul.in.get(1),mul3);
+    	mul.add(add,mul3,mul.in.get(1),mul4);
+    	mul.add(rifDef,mul0,mul.in.get(0),mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
     	definitionDB.put("mul",mul);
     	System.out.print(definitionDB.toString());
     	
