@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -117,26 +118,84 @@ public class Definition implements java.io.Serializable{ /**
 				NandForest nandForest = new NandForest(0);
 				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
 				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
+				HashSet <Node> inOutNodes = new HashSet <Node>();
 				//NODE FISSION
 				this.getNodesSize(nodeSize);//get the size of all the definition nodes//FIXME not ok sizes with dec
+				this.removeRedundantSubnodes(nodeSize);
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeSize,nodeToNands,nandForest,nandToNodeIn);//from bottom to top//(mapping in and finding inputs size first is needed)
-				this.mapOuts(nodeSize,nodeToNands,nandForest,nandToNodeOut);
+				this.mapIns(nodeSize,nodeToNands,nandForest,nandToNodeIn,inOutNodes);//from bottom to top//(mapping in and finding inputs size first is needed)
+				this.mapOuts(nodeSize,nodeToNands,nandForest,nandToNodeOut,inOutNodes);
 				//IN and OUTS mapped and in nandForest
+				this.instances.clear();
+				this.rootIn.clear();
+				this.nodes.retainAll(inOutNodes);
+				for(Node inNode:nandToNodeIn){
+					inNode.children.clear();
+					inNode.inOfInstances.clear();
+				}
+				for(Node outNode:nandToNodeOut){
+					outNode.parents.clear();
+					outNode.outOfInstance=null;
+				}
 				return nandForest;
 			}
-			private void mapIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn) {
+			private void removeRedundantSubnodes(HashMap<Node, Integer> nodeSize) {
+				//remove redundant subnodes
+				for(Node node:this.nodes){
+					if(node.parents.size()==1){
+						if(node.parents.get(0).parents.size()>1){//FIX 19(9(8&5){0}&9(8&5){1})
+							Node redundantNodeLeft = node.parents.get(0).children.get(0);//FIXME: recursive and not only extreme nodes
+							Node nodeLeft= node.parents.get(0).parents.get(0);
+							if(nodeSize.get(nodeLeft)==1){
+								for(Node child:redundantNodeLeft.children){
+									Collections.replaceAll(child.parents,redundantNodeLeft,nodeLeft);
+								}
+								for(Instance instance:this.instances){
+									Collections.replaceAll(instance.in,redundantNodeLeft,nodeLeft);
+									Collections.replaceAll(instance.out,redundantNodeLeft,nodeLeft);
+								}
+							}
+							Node redundantNodeRight = node.parents.get(0).children.get(node.parents.get(0).children.size()-1);
+							Node nodeRight=node.parents.get(0).parents.get(node.parents.get(0).parents.size()-1);
+							if(nodeSize.get(nodeRight)==1){
+								for(Node child:redundantNodeRight.children){
+									Collections.replaceAll(child.parents,redundantNodeRight,nodeRight);
+								}
+								for(Instance instance:this.instances){
+									Collections.replaceAll(instance.in,redundantNodeRight,nodeRight);
+									Collections.replaceAll(instance.out,redundantNodeRight,nodeRight);
+								}
+							}
+							if(node.parents.get(0).children.size()==3){//TODO: recursive and for more than 3
+								if(node.parents.get(0).parents.size()==3){
+									Node redundantCenter = node.parents.get(0).children.get(1);
+									Node nodeCenter=node.parents.get(0).parents.get(1);
+									for(Node child:redundantCenter.children){
+										Collections.replaceAll(child.parents,redundantCenter,nodeCenter);
+									}
+									for(Instance instance:this.instances){
+										Collections.replaceAll(instance.in,redundantCenter,nodeCenter);
+										Collections.replaceAll(instance.out,redundantCenter,nodeCenter);
+									}
+								}
+							}
+						}
+					}
+				}
+				
+			}
+			private void mapIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
 				for(Node inNode:this.in){
-					inNode.mapInChildren(nodeSize,nodeToNands,nandForest, nandToNodeIn);
+					inNode.mapInChildren(nodeSize,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
 				}			
 			}
 			private void mapOuts(HashMap<Node, Integer> nodeSize,
 					HashMap<Node, ArrayList<NandNode>> nodeToNands,
-					NandForest nandForest, ArrayList<Node> nandToNodeOut) {
+					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 				//map output nodes to nandNodes
 				for(Node outNode:this.out){
-					outNode.mapOutParents(nodeSize,nodeToNands,nandForest, nandToNodeOut);
+					outNode.mapOutParents(nodeSize,nodeToNands,nandForest, nandToNodeOut,inOutNodes);
 				}	
 				
 			}
@@ -729,6 +788,12 @@ public class Definition implements java.io.Serializable{ /**
 			public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
 				this.instances.removeAll(this.recursiveInstances);//remove all recursive instances, to make the definition not self recursive
 				for(Instance instance : this.recursiveInstances){//add nodes from recursive instances
+					//TODO:
+					//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
+					//1 add instances of 1st recursion (expand recursion like its done with instancesOfRecursiveDefinitions)
+					//2 map out/in recursive nodes
+					//3 keep track of these nodes
+					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
 					removedInstances.add(instance);
 					addedNodes.in+=instance.out.size();
 					for (int i = 0; i < instance.out.size(); i++) {//add out nodes to tempDef in

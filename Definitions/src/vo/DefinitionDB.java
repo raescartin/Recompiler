@@ -6,6 +6,7 @@ package vo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -70,7 +71,8 @@ public class DefinitionDB implements java.io.Serializable{
 			//toBest to account recursion
 			//nandtree->definition node fusion
 			//intersection optimization of recursive definitions
-			
+		
+
 		
 		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
@@ -109,19 +111,7 @@ public class DefinitionDB implements java.io.Serializable{
 //		
 //	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
-		//set existing Definition from NandForest without NandNode's repetition
-		definition.instances.clear();
-		definition.rootIn.clear();
-		HashSet <Node> inOutNodes = new HashSet <Node>();
-		//FIXME: if a node is both in and out, it gets to in/=out 
-		for(Node node:definition.in){//FIXME: make recursive add of children
-			node.getChildren(inOutNodes);
-		}
-		for(Node node:definition.out){//FIXME: make recursive add of parents
-			node.getParents(inOutNodes);
-		}
-		definition.nodes.retainAll(inOutNodes);
-		
+		//set existing Definition from NandForest without NandNode's repetition	
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		int i=0;
 		for (Node node:nandToNodeIn){//we map only inputs to map top to bottom

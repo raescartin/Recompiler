@@ -343,32 +343,28 @@ public class Node {
 			parent.getParents(inOutNodes);
 		}
 	}
-	public ArrayList<NandNode> mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn) {
+	public ArrayList<NandNode> mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
+		inOutNodes.add(this);
 		if(this.children.isEmpty()||this.children.get(0).parents.size()!=1){
-			nandNodes=nandForest.addIns(nodeSize.get(this));
-			if(nodeSize.get(this)==1){
-				nandToNodeIn.add(this);
-			}else{
-				for(Node child:this.children){//TODO: fix for recursive children
-					nandToNodeIn.add(child);
-				}
-				for (int i = this.children.size(); i < nodeSize.get(this); i++) {
-					Node child = new Node();
-					this.add(child);
-					nandToNodeIn.add(child);
+			if(!this.inOfInstances.isEmpty()||(!this.parents.isEmpty()&&!this.parents.get(0).inOfInstances.isEmpty())){//TODO:make recursive for subnodes
+				nandNodes=nandForest.addIns(nodeSize.get(this));
+				if(nodeSize.get(this)==1){
+					nandToNodeIn.add(this);
+				}else{
+					for(Node child:this.children){//TODO: fix for recursive children
+						nandToNodeIn.add(child);
+					}
+					for (int i = this.children.size(); i < nodeSize.get(this); i++) {
+						Node child = new Node();
+						this.add(child);
+						nandToNodeIn.add(child);
+					}
 				}
 			}
 		}else{
 			for(Node child:this.children){
-//				if(child.parents.size()==1){//subnode
-//					ArrayList<NandNode> subNandNodes= new ArrayList<NandNode>();
-//					subNandNodes=nandForest.addIns(nodeSize.get(child));
-//					nodeToNands.put(child, subNandNodes);
-//					nandNodes.addAll(subNandNodes);
-//				}else{
-					nandNodes.addAll(child.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn));
-//				}
+					nandNodes.addAll(child.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes));
 			}
 		}
 		nodeToNands.put(this, nandNodes);
@@ -376,12 +372,11 @@ public class Node {
 	}
 	public ArrayList<NandNode> mapOutParents(HashMap<Node, Integer> nodeSize,
 			HashMap<Node, ArrayList<NandNode>> nodeToNands,
-			NandForest nandForest, ArrayList<Node> nandToNodeOut) {
+			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
-//		if(nodeToNands.containsKey(this)){
-//			nandNodes=nodeToNands.get(this);
-//		}else{
-			if(this.parents.isEmpty()||this.parents.get(0).children.size()!=1){
+		inOutNodes.add(this);
+		if(this.parents.isEmpty()||this.parents.get(0).children.size()!=1){
+			if(this.outOfInstance!=null||(!this.parents.isEmpty()&&this.parents.get(0).outOfInstance!=null)){//TODO:make recursive for subnodes
 				nandNodes=nandForest.addOuts(this.toNands(nodeSize,nodeToNands,nandForest));
 				if(nodeSize.get(this)==1){
 					nandToNodeOut.add(this);
@@ -395,13 +390,13 @@ public class Node {
 						nandToNodeOut.add(parent);
 					}
 				}
-			}else{
-				for(Node parent:this.parents){
-					nandNodes.addAll(parent.mapOutParents(nodeSize, nodeToNands, nandForest, nandToNodeOut));
-				}
 			}
-			nodeToNands.put(this, nandNodes);
-//		}
+		}else{
+			for(Node parent:this.parents){
+				nandNodes.addAll(parent.mapOutParents(nodeSize, nodeToNands, nandForest, nandToNodeOut, inOutNodes));
+			}
+		}
+		nodeToNands.put(this, nandNodes);
 		return nandNodes;
 	}
 }
