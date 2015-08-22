@@ -895,4 +895,56 @@ public class Definition implements java.io.Serializable{ /**
 				// TODO Auto-generated method stub
 				
 			}
+			public void nodeFusion() {
+				HashMap<Definition,ArrayList<Instance>> instancesByDefinition = new HashMap<Definition,ArrayList<Instance>>();
+				for(Instance instance:this.instances){
+					boolean fusible=true;
+					for(Node inNode:instance.in){
+						if(inNode.parents.size()!=1){
+							fusible=false;
+						}
+					}
+					for(Node outNode:instance.out){
+						if(outNode.children.size()!=1){
+							fusible=false;
+						}
+					}
+					if(fusible){
+						ArrayList<Instance> instancesOfDefinition = new ArrayList<Instance>();
+						if(instancesByDefinition.containsKey(instance.definition)){
+							instancesOfDefinition=instancesByDefinition.get(instance.definition);
+						}
+						instancesOfDefinition.add(instance);
+						instancesByDefinition.put(instance.definition, instancesOfDefinition);
+					}
+				}
+				HashMap<Node,ArrayList<Instance>> instancesByNode = new HashMap<Node,ArrayList<Instance>>();
+				for(Definition definition:instancesByDefinition.keySet()){
+					for(Instance instance:instancesByDefinition.get(definition)){
+						if(instance.in.get(0).parents.size()==1){
+							ArrayList<Instance> instancesWithNode = new ArrayList<Instance>();
+							if(instancesByNode.containsKey(instance.in.get(0))){
+								instancesWithNode = instancesByNode.get(instance.in.get(0));
+							}
+							instancesWithNode.add(instance);
+							instancesByNode.put(instance.in.get(0).parents.get(0), instancesWithNode);
+						}
+						
+					}
+				}
+				for(Node node:instancesByNode.keySet()){//Heuristic
+					for(Instance instance:instancesByNode.get(node)){
+						Instance superInstance = new Instance();
+						for(Node inNode:instance.in){
+							superInstance.in.add(inNode.parents.get(0));
+						}
+						for(Node outNode:instance.out){
+							superInstance.out.add(outNode.children.get(0));
+						}
+						//TODO: if we have all subinstances to this superinstance, replace subinstances with superinstance (fusion)
+						
+					}
+				}
+					
+			}
 		}

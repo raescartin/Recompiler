@@ -99,10 +99,11 @@ public class DefinitionDB implements java.io.Serializable{
 //			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
 		}
 		
-		
+		definition.nodeFusion();
 		
 		return definition;
 	}
+
 //	private void nodeFusion(Definition def) {
 //		HashSet<Node> nodes = new HashSet<Node>();
 //		for(Node node:def.out){

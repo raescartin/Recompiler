@@ -81,7 +81,7 @@ public class Node {
 							tempMap.put(this.outOfInstance.definition.in.get(i),instanceInNandNodes );
 						}
 						//evaluate definition
-						//evaluate ALL outputs since we already have all the inputs ( VS only THIS output (don't evaluate unused outputs)? or evaluate ALL outputs (faster, more confidant on user)? )
+						//evaluate ALL outputs since we already have all the inputs ( VS only THIS output )
 						for (int i = 0; i < this.outOfInstance.out.size(); i++) {
 							ArrayList<NandNode> tempNandNodes = this.outOfInstance.definition.out.get(i).toNands(nodeSize, tempMap, nandForest);
 						    nandNodes.addAll(tempNandNodes);
@@ -114,7 +114,6 @@ public class Node {
 		return nandNodes;
 	}
 	public String toString() {
-		//for subnodes and supernodes instead of fathers and children
 		String string = new String();		
 		if(!this.parents.isEmpty()){
 			if(this.parents.size()==1){
