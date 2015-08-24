@@ -66,11 +66,12 @@ public class DefinitionDB implements java.io.Serializable{
 		//if recursive then optimize sub-definitions AND MERGE
 		//if not recursive then fromNand to def -> to best
 		//definition->nandtree node fission
+		//with subnodes and recursion
+		//toBest functions with recursion
 		//TODO:
-			//with subnodes and recursion
-			//toBest to account recursion
-			//nandtree->definition node fusion
 			//intersection optimization of recursive definitions
+			//nandtree->definition node fusion maybe? not needed
+			
 		
 
 		
@@ -85,43 +86,31 @@ public class DefinitionDB implements java.io.Serializable{
 				this.toBest(definition);//nand definition to best definition (higher level)//TODO: subnodes
 			}	
 		}else{//definition has recursion
-			//Optimize the non recursive part of definition as a temporary definition
-//			Definition tempDef = new Definition(0,0,"temp");//(recursive is set to false)
-//			HashMap<Node,Node> DefToTempNodes = new HashMap<Node,Node>();
-//			tempDef.copy(definition,DefToTempNodes);
-			
+			//Optimize the non recursive part of definition	
 			AddedNodes addedNodes = new AddedNodes();
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
 			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
-//			this.nodeFusion(definition);//here for debugging, take out of if (recursive or not, do fusion)
 		}
 		
-		definition.nodeFusion();
+//		definition.nodeFusion();
 		
 		return definition;
 	}
 
-//	private void nodeFusion(Definition def) {
-//		HashSet<Node> nodes = new HashSet<Node>();
-//		for(Node node:def.out){
-//			node.fusion(def,nodes);
-//		}
-//		
-//	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition	
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		int i=0;
-		for (Node node:nandToNodeIn){//we map only inputs to map top to bottom
+		for (Node node:nandToNodeIn){//we map only inputs to map bottom to top
 			nandToNode.put(nandForest.in.get(i),node);	
 			i++;
 		}
 		i=0;
 		for (Node node : nandToNodeOut) {//node can be out node of definition OR a subnode from one
-				for (int j = 0; j < nandForest.in.size(); j++) {//FIX FOR WHEN AN NANDFOREST NODE IS BOTH IN AND OUT
+				for (int j = 0; j < nandForest.in.size(); j++) {//FIX FOR WHEN A NANDFOREST NODE IS BOTH IN AND OUT
 					if(nandForest.in.get(j)==nandForest.out.get(i)){
 						for (int k = 0; k < definition.out.size(); k++) {
 							if(definition.out.get(k)==node){
@@ -138,7 +127,7 @@ public class DefinitionDB implements java.io.Serializable{
 					}
 				}
 				this.addNands(node,nandForest.out.get(i),definition,nandForest,nandToNode);
-				if(definition.out.isEmpty()&&node.outOfInstance!=null&&node.outOfInstance.definition!=null){//FIXME//avoid applying definition to self, first def->instance second def->definition 
+				if(definition.out.isEmpty()&&node.outOfInstance!=null&&node.outOfInstance.definition!=null){//avoid applying definition to self, first def->instance second def->definition 
 					if(!node.outOfInstance.definition.rootIn.contains(definition)){//FIXME:needed because not hash
 						node.outOfInstance.definition.rootIn.add(definition);
 					}
@@ -199,15 +188,14 @@ public class DefinitionDB implements java.io.Serializable{
 					appliedDefinition=instance.definition.rootIn.get(rootIndex);
 					if(definition!=appliedDefinition){//prevent applying definition to self
 						applied=definition.apply(instance,appliedDefinition);
-						if (applied) instanceIndex-=appliedDefinition.instances.size()-1;//FIXME:should always remove to instanceIndex the number of deleted instances
+						if (applied) instanceIndex-=appliedDefinition.instances.size()-1;//remove to instanceIndex the number of deleted instances
 						appliedOnce=appliedOnce||applied;
 					}
 					rootIndex++;
 				}	
 				instanceIndex++;
-				//definition.print();
 			}
-		}while(appliedOnce);//while at least one definition applied throught all instances
+		}while(appliedOnce);//while at least one definition applied through all instances
 	}
 	@Override
 	public String toString(){

@@ -30,12 +30,13 @@ public class Instance implements java.io.Serializable{
 		for (int i = 0; i < this.in.size(); i++) {//evaluate instances tree
 			this.in.get(i).eval(valueMap);
 		}
+		HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
 		for (int i = 0; i < this.in.size(); i++) {
-			valueMap.put(this.definition.in.get(i),valueMap.get(this.in.get(i)));
+			tempValueMap.put(this.definition.in.get(i),valueMap.get(this.in.get(i)));
 		}
-		this.definition.eval(valueMap);
+		this.definition.eval(tempValueMap);
 		for (int i = 0; i < this.out.size(); i++) {
-			valueMap.put(this.out.get(i),valueMap.get(this.definition.out.get(i)));
+			valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
 		}
 		
 	}

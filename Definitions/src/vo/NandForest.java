@@ -14,23 +14,16 @@ import utils.FixedBitSet;
 //-Defines an operation, composed by binary trees of nands; a forest of nands
 //-The trees may (and should) have nodes in common
 //-implicit "parallel" nand (structure isn't exactly an array of arrays, more diffuse ordering)
-//-A NAND FOREST IS NOT TURING COMPLETE, AND LIMITED IN HORIZONTAL LENGTH
-
-//IMPLEMENTATION: 
-// TODO:
-//-NAND fusion (& fision ?)
-//-node can't be his own parent/child NO RECURSIVITY INSIDE
+//-node can't be his own parent/child NO RECURSIVITY(A NAND FOREST IS NOT TURING COMPLETE, ONLY A SEQUENCE OF OPERATIONS)
 //////////////////////////////////////////////////////
 //HERE BE DRAGONS (maybe not in Java from here)
 //////////////////////////////////////////////////////
-//-transform to ParallelNandForest?
-//-change data structure to optimal:
-//	-treat inputs as one big, merged input (same with outputs)
-//	-parallelization (reduce memory on evaluation using a "matrix" of nodes, only an array of parallel values at a time)
-//-!=sizes on eval?
+//-parallelization:transform to ParallelNandForest
+//-optimize data structure
 
 //DOUBTS:
 //-Short-circuit evaluation?
+//-!=sizes on eval?
 
 //DATA STRUCTURE:
 //Each NandForest has a variable number of "in" and "out" nodes

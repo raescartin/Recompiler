@@ -44,26 +44,35 @@ class test {
     public static void main(String[] args) {
     	String A="0111";
     	String B="0101";
+    	String C="1101";
+    	String D="1";
     	
 		//=========================================================================================================================================
     	//DEFINITIONS AND DEFINITIONDB//
 		//=========================================================================================================================================
     	//NAND definition//
     	Definition nand = new Definition(2,1,"nand");
+    	nand.printEval(A,B);
         //Declare DATABASE
         DefinitionDB  definitionDB = new DefinitionDB(nand);
+        nand.printEval(A,B);
         System.out.print(definitionDB.toString());
+        
         //NOT definition//
     	Definition not = new Definition(1,1,"not");
     	not.add(nand,not.in.get(0),not.in.get(0),not.out.get(0));
+    	not.printEval(A);
      	definitionDB.put("not",not);
+     	not.printEval(A);
      	System.out.print(definitionDB.toString());
         //AND definition//
     	Definition and = new Definition(2,1,"and");
     	Node and0= new Node();
     	and.add(nand,and.in.get(0),and.in.get(1),and0);
     	and.add(not,and0,and.out.get(0));
+    	and.printEval(A,B);
      	definitionDB.put("and",and);
+     	and.printEval(A,B);
      	System.out.print(definitionDB.toString());
      	//OR definition//
     	Definition or = new Definition(2,1,"or");
@@ -72,7 +81,9 @@ class test {
     	or.add(not,or.in.get(0),or0);
     	or.add(not,or.in.get(1),or1);
     	or.add(nand, or0,or1,or.out.get(0));
+    	or.printEval(A,B);
      	definitionDB.put("or",or);
+     	or.printEval(A,B);
      	System.out.print(definitionDB.toString());
     	//XOR definition//
     	Definition xor = new Definition(2,1,"xor");
@@ -80,8 +91,10 @@ class test {
     	Node xor1 = new Node();
     	xor.add(or, xor.in.get(0),xor.in.get(1),xor0);
     	xor.add(nand, xor.in.get(0),xor.in.get(1),xor1);
-    	xor.add(and,xor0,xor1,xor.out.get(0));   	
+    	xor.add(and,xor0,xor1,xor.out.get(0)); 
+    	xor.printEval(A,B);
     	definitionDB.put("xor",xor);
+    	xor.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//IF definition//
     	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!!
@@ -93,7 +106,9 @@ class test {
     	ifDef.add(or,ifdef0,ifDef.in.get(1),ifdef1);
     	ifDef.add(or,ifDef.in.get(0),ifDef.in.get(2),ifdef2);
     	ifDef.add(and,ifdef1,ifdef2,ifDef.out.get(0));
+    	ifDef.printEval(A,B,C);
     	definitionDB.put("if",ifDef);
+    	ifDef.printEval(A,B,C);
     	System.out.print(definitionDB.toString());
     	//if a then b else c = (¬AvB)^(AvC)
     	//size(a)=1 size(b)=n size(c)=m
@@ -128,7 +143,9 @@ class test {
     	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
     	rifdef12.add(rifDef.out.get(0));
     	rifdef9.add(rifDef.out.get(0));
+//    	rifDef.printEval(D,B,C);
     	definitionDB.put("rif",rifDef);
+//    	rifDef.printEval(D,B,C);
     	System.out.print(definitionDB.toString());
     	
 //    	//RECURSIVE XOR //TODO: should optimize to simply XOR
@@ -168,7 +185,9 @@ class test {
     	add.add(add, xorwithoutN,addAndOut,addOut);
     	addOut.add(add.out.get(0));
     	xorn.add(add.out.get(0));
+//    	add.printEval(A,B);
     	definitionDB.put("add",add);
+//    	add.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");

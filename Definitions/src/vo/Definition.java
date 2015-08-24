@@ -78,8 +78,8 @@ public class Definition implements java.io.Serializable{ /**
 			public HashMap<Node,Integer> tradInts;//not needed, only for debug
 			public ArrayList<Node> in;//NEEDED
 			public ArrayList<Node> out;//NEEDED
-			public ArrayList<Instance> instances;//FIXME: better data structure Hash AND list linkedhashmap?  - replaces def?
-			public ArrayList<Definition> rootIn;//FIXME: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
+			public ArrayList<Instance> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
+			public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
 			public HashSet<Instance> recursiveInstances;//Recursive instances of this definition, contained in this definition
 			public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
 			//DEBUGGING ONLY
@@ -729,7 +729,35 @@ public class Definition implements java.io.Serializable{ /**
 					this.out.get(0).outOfInstance.definition.rootIn.add(this);
 				}
 			}
-			//NEEDED?
+			public void printEval(String ... strings){
+				
+				HashMap<Node, FixedBitSet> valueMap = new HashMap<Node, FixedBitSet>() ;
+				
+				for(int i=0;i<this.in.size();i++){
+					valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
+				}
+				//TODO: keep only needed values in memory
+				if(this.name=="nand"){//NAND //TODO: fix nand checking//this.out.get(0).instance==null <=> nand
+					//NAND (always 2 ins 1 out)
+					valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+				}else{
+					for (int i = 0; i < this.out.size(); i++) {
+						this.out.get(i).eval(valueMap);
+					}
+				}
+				ArrayList<String> ins = new ArrayList<String>();
+				ArrayList<String> outs = new ArrayList<String>();
+				for(int i=0;i<this.in.size();i++){
+					ins.add(valueMap.get(this.in.get(i)).toString());
+				}
+				for(int i=0;i<this.out.size();i++){
+					outs.add(valueMap.get(this.out.get(i)).toString());
+				}
+				System.out.print(ins);
+				System.out.print(this.name);
+				System.out.println(outs);
+				
+			}
 			public void eval(HashMap<Node, FixedBitSet> valueMap){
 				//TODO: keep only needed values in memory
 				if(this.out.get(0).outOfInstance==null){//this.out.get(0).instance==null <=> nand
@@ -892,7 +920,7 @@ public class Definition implements java.io.Serializable{ /**
 				}
 			}
 			public void remove(Instance instance) {
-				// TODO Auto-generated method stub
+				this.instances.remove(instance);
 				
 			}
 			public void nodeFusion() {
@@ -933,15 +961,46 @@ public class Definition implements java.io.Serializable{ /**
 					}
 				}
 				for(Node node:instancesByNode.keySet()){//Heuristic
-					for(Instance instance:instancesByNode.get(node)){
+					ArrayList<Instance> instances=instancesByNode.get(node);
+					for(Instance instance:instances){
 						Instance superInstance = new Instance();
+						superInstance.definition=instance.definition;
 						for(Node inNode:instance.in){
 							superInstance.in.add(inNode.parents.get(0));
 						}
 						for(Node outNode:instance.out){
 							superInstance.out.add(outNode.children.get(0));
 						}
-						//TODO: if we have all subinstances to this superinstance, replace subinstances with superinstance (fusion)
+						ArrayList<Instance> candidateInstances = new ArrayList<Instance>();
+						for(Instance candidateInstance:instancesByNode.get(node)){
+							boolean candidate=true;
+							for (int i = 0; i < superInstance.in.size(); i++) {
+								if(candidateInstance.in.get(i).parents.get(0)!=superInstance.in.get(i)){
+									candidate=false;
+								}
+							}
+							for (int i = 0; i < superInstance.out.size(); i++) {
+								if(candidateInstance.out.get(i).children.get(0)!=superInstance.out.get(i)){
+									candidate=false;
+								}
+							}
+							if(candidate){
+								candidateInstances.add(candidateInstance);
+								instances.remove(candidate);
+							}
+							
+						}
+						//if we have all subinstances to this superinstance, replace subinstances with superinstance (fusion)
+						if(candidateInstances.size()==node.children.size()){
+							ArrayList<Node> nodes = new ArrayList<Node>();
+							nodes.addAll(superInstance.in);
+							nodes.addAll(superInstance.out);
+							this.add(superInstance.definition, (Node[]) nodes.toArray());
+							for(Instance candidateInstance:candidateInstances){
+								this.remove(candidateInstance);
+							}
+						}
+						
 						
 					}
 				}
