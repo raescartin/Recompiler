@@ -143,7 +143,7 @@ public class Definition implements java.io.Serializable{ /**
 				//remove redundant subnodes
 				for(Node node:this.nodes){
 					if(node.parents.size()==1){
-						if(node.parents.get(0).parents.size()>1){
+						if(node.parents.get(0).parents.size()>1){//FIXME: needed?
 							Node redundantNodeLeft = node.parents.get(0).children.get(0);//FIXME:not only extreme nodes ¿recursive?
 							Node nodeLeft= node.parents.get(0).parents.get(0);
 							if(nodeSize.get(nodeLeft)==1){
@@ -737,7 +737,7 @@ public class Definition implements java.io.Serializable{ /**
 					valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
 				}
 				//TODO: keep only needed values in memory
-				if(this.name=="nand"){//NAND //TODO: fix nand checking//this.out.get(0).instance==null <=> nand
+				if(this.name=="nand"){//NAND //TODO: fix nand checking
 					//NAND (always 2 ins 1 out)
 					valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 				}else{
@@ -760,9 +760,11 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			public void eval(HashMap<Node, FixedBitSet> valueMap){
 				//TODO: keep only needed values in memory
-				if(this.out.get(0).outOfInstance==null){//this.out.get(0).instance==null <=> nand
+				if(this.name=="nand"){//NAND //TODO: fix nand checking
 					//NAND (always 2 ins 1 out)
-					valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+					if(valueMap.get(this.in.get(0)).length()>0&&valueMap.get(this.in.get(1)).length()>0){//FIXME: doesn't work to make recursion possible
+						valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));
 				}else{
 					for (int i = 0; i < this.out.size(); i++) {

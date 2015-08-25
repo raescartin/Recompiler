@@ -175,6 +175,23 @@ public class Node {
 				for (Node parent : this.parents) {
 					parent.eval(valueMap);
 				}
+				if(this.parents.size()==1){
+					for(int i=0;i<this.parents.get(0).children.size();i++){
+						if(i<this.parents.get(0).children.size()/2){
+							valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
+					    }else if(i>this.parents.get(0).children.size()/2){
+					    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1,this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1));
+					    }else if(i==this.parents.get(0).children.size()/2){
+					    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1));
+					    }
+					}
+				}else{
+					FixedBitSet fixedBitSet = new FixedBitSet();
+					for(Node parent:this.parents){
+						fixedBitSet.concat(valueMap.get(parent));
+					}
+					valueMap.put(this, fixedBitSet);
+				}
 			}else{
 				if(this.outOfInstance!=null){
 					this.outOfInstance.eval(valueMap);

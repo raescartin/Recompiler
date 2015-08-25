@@ -143,7 +143,7 @@ class test {
     	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
     	rifdef12.add(rifDef.out.get(0));
     	rifdef9.add(rifDef.out.get(0));
-//    	rifDef.printEval(D,B,C);
+    	rifDef.printEval(D,B,C);
     	definitionDB.put("rif",rifDef);
 //    	rifDef.printEval(D,B,C);
     	System.out.print(definitionDB.toString());
@@ -185,9 +185,9 @@ class test {
     	add.add(add, xorwithoutN,addAndOut,addOut);
     	addOut.add(add.out.get(0));
     	xorn.add(add.out.get(0));
-//    	add.printEval(A,B);
+    	add.printEval(A,B);
     	definitionDB.put("add",add);
-//    	add.printEval(A,B);
+    	add.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");
