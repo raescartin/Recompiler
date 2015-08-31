@@ -97,7 +97,7 @@ class test {
     	xor.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//IF definition//
-    	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!!
+    	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!! 0=false 1=true
     	Definition ifDef = new Definition(3,1,"if");
     	Node ifdef0 = new Node();
     	Node ifdef1 = new Node();
@@ -145,7 +145,7 @@ class test {
     	rifdef9.add(rifDef.out.get(0));
     	rifDef.printEval(D,B,C);
     	definitionDB.put("rif",rifDef);
-//    	rifDef.printEval(D,B,C);
+    	rifDef.printEval(D,B,C);
     	System.out.print(definitionDB.toString());
     	
 //    	//RECURSIVE XOR //TODO: should optimize to simply XOR

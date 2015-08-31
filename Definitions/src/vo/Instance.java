@@ -27,17 +27,28 @@ public class Instance implements java.io.Serializable{
 	}
 	//METHODS
 	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+		boolean evaluable = true;
 		for (int i = 0; i < this.in.size(); i++) {//evaluate instances tree
 			this.in.get(i).eval(valueMap);
+			if(valueMap.get(this.in.get(i)).length()==0){
+				evaluable=false;
+			}
 		}
-		HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
-		for (int i = 0; i < this.in.size(); i++) {
-			tempValueMap.put(this.definition.in.get(i),valueMap.get(this.in.get(i)));
+		if(evaluable){
+			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
+			for (int i = 0; i < this.in.size(); i++) {
+				tempValueMap.put(this.definition.in.get(i),valueMap.get(this.in.get(i)));
+			}
+			this.definition.eval(tempValueMap);
+			for (int i = 0; i < this.out.size(); i++) {
+				valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
+			}
+		}else{
+			for (int i = 0; i < this.out.size(); i++) {
+				valueMap.put(this.out.get(i),new FixedBitSet());
+			}
 		}
-		this.definition.eval(tempValueMap);
-		for (int i = 0; i < this.out.size(); i++) {
-			valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
-		}
+		
 		
 	}
 	public String toString(){

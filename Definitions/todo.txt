@@ -1,4 +1,5 @@
 ﻿-execute definition (to test)
+	-fix rif
 -fix removeRedundantSubnodes
 -make algorithms recursive for children (children can have children too)	
 -get mul to work

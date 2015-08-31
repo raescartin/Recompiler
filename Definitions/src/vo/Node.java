@@ -176,14 +176,29 @@ public class Node {
 					parent.eval(valueMap);
 				}
 				if(this.parents.size()==1){
-					for(int i=0;i<this.parents.get(0).children.size();i++){
-						if(i<this.parents.get(0).children.size()/2){
-							valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
-					    }else if(i>this.parents.get(0).children.size()/2){
-					    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1,this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1));
-					    }else if(i==this.parents.get(0).children.size()/2){
-					    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,this.parents.get(0).children.size()-this.parents.get(0).children.size()/2+i-1));
-					    }
+					if(valueMap.get(this.parents.get(0)).length()==1){
+						if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
+							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(1,1));
+							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+						}else{
+							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));//Always left recursion TODO: check if there's a better way
+						}
+					}else{
+						for(int i=0;i<this.parents.get(0).children.size();i++){
+							if(i<this.parents.get(0).children.size()/2){
+								valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
+							}else if(valueMap.get(this.parents.get(0)).length()==2){
+								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
+						    }else if(i>(this.parents.get(0).children.size())/2){
+						    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
+						    }else if(i==this.parents.get(0).children.size()/2){
+						    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
+						    }
+						}
 					}
 				}else{
 					FixedBitSet fixedBitSet = new FixedBitSet();
