@@ -178,13 +178,13 @@ public class Node {
 				if(this.parents.size()==1){
 					if(valueMap.get(this.parents.get(0)).length()==1){
 						if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
-							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(1,1));
+							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
 							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
 							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
 						}else{
 							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
 							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));//Always left recursion TODO: check if there's a better way
+							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
 						}
 					}else{
 						for(int i=0;i<this.parents.get(0).children.size();i++){
