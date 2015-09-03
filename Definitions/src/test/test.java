@@ -193,12 +193,14 @@ class test {
     	Definition zeros = new Definition(1,1,"zeros");
     	zeros.add(xor,zeros.in.get(0),zeros.in.get(0),zeros.out.get(0));
     	definitionDB.put("zeros",zeros);
+    	zeros.printEval(A);
     	System.out.print(definitionDB.toString());
     	//ones definition////logic definition of one values
     	Definition ones = new Definition(1,1,"ones");
     	Node zeroNode = new Node();
     	ones.add(zeros, ones.in.get(0),zeroNode);
     	ones.add(not,zeroNode,ones.out.get(0));
+    	ones.printEval(A);
     	definitionDB.put("ones",ones);
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
@@ -222,7 +224,9 @@ class test {
     	decRout.add(decElse);
     	decNnot.add(decElse);
     	dec.add(rifDef,decN,decThen,decElse,dec.out.get(0));
+    	dec.printEval(A);
     	definitionDB.put("dec",dec);
+    	dec.printEval(A);
     	System.out.print(definitionDB.toString());
     	//cmp definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
@@ -245,7 +249,11 @@ class test {
     	Node cmpXnor = new Node();
     	cmp.add(not, cmpXor,cmpXnor);
     	cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0));
+    	cmp.printEval(A,A);
+    	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
+    	cmp.printEval(A,A);
+    	cmp.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//EQ0 definition////definition to test if a value is zero
     	Definition eq0 = new Definition(1,1,"eq0");
@@ -275,7 +283,9 @@ class test {
     	mul.add(mul,mul2,mul.in.get(1),mul3);
     	mul.add(add,mul3,mul.in.get(1),mul4);
     	mul.add(rifDef,mul0,mul.in.get(0),mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
+    	mul.printEval(A,B);
     	definitionDB.put("mul",mul);
+    	mul.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER

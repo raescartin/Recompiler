@@ -762,7 +762,25 @@ public class Definition implements java.io.Serializable{ /**
 				//TODO: keep only needed values in memory
 				if(this.name=="nand"){//NAND //TODO: fix nand checking
 					//NAND (always 2 ins 1 out)
-					if(valueMap.get(this.in.get(0)).length()>0&&valueMap.get(this.in.get(1)).length()>0){//FIXME: doesn't work to make recursion possible
+					if(valueMap.get(this.in.get(0)).length()==0){//FIXME
+						ArrayList<String> zeros = new ArrayList<String>();
+						for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
+							zeros.add("0");
+						}
+						valueMap.put(this.in.get(0), FixedBitSet.fromString(String.join(", ", zeros)));
+						System.out.println(FixedBitSet.fromString(String.join(", ", zeros)));
+					}
+					if(valueMap.get(this.in.get(1)).length()==0){
+						ArrayList<String> zeros = new ArrayList<String>();
+						for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
+							zeros.add("0");
+						}
+						valueMap.put(this.in.get(1), FixedBitSet.fromString(String.join(", ", zeros)));
+						System.out.println(FixedBitSet.fromString(String.join(", ", zeros)));
+					}
+					if(valueMap.get(this.in.get(0)).length()==0&&valueMap.get(this.in.get(1)).length()==0){
+						valueMap.put(this.out.get(0),new FixedBitSet());
+					}else{
 						valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));
