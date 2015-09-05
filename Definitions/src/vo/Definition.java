@@ -736,15 +736,7 @@ public class Definition implements java.io.Serializable{ /**
 				for(int i=0;i<this.in.size();i++){
 					valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
 				}
-				//TODO: keep only needed values in memory
-				if(this.name=="nand"){//NAND //TODO: fix nand checking
-					//NAND (always 2 ins 1 out)
-					valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
-				}else{
-					for (int i = 0; i < this.out.size(); i++) {
-						this.out.get(i).eval(valueMap);
-					}
-				}
+				this.eval(valueMap);
 				ArrayList<String> ins = new ArrayList<String>();
 				ArrayList<String> outs = new ArrayList<String>();
 				for(int i=0;i<this.in.size();i++){
