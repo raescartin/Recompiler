@@ -42,9 +42,9 @@ import vo.Node;
 
 class test {
     public static void main(String[] args) {
-    	String A="0000";
-    	String B="0101";
-    	String C="1101";
+    	String A="1";
+    	String B="0";
+    	String C="1";
     	String D="1";
     	
 		//=========================================================================================================================================

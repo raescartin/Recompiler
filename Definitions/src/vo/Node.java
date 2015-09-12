@@ -430,4 +430,22 @@ public class Node {
 		nodeToNands.put(this, nandNodes);
 		return nandNodes;
 	}
+	public void mapChildren(HashMap<Node, FixedBitSet> valueMap) {
+		for(Node child:this.children){
+			child.eval(valueMap);
+			child.mapChildren(valueMap);
+		}
+	}
+	public boolean parentsMapped(HashMap<Node, FixedBitSet> valueMap) {
+		boolean mapped = valueMap.containsKey(this)&&valueMap.get(this).length()>0;
+		if(!mapped){
+			for(Node parent: this.parents){
+				mapped=parent.parentsMapped(valueMap);
+			}
+		}
+		if(mapped){
+			this.eval(valueMap);
+		}
+		return mapped;
+	}
 }

@@ -27,29 +27,26 @@ public class Instance implements java.io.Serializable{
 	}
 	//METHODS
 	public void eval(HashMap<Node, FixedBitSet> valueMap) {
-		boolean emptyIns= false;
-		for (int i = 0; i < this.in.size(); i++) {//evaluate instances tree
-			this.in.get(i).eval(valueMap);
-			if(valueMap.get(this.in.get(i)).length()==0){
-				emptyIns=true;
-			}
-		}
-		if(emptyIns&&!this.definition.recursiveInstances.isEmpty()){//if there's an empty input and it's recursive, stop recursion
-			for (int i = 0; i < this.out.size(); i++) {
-				valueMap.put(this.out.get(i),new FixedBitSet());
-			}
-		}else{
 			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
+			int numIns = 0;
 			for (int i = 0; i < this.in.size(); i++) {
-				tempValueMap.put(this.definition.in.get(i),valueMap.get(this.in.get(i)));
+				this.in.get(i).eval(valueMap);
+				tempValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+					if(valueMap.get(this.in.get(i)).length()>0){
+						numIns++;
+					}
 			}
-			this.definition.eval(tempValueMap);
-			for (int i = 0; i < this.out.size(); i++) {
-				valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
+			//recursive and same size in or not recursive and some ins
+			if(((!this.definition.recursiveInstances.isEmpty())&&numIns==this.in.size())||(this.definition.recursiveInstances.isEmpty()&&numIns>0)){
+				this.definition.eval(tempValueMap);//eval
+				for (int i = 0; i < this.out.size(); i++) {
+					valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
+				}
+			}else{
+				for (Node outNode: this.out) {
+					valueMap.put(outNode, new FixedBitSet());
+				}
 			}
-		}
-		
-		
 	}
 	public String toString(){
 		String string = new String();

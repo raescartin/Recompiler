@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Stack;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
@@ -751,34 +752,39 @@ public class Definition implements java.io.Serializable{ /**
 				
 			}
 			public void eval(HashMap<Node, FixedBitSet> valueMap){
+				//eval first non-recursive instances, second self recursion
 				//TODO: keep only needed values in memory
 				if(this.name=="nand"){//NAND //TODO: fix nand checking
 					//NAND (always 2 ins 1 out)
-					if(valueMap.get(this.in.get(0)).length()==0){//FIXME
-						ArrayList<String> zeros = new ArrayList<String>();
-						for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
-							zeros.add("0");
+					if(valueMap.containsKey(this.in.get(0))||valueMap.containsKey(this.in.get(1))){
+						if(!valueMap.containsKey(this.in.get(0))){
+							if(valueMap.get(this.in.get(1)).cardinality()==0){//one entry not mapped and the other zeros)
+								ArrayList<String> ones = new ArrayList<String>();
+								for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
+									ones.add("1");
+								}
+								valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+							}
+						}else if(!valueMap.containsKey(this.in.get(1))){
+							if(valueMap.get(this.in.get(0)).cardinality()==0){//one entry not mapped and the other zeros)
+								ArrayList<String> ones = new ArrayList<String>();
+								for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
+									ones.add("1");
+								}
+								valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+							}
+						}else if(valueMap.get(this.in.get(0)).length()==0){//one entry not mapped and the other zeros
+							valueMap.put(this.out.get(0),valueMap.get(this.in.get(1)));
+						}else if(valueMap.get(this.in.get(1)).length()==0){//one entry not mapped and the other zeros
+							valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)));
+						}else{
+							valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 						}
-						valueMap.put(this.in.get(0), FixedBitSet.fromString(String.join(", ", zeros)));
-						System.out.println(FixedBitSet.fromString(String.join(", ", zeros)));
-					}
-					if(valueMap.get(this.in.get(1)).length()==0){
-						ArrayList<String> zeros = new ArrayList<String>();
-						for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
-							zeros.add("0");
-						}
-						valueMap.put(this.in.get(1), FixedBitSet.fromString(String.join(", ", zeros)));
-						System.out.println(FixedBitSet.fromString(String.join(", ", zeros)));
-					}
-					if(valueMap.get(this.in.get(0)).length()==0&&valueMap.get(this.in.get(1)).length()==0){
-						valueMap.put(this.out.get(0),new FixedBitSet());
-					}else{
-						valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));
 				}else{
-					for (int i = 0; i < this.out.size(); i++) {
-						this.out.get(i).eval(valueMap);
+					for(Node nodeOut: this.out){
+						nodeOut.eval(valueMap);
 					}
 				}
 				
