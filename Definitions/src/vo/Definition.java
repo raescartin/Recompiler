@@ -783,9 +783,21 @@ public class Definition implements java.io.Serializable{ /**
 					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));
 				}else{
-					for(Node nodeOut: this.out){
-						nodeOut.eval(valueMap);
-					}
+					HashSet<Instance> recursiveInstances = new HashSet<Instance>();
+					HashSet<Instance> instancesToExpand = new HashSet<Instance>();
+					boolean outs;
+					do{
+						outs=true;
+						for(Node nodeOut: this.out){
+							nodeOut.eval(valueMap,recursiveInstances,instancesToExpand);
+							if(!valueMap.containsKey(nodeOut)){
+								outs=false;
+							}
+						}
+						instancesToExpand.addAll(recursiveInstances);
+						recursiveInstances.clear();
+					}while(!outs&&!instancesToExpand.isEmpty());
+					
 				}
 				
 			}

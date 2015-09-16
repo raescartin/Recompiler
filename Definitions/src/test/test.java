@@ -200,8 +200,8 @@ class test {
     	Node zeroNode = new Node();
     	ones.add(zeros, ones.in.get(0),zeroNode);
     	ones.add(not,zeroNode,ones.out.get(0));
-    	ones.printEval(A);
     	definitionDB.put("ones",ones);
+    	ones.printEval(A);
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
     	//dec [0;1] = not[0{2},2] rif [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this

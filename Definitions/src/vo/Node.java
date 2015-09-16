@@ -169,11 +169,11 @@ public class Node {
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {
 		if(!valueMap.containsKey(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){
 				for (Node parent : this.parents) {
-					parent.eval(valueMap);
+					parent.eval(valueMap, recursiveInstances, instancesToExpand);
 				}
 				if(this.parents.size()==1){
 					if(valueMap.get(this.parents.get(0)).length()==1){
@@ -209,7 +209,16 @@ public class Node {
 				}
 			}else{
 				if(this.outOfInstance!=null){
-					this.outOfInstance.eval(valueMap);
+					if(this.definition==this.outOfInstance.definition){//recursive
+						if(instancesToExpand.contains(this.outOfInstance)){
+							recursiveInstances.remove(this.outOfInstance);
+							this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);							
+						}else{
+							recursiveInstances.add(this.outOfInstance);
+						}
+					}else{
+						this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);
+					}
 				}
 			}
 		}
@@ -429,23 +438,5 @@ public class Node {
 		}
 		nodeToNands.put(this, nandNodes);
 		return nandNodes;
-	}
-	public void mapChildren(HashMap<Node, FixedBitSet> valueMap) {
-		for(Node child:this.children){
-			child.eval(valueMap);
-			child.mapChildren(valueMap);
-		}
-	}
-	public boolean parentsMapped(HashMap<Node, FixedBitSet> valueMap) {
-		boolean mapped = valueMap.containsKey(this)&&valueMap.get(this).length()>0;
-		if(!mapped){
-			for(Node parent: this.parents){
-				mapped=parent.parentsMapped(valueMap);
-			}
-		}
-		if(mapped){
-			this.eval(valueMap);
-		}
-		return mapped;
 	}
 }
