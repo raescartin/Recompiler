@@ -42,9 +42,8 @@ public class Instance implements java.io.Serializable{
 					nulls=true;
 				}
 			}
-			//recursive and same size in or not recursive and some ins
-			
-			if(((!this.definition.recursiveInstances.isEmpty())&&numIns==this.in.size())||(this.definition.recursiveInstances.isEmpty()&&numIns>0)){
+			//self-recursive and same size in or not self-recursive and some ins
+			if((this.out.get(0).definition==this.definition&&numIns==this.in.size())||(this.out.get(0).definition!=this.definition&&numIns>0)){
 				this.definition.eval(tempValueMap);//eval
 				for (int i = 0; i < this.out.size(); i++) {
 					if(tempValueMap.containsKey(this.definition.out.get(i))){
