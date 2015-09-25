@@ -29,21 +29,23 @@ public class Instance implements java.io.Serializable{
 	//METHODS
 	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {
 			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
-			int numIns = 0;
+			boolean empties = false;
 			boolean nulls = false;
+			boolean ins = false;
 			for (int i = 0; i < this.in.size(); i++) {
 				this.in.get(i).eval(valueMap, recursiveInstances, instancesToExpand);
 				if(valueMap.containsKey(this.in.get(i))){
+					ins=true;
 					tempValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
-					if(valueMap.get(this.in.get(i)).length()>0){
-						numIns++;
+					if(valueMap.get(this.in.get(i)).length()==0){
+						empties=true;
 					}
 				}else{
 					nulls=true;
 				}
 			}
-			//self-recursive and same size in or not self-recursive and some ins
-			if((this.out.get(0).definition==this.definition&&numIns==this.in.size())||(this.out.get(0).definition!=this.definition&&numIns>0)){
+			//recursive and all inputs or not recursive and some ins
+			if((!this.definition.recursiveInstances.isEmpty()&&!empties)||(this.definition.recursiveInstances.isEmpty()&&ins)){
 				this.definition.eval(tempValueMap);//eval
 				for (int i = 0; i < this.out.size(); i++) {
 					if(tempValueMap.containsKey(this.definition.out.get(i))){
@@ -51,7 +53,7 @@ public class Instance implements java.io.Serializable{
 					}
 				}
 			}else{
-				if(!nulls){
+				if(!this.definition.recursiveInstances.isEmpty()){
 					for (Node outNode: this.out) {
 						valueMap.put(outNode, new FixedBitSet());
 					}

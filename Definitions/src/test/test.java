@@ -205,25 +205,44 @@ class test {
     	System.out.print(definitionDB.toString());
     	//dec definition////definition to decrement an integer by one
     	//dec [0;1] = not[0{2},2] rif [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
+//    	Definition dec = new Definition(1,1,"dec");
+//    	Node dec0 = dec.in.get(0).add(new Node());
+//    	Node decRest = dec.in.get(0).add(new Node());
+//    	Node decN = dec.in.get(0).add(new Node());
+//    	Node decNnot = new Node();
+//    	dec.add(not, decN,decNnot);
+//    	Node decThen = new Node();
+//    	dec0.add(decThen);
+//    	decRest.add(decThen);
+//    	decNnot.add(decThen);
+//    	Node decR= new Node();
+//    	dec0.add(decR);
+//    	decRest.add(decR);
+//    	Node decRout= new Node();
+//    	dec.add(dec,decR,decRout);
+//    	Node decElse = new Node();
+//    	decRout.add(decElse);
+//    	decNnot.add(decElse);
+//    	dec.add(rifDef,decN,decThen,decElse,dec.out.get(0));
+//    	dec.printEval(A);
+//    	definitionDB.put("dec",dec);
+//    	dec.printEval(A);
+//    	System.out.print(definitionDB.toString());
     	Definition dec = new Definition(1,1,"dec");
     	Node dec0 = dec.in.get(0).add(new Node());
     	Node decRest = dec.in.get(0).add(new Node());
     	Node decN = dec.in.get(0).add(new Node());
     	Node decNnot = new Node();
     	dec.add(not, decN,decNnot);
-    	Node decThen = new Node();
-    	dec0.add(decThen);
-    	decRest.add(decThen);
-    	decNnot.add(decThen);
     	Node decR= new Node();
     	dec0.add(decR);
     	decRest.add(decR);
     	Node decRout= new Node();
     	dec.add(dec,decR,decRout);
-    	Node decElse = new Node();
-    	decRout.add(decElse);
-    	decNnot.add(decElse);
-    	dec.add(rifDef,decN,decThen,decElse,dec.out.get(0));
+    	Node decRif = new Node();
+    	dec.add(rifDef,decN,decR,decRout,decRif);
+    	decRif.add(dec.out.get(0));
+    	decNnot.add(dec.out.get(0));
     	dec.printEval(A);
     	definitionDB.put("dec",dec);
     	dec.printEval(A);
@@ -248,7 +267,7 @@ class test {
     	cmp.add(cmp, cmpAwithoutN,cmpBwithoutN,cmpR);
     	Node cmpXnor = new Node();
     	cmp.add(not, cmpXor,cmpXnor);
-    	cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0));
+    	cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); //should cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0)); work? cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); simple
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
@@ -283,9 +302,9 @@ class test {
     	mul.add(mul,mul2,mul.in.get(1),mul3);
     	mul.add(add,mul3,mul.in.get(1),mul4);
     	mul.add(rifDef,mul0,mul.in.get(0),mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
-    	mul.printEval(A,B);
+    	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
-    	mul.printEval(A,B);
+    	mul.printEval(B,B);
     	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER

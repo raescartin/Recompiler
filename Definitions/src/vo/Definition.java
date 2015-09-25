@@ -756,29 +756,31 @@ public class Definition implements java.io.Serializable{ /**
 				//TODO: keep only needed values in memory
 				if(this.name=="nand"){//NAND //TODO: fix nand checking
 					//NAND (always 2 ins 1 out)
-					if(valueMap.containsKey(this.in.get(0))||valueMap.containsKey(this.in.get(1))){
-						if(!valueMap.containsKey(this.in.get(0))){
-							if(valueMap.get(this.in.get(1)).cardinality()==0){//one entry not mapped and the other zeros)
-								ArrayList<String> ones = new ArrayList<String>();
-								for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
-									ones.add("1");
-								}
-								valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+					if(valueMap.containsKey(this.in.get(1))){
+						if(valueMap.get(this.in.get(1)).length()==0){
+							if(valueMap.containsKey(this.in.get(0))){//one input zeros
+								valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(0))));
 							}
-						}else if(!valueMap.containsKey(this.in.get(1))){
-							if(valueMap.get(this.in.get(0)).cardinality()==0){//one entry not mapped and the other zeros)
-								ArrayList<String> ones = new ArrayList<String>();
-								for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
-									ones.add("1");
-								}
-								valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+						}else if(valueMap.get(this.in.get(1)).cardinality()==0){//one input not mapped
+							ArrayList<String> ones = new ArrayList<String>();
+							for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
+								ones.add("1");
 							}
-						}else if(valueMap.get(this.in.get(0)).length()==0){//one entry not mapped and the other zeros
-							valueMap.put(this.out.get(0),valueMap.get(this.in.get(1)));
-						}else if(valueMap.get(this.in.get(1)).length()==0){//one entry not mapped and the other zeros
-							valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)));
-						}else{
-							valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+							valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+						}else if(valueMap.containsKey(this.in.get(0))){
+							if(valueMap.get(this.in.get(0)).length()==0){//one input zeros
+									valueMap.put(this.out.get(0),valueMap.get(this.in.get(1)).nand(valueMap.get(this.in.get(1))));
+							}else{
+								valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+							}
+						}
+					}else if(valueMap.containsKey(this.in.get(0))){
+						if(valueMap.get(this.in.get(0)).length()!=0&&valueMap.get(this.in.get(0)).cardinality()==0){//one input not mapped
+							ArrayList<String> ones = new ArrayList<String>();
+							for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
+								ones.add("1");
+							}
+							valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
 						}
 					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));

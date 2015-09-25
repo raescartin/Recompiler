@@ -208,12 +208,11 @@ public class Node {
 					}
 				}else{
 					FixedBitSet fixedBitSet = new FixedBitSet();
-					boolean parents=true;
+					boolean parents=false;
 					for(Node parent:this.parents){
 						if(valueMap.containsKey(parent)){
 							fixedBitSet.concat(valueMap.get(parent));
-						}else{
-							parents=false;
+							parents=true;
 						}
 					}
 					if(parents)valueMap.put(this, fixedBitSet);
@@ -394,32 +393,40 @@ public class Node {
 			parent.getParents(inOutNodes);
 		}
 	}
-	public ArrayList<NandNode> mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
-		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
+	
+	public void mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
 		inOutNodes.add(this);
-		if(this.children.isEmpty()||this.children.get(0).parents.size()!=1){
-			if(!this.inOfInstances.isEmpty()||(!this.parents.isEmpty()&&!this.parents.get(0).inOfInstances.isEmpty())){//TODO:make recursive for subnodes
-				nandNodes=nandForest.addIns(nodeSize.get(this));
-				if(nodeSize.get(this)==1){
-					nandToNodeIn.add(this);
-				}else{
-					for(Node child:this.children){//TODO: fix for recursive children
-						nandToNodeIn.add(child);
-					}
-					for (int i = this.children.size(); i < nodeSize.get(this); i++) {
-						Node child = new Node();
-						this.add(child);
-						nandToNodeIn.add(child);
-					}
+		if(!this.inOfInstances.isEmpty()){
+			nodeToNands.put(this, nandForest.addIns(nodeSize.get(this)));
+			if(nodeSize.get(this)==1){
+				nandToNodeIn.add(this);
+			}else{
+				for(Node child:this.children){//FIXME: should be recursive
+					nandToNodeIn.add(child);
+				}
+				for (int i = this.children.size(); i < nodeSize.get(this); i++) {
+					Node child = new Node();
+					this.add(child);
+					nandToNodeIn.add(child);
 				}
 			}
 		}else{
-			for(Node child:this.children){
-					nandNodes.addAll(child.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes));
+			if(this.children.size()==1){
+				this.children.get(0).mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+				//TODO: FIXME? lacking nodeToNands of this node?
+			}else{
+				ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
+				for(Node child:this.children){
+					child.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+					if(nodeToNands.containsKey(child)){
+						nandNodes.addAll(nodeToNands.get(child));
+					}
+				}
+				if(!nandNodes.isEmpty())nodeToNands.put(this, nandNodes);
 			}
 		}
-		nodeToNands.put(this, nandNodes);
-		return nandNodes;
+		
+		
 	}
 	public ArrayList<NandNode> mapOutParents(HashMap<Node, Integer> nodeSize,
 			HashMap<Node, ArrayList<NandNode>> nodeToNands,
