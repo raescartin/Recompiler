@@ -774,7 +774,7 @@ public class Definition implements java.io.Serializable{ /**
 								ones.add("1");
 							}
 							valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
-					}else{
+					}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
 						valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 					}
 //					System.out.println(FixedBitSet.toString(this.out.get(0).value));
