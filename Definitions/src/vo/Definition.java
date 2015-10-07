@@ -782,6 +782,7 @@ public class Definition implements java.io.Serializable{ /**
 					HashSet<Instance> recursiveInstances = new HashSet<Instance>();
 					HashSet<Instance> instancesToExpand = new HashSet<Instance>();
 					boolean outs;
+					boolean nullins=false;
 					do{
 						outs=true;
 						for(Node nodeOut: this.out){
@@ -792,7 +793,12 @@ public class Definition implements java.io.Serializable{ /**
 						}
 						instancesToExpand.addAll(recursiveInstances);
 						recursiveInstances.clear();
-					}while(!outs&&!instancesToExpand.isEmpty());
+						for (int i = 0; i < this.in.size(); i++) {
+							if(!valueMap.containsKey(this.in.get(i))){
+								nullins=true;
+							}
+						}
+					}while(!outs&&!instancesToExpand.isEmpty()&&!nullins);
 					
 				}
 				
