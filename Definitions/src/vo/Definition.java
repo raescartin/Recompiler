@@ -754,7 +754,20 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			public void eval(HashMap<Node, FixedBitSet> valueMap){
 				//eval first non-recursive instances, second self recursion
-				if(this.in.size()==2&&this.out.size()==1&&valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0&&valueMap.containsKey(this.in.get(1))){
+				if(this.name=="if"&&valueMap.containsKey(this.in.get(0))){//FIXME: this is a fix, better way?
+					if(valueMap.get(this.in.get(0)).length()==0){
+						valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)));
+					}else if(valueMap.get(this.in.get(0)).cardinality()==0){
+						if(valueMap.containsKey(this.in.get(2))){
+							valueMap.put(this.out.get(0),valueMap.get(this.in.get(2)));
+						}
+					}else{
+						if(valueMap.containsKey(this.in.get(1))){
+							valueMap.put(this.out.get(0),valueMap.get(this.in.get(1)));
+						}
+					}
+					
+				}else if(this.in.size()==2&&this.out.size()==1&&valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0&&valueMap.containsKey(this.in.get(1))){
 						valueMap. put(this.out.get(0),valueMap.get(this.in.get(1)));
 				}else if(this.in.size()==2&&this.out.size()==1&&valueMap.containsKey(this.in.get(1))&&valueMap.get(this.in.get(1)).length()==0&&valueMap.containsKey(this.in.get(0))){
 						valueMap. put(this.out.get(0),valueMap.get(this.in.get(0)));
@@ -856,12 +869,12 @@ public class Definition implements java.io.Serializable{ /**
 					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
 					removedInstances.add(instance);
 					addedNodes.in+=instance.out.size();
-					for (int i = 0; i < instance.out.size(); i++) {//add out nodes to tempDef in
+					for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
 						instance.out.get(i).outOfInstance=null;
 						this.in.add(instance.out.get(i));
 					}
 					addedNodes.out+=instance.in.size();
-					for (int i = 0; i < instance.in.size(); i++) {//add in nodes to nand out
+					for (int i = 0; i < instance.in.size(); i++) {//add in nodes to def out
 						instance.in.get(i).inOfInstances.remove(instance);
 						this.out.add(instance.in.get(i));
 					}
@@ -876,19 +889,35 @@ public class Definition implements java.io.Serializable{ /**
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 						definitionToNewNodes.put(instance.definition.in.get(i), instance.in.get(i));
 						instance.in.get(i).inOfInstances.remove(instance);
-						for(Node child:instance.definition.in.get(i).children){//FIXME:recursive nodes
-							Node newChild= new Node();
-							instance.in.get(i).add(newChild);
-							definitionToNewNodes.put(child, newChild);
+						if(instance.in.get(i).children.isEmpty()){
+							for(Node child:instance.definition.in.get(i).children){//FIXME:recursive subnodes may be needed
+								Node newChild= new Node();
+								instance.in.get(i).add(newChild);
+								definitionToNewNodes.put(child, newChild);
+							}
+						}else if(instance.in.get(i).children.size()==instance.definition.in.get(i).children.size()){
+							for(int j=0;j<instance.definition.in.get(i).children.size();j++){//FIXME:recursive subnodes may be needed
+								definitionToNewNodes.put(instance.definition.in.get(i).children.get(i), instance.in.get(i).children.get(i));
+							}
+						}else{//FIXME: different children size
+							System.out.print("Error1");
 						}
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 						definitionToNewNodes.put(instance.definition.out.get(i), instance.out.get(i));
 						instance.out.get(i).outOfInstance=null;
-						for(Node parent:instance.definition.out.get(i).parents){//FIXME:recursive nodes
-							Node newParent= new Node();
-							newParent.add(instance.out.get(i));
-							definitionToNewNodes.put(parent, newParent);
+						if(instance.out.get(i).parents.isEmpty()){
+							for(Node parent:instance.definition.out.get(i).parents){//FIXME:recursive nodes
+								Node newParent= new Node();
+								newParent.add(instance.out.get(i));
+								definitionToNewNodes.put(parent, newParent);
+							}
+						}else if(instance.out.get(i).parents.size()==instance.definition.out.get(i).parents.size()){
+							for(int j=0;j<instance.definition.out.get(i).parents.size();j++){//FIXME:recursive subnodes may be needed
+								definitionToNewNodes.put(instance.definition.out.get(i).parents.get(i), instance.out.get(i).parents.get(i));
+							}
+						}else{//FIXME: different parents size
+							System.out.print("Error2");
 						}
 					}
 					for(Instance definitionInstance:instance.definition.instances){
