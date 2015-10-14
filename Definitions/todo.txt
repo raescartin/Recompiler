@@ -1,9 +1,15 @@
-﻿-execute definition (to test) -> not sure if first iteration of recursive instances should be executed with missing inputs(seems it should rif==if)
+﻿-fix children=1,3or0
+	-definition 
+		removeRedundantSubnodes
+		expand
+	
+-fix removeRedundantSubnodes
+-execute definition (to test) -> first iteration of recursive instances should be executed with missing inputs(rif==if)
 -fix dec optimization:
 	dec [0;1] = not [0{2};5] dec [7(0{0}&0{1});8] rif [0{2},6(0{0}&0{1}&5),9(8&5);1]  root in:  
 (=>dec [0;1(16&5)] = not [0{2};5] dec [7(0{0}&0{1});8] rif [0{2},7(0{0}&0{1}),8;16]  root in:  )
--fix removeRedundantSubnodes
--make algorithms recursive for children (children can have children too)	
+
+
 -get mul to work
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
 	recursive mul:

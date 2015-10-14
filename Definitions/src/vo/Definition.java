@@ -168,7 +168,7 @@ public class Definition implements java.io.Serializable{ /**
 									Collections.replaceAll(instance.out,redundantNodeRight,nodeRight);
 								}
 							}
-							if(node.parents.get(0).children.size()==3){//TODO: recursive and for more than 3
+							if(node.parents.get(0).children.size()==3){//TODO: recursive
 								if(node.parents.get(0).parents.size()==3){
 									Node redundantCenter = node.parents.get(0).children.get(1);
 									Node nodeCenter=node.parents.get(0).parents.get(1);
@@ -889,36 +889,13 @@ public class Definition implements java.io.Serializable{ /**
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 						definitionToNewNodes.put(instance.definition.in.get(i), instance.in.get(i));
 						instance.in.get(i).inOfInstances.remove(instance);
-						if(instance.in.get(i).children.isEmpty()){
-							for(Node child:instance.definition.in.get(i).children){//FIXME:recursive subnodes may be needed
-								Node newChild= new Node();
-								instance.in.get(i).add(newChild);
-								definitionToNewNodes.put(child, newChild);
-							}
-						}else if(instance.in.get(i).children.size()==instance.definition.in.get(i).children.size()){
-							for(int j=0;j<instance.definition.in.get(i).children.size();j++){//FIXME:recursive subnodes may be needed
-								definitionToNewNodes.put(instance.definition.in.get(i).children.get(i), instance.in.get(i).children.get(i));
-							}
-						}else{//FIXME: different children size
-							System.out.print("Error1");
-						}
+						mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToNewNodes);
+						
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 						definitionToNewNodes.put(instance.definition.out.get(i), instance.out.get(i));
 						instance.out.get(i).outOfInstance=null;
-						if(instance.out.get(i).parents.isEmpty()){
-							for(Node parent:instance.definition.out.get(i).parents){//FIXME:recursive nodes
-								Node newParent= new Node();
-								newParent.add(instance.out.get(i));
-								definitionToNewNodes.put(parent, newParent);
-							}
-						}else if(instance.out.get(i).parents.size()==instance.definition.out.get(i).parents.size()){
-							for(int j=0;j<instance.definition.out.get(i).parents.size();j++){//FIXME:recursive subnodes may be needed
-								definitionToNewNodes.put(instance.definition.out.get(i).parents.get(i), instance.out.get(i).parents.get(i));
-							}
-						}else{//FIXME: different parents size
-							System.out.print("Error2");
-						}
+						mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToNewNodes);
 					}
 					for(Instance definitionInstance:instance.definition.instances){
 							ArrayList<Node> nodes = new ArrayList<Node>();
@@ -968,6 +945,57 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				if(!this.recursiveInstances.isEmpty()||!this.instancesOfRecursiveDefinitions.isEmpty()){
 					this.removeRecursion(addedNodes, removedInstances);
+				}
+			}
+			private void mapSubnodeParents(Node node, Node definitionNode, HashMap<Node, Node> definitionToNewNodes) {
+				if(definitionNode.parents.size()>1){
+					if(node.parents.isEmpty()){
+						for(Node parent:definitionNode.parents){
+							Node newParent= new Node();
+							newParent.add(node);
+							definitionToNewNodes.put(parent, newParent);
+							mapSubnodeParents(newParent,parent,definitionToNewNodes);
+						}
+					}else if(node.parents.size()==definitionNode.parents.size()){
+						for(int j=0;j<node.parents.size();j++){
+							definitionToNewNodes.put(definitionNode.parents.get(j),node.parents.get(j));
+							mapSubnodeChildren(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes);
+						}
+					}else{
+						System.out.print("can happen?");
+					}
+				}
+			}
+			private void mapSubnodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToNewNodes) {
+				if(definitionNode.children.size()==3){//supernode
+					if(node.children.isEmpty()){
+						for(Node child:definitionNode.children){
+							Node newChild= new Node();
+							node.add(newChild);
+							definitionToNewNodes.put(child, newChild);
+							mapSubnodeChildren(newChild,child,definitionToNewNodes);
+						}
+					}else if(node.children.size()==definitionNode.children.size()){
+						for(int j=0;j<node.children.size();j++){
+							definitionToNewNodes.put(definitionNode.children.get(j),node.children.get(j));
+							mapSubnodeChildren(node.children.get(j), definitionNode.children.get(j),definitionToNewNodes);
+						}
+					}else{//node.children.size()==1
+						System.out.print("is this possible?");
+						Node supernode =node.children.get(0);
+						node.children.clear();
+						int insertIndex=supernode.parents.indexOf(node);
+						supernode.parents.remove(insertIndex);
+						for(int i=0;i<definitionNode.children.size();i++){
+							Node newChild= new Node();
+							node.add(newChild);
+							definitionToNewNodes.put(definitionNode.children.get(i), newChild);
+							supernode.parents.add(insertIndex+i, newChild);
+							definitionNode.children.get(i).children.add(supernode);
+							definitionNode.children.get(i).definition=supernode.definition;
+							mapSubnodeChildren(newChild,definitionNode.children.get(i),definitionToNewNodes);
+						}
+					}
 				}
 			}
 			public void recoverRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {

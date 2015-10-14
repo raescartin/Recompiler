@@ -12,12 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import utils.FixedBitSet;
-//TODO: index of subnodes as 2 bits instead of subnode node
-//TODO: implement subnodes in order to divide nodes (for both recursion and out flexibility) == concatenate and fision
-//FIXME: print subnodes, write subnodes, read subnodes
-//TODO: remove value
-//TODO: no node can be linked 1 on 1 as supernode<->subnode (same node repeated)
-//TODO: index of subnodes
+//Each node may have 1 or 3 children, if a node has 1 children it's a subnode, if a node has 3 children it's a supernode
+//Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode, if a node has multiple parents it's a supernode
 public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
