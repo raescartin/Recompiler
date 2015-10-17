@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import utils.FixedBitSet;
-//Each node may have 1 or 3 children, if a node has 1 children it's a subnode, if a node has 3 children it's a supernode
-//Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode, if a node has multiple parents it's a supernode
+//Each node may have 1 or 3 children, if a node has 1 children it's a subnode of this 1 node, if a node has 3 children it's a supernode of these
+//Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
 public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
@@ -391,13 +391,14 @@ public class Node {
 	}
 	
 	public void mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
+		//Only maps nodes that are used
 		inOutNodes.add(this);
 		if(!this.inOfInstances.isEmpty()){
 			nodeToNands.put(this, nandForest.addIns(nodeSize.get(this)));
 			if(nodeSize.get(this)==1){
 				nandToNodeIn.add(this);
 			}else{
-				for(Node child:this.children){//FIXME: should be recursive
+				for(Node child:this.children){
 					nandToNodeIn.add(child);
 				}
 				for (int i = this.children.size(); i < nodeSize.get(this); i++) {

@@ -123,7 +123,7 @@ public class Definition implements java.io.Serializable{ /**
 				HashSet <Node> inOutNodes = new HashSet <Node>();
 				//NODE FISSION
 				this.getNodesSize(nodeSize);//get the size of all the definition nodes//FIXME not ok sizes with dec
-				this.removeRedundantSubnodes(nodeSize);
+//				this.removeRedundantSubnodes(nodeSize);FIXME: if? needed should be done when adding nodes
 				///Need to map subnodes of ins and outs to conserve references!!!
 				this.mapIns(nodeSize,nodeToNands,nandForest,nandToNodeIn,inOutNodes);//from bottom to top//(mapping in and finding inputs size first is needed)
 				this.mapOuts(nodeSize,nodeToNands,nandForest,nandToNodeOut,inOutNodes);
@@ -143,6 +143,8 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			private void removeRedundantSubnodes(HashMap<Node, Integer> nodeSize) {
 				//remove redundant subnodes
+				//A(B&C){0}==B{0}
+				//A(B&C){2}==C{2}
 				for(Node node:this.nodes){
 					if(node.parents.size()==1){
 						if(node.parents.get(0).parents.size()>1){//FIXME: needed?
@@ -237,7 +239,7 @@ public class Definition implements java.io.Serializable{ /**
 							fixedSize1Nodes.add(node.outOfInstance.in.get(1));
 						}
 					}else{//the node is out of an instance different to NAND
-						if(this.instances.contains(node.outOfInstance)){//check definition has not been removed (= is recursive)
+						if(this.instances.contains(node.outOfInstance)){//check definition has not been removed (= is not recursive)
 							HashSet<Node> tempFixedSize1Nodes = new HashSet<Node>();
 							//map outs to instance
 							for (int i = 0; i < node.outOfInstance.out.size(); i++) {
@@ -885,53 +887,53 @@ public class Definition implements java.io.Serializable{ /**
 				instances.addAll(this.instancesOfRecursiveDefinitions);
 				this.instancesOfRecursiveDefinitions.clear();
 				for(Instance instance:instances){//map all the instancesOfRecursiveDefinitions nodes
-					HashMap<Node,Node> definitionToNewNodes = new HashMap<Node,Node>();
+					HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
-						definitionToNewNodes.put(instance.definition.in.get(i), instance.in.get(i));
+						definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
 						instance.in.get(i).inOfInstances.remove(instance);
-						mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToNewNodes);
+						mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 						
 					}
 					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
-						definitionToNewNodes.put(instance.definition.out.get(i), instance.out.get(i));
+						definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 						instance.out.get(i).outOfInstance=null;
-						mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToNewNodes);
+						mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 					}
 					for(Instance definitionInstance:instance.definition.instances){
 							ArrayList<Node> nodes = new ArrayList<Node>();
 							for (Node node: definitionInstance.in) {//map in nodes
-								if(definitionToNewNodes.containsKey(node)){
-									nodes.add(definitionToNewNodes.get(node));
+								if(definitionToInstanceNodes.containsKey(node)){
+									nodes.add(definitionToInstanceNodes.get(node));
 								}else{
 									Node newNode = new Node();
-									definitionToNewNodes.put(node, newNode);
+									definitionToInstanceNodes.put(node, newNode);
 									nodes.add(newNode);
 									for(Node parent:node.parents){//map parent nodes //think don't need to map children
-										if(definitionToNewNodes.containsKey(parent)){
-											definitionToNewNodes.get(parent).add(definitionToNewNodes.get(node));
+										if(definitionToInstanceNodes.containsKey(parent)){
+											definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
 										}else{
 											Node newParent = new Node();
-											newParent.add(definitionToNewNodes.get(node));
-											definitionToNewNodes.put(parent, newParent);
+											newParent.add(definitionToInstanceNodes.get(node));
+											definitionToInstanceNodes.put(parent, newParent);
 										}
 									}
 								}
 								
 							}
 							for (Node node: definitionInstance.out) {//map out nodes
-								if(definitionToNewNodes.containsKey(node)){
-									nodes.add(definitionToNewNodes.get(node));
+								if(definitionToInstanceNodes.containsKey(node)){
+									nodes.add(definitionToInstanceNodes.get(node));
 								}else{
 									Node defNode = new Node();
-									definitionToNewNodes.put(node, defNode);
+									definitionToInstanceNodes.put(node, defNode);
 									nodes.add(defNode);
 									for(Node parent:node.parents){//map parent nodes //think don't need to map children
-										if(definitionToNewNodes.containsKey(parent)){
-											definitionToNewNodes.get(parent).add(definitionToNewNodes.get(node));
+										if(definitionToInstanceNodes.containsKey(parent)){
+											definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
 										}else{
 											Node newParent = new Node();
-											newParent.add(definitionToNewNodes.get(node));
-											definitionToNewNodes.put(parent, newParent);
+											newParent.add(definitionToInstanceNodes.get(node));
+											definitionToInstanceNodes.put(parent, newParent);
 										}
 									}
 								}

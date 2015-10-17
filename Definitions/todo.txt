@@ -2,8 +2,6 @@
 	-definition 
 		removeRedundantSubnodes
 		expand
-	
--fix removeRedundantSubnodes
 -execute definition (to test) -> first iteration of recursive instances should be executed with missing inputs(rif==if)
 -fix dec optimization:
 	dec [0;1] = not [0{2};5] dec [7(0{0}&0{1});8] rif [0{2},6(0{0}&0{1}&5),9(8&5);1]  root in:  
@@ -14,6 +12,7 @@
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
 	recursive mul:
 	mul(a,b,c)= mul(a,b-1,d)&add(d,a,c)
+-todo: recursive intersection merge (if/rif)
 -interseccion entre iteraciones de los bucles
 -better node fusion: instance fusion, then nodefusion
 	if all the subnodes of a nodeOut have as ins subnodes of the same nodes nodeIn1 and nodeIn2, replace with nand(node2,node3,node1)
