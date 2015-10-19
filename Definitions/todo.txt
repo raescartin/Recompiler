@@ -1,6 +1,6 @@
 ﻿-fix children=1,3or0
 	-definition 
-		removeRedundantSubnodes
+		removeRedundantSubnodes needed? if so de the check on node add
 		expand
 -execute definition (to test) -> first iteration of recursive instances should be executed with missing inputs(rif==if)
 -fix dec optimization:
