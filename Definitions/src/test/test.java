@@ -279,7 +279,11 @@ class test {
     	Node eq=new Node();
     	eq0.add(zeros,eq0.in.get(0),eq);
     	eq0.add(cmp,eq,eq0.in.get(0),eq0.out.get(0));
+    	eq0.printEval(A);
+    	eq0.printEval(B);
     	definitionDB.put("eq0",eq0);
+    	eq0.printEval(A);
+    	eq0.printEval(B);
     	System.out.print(definitionDB.toString());
 //    	//forDef definition////for loop definition
 //    	Definition forDef = new Definition(2,1,"for");

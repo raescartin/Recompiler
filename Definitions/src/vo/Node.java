@@ -29,7 +29,7 @@ public class Node {
 		this.children = new ArrayList<Node>();
 		this.inOfInstances = new HashSet<Instance>();//FIXME:needed?
 	}
-	public Node add(Node node) {//add subnode to supernode
+	public Node add(Node node) {//add subnode to supernode		
 		node.parents.add(this);
 		this.children.add(node);
 		if(this.definition!=null){
@@ -391,26 +391,14 @@ public class Node {
 	}
 	
 	public void mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
-		//Only maps nodes that are used
-		inOutNodes.add(this);
+		//Only maps nodes that are used in the definition
+		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
 		if(!this.inOfInstances.isEmpty()){
 			nodeToNands.put(this, nandForest.addIns(nodeSize.get(this)));
-			if(nodeSize.get(this)==1){
-				nandToNodeIn.add(this);
-			}else{
-				for(Node child:this.children){
-					nandToNodeIn.add(child);
-				}
-				for (int i = this.children.size(); i < nodeSize.get(this); i++) {
-					Node child = new Node();
-					this.add(child);
-					nandToNodeIn.add(child);
-				}
-			}
+			this.mapChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);//all subnodes need to be mapped
 		}else{
 			if(this.children.size()==1){
-				this.children.get(0).mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-				//TODO: FIXME? lacking nodeToNands of this node?
+				this.children.get(0).mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);//supernode
 			}else{
 				ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 				for(Node child:this.children){
@@ -424,6 +412,54 @@ public class Node {
 		}
 		
 		
+	}
+	private void mapChildren(HashMap<Node, Integer> nodeSize,
+			HashMap<Node, ArrayList<NandNode>> nodeToNands,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn,
+			HashSet<Node> inOutNodes) {
+		inOutNodes.add(this);
+		if(nodeSize.get(this)==1){
+			nandToNodeIn.add(this);
+		}else{
+			if(this.children.size()==3){
+				for(Node child:this.children){
+					child.mapChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+				}
+			}else{//no children, node fission
+				if(this.children.isEmpty()){
+					Node nodeLeft = new Node();
+					Node nodeCenter = new Node();
+					Node nodeRight = new Node();
+					this.add(nodeLeft);
+					this.add(nodeCenter);
+					this.add(nodeRight);
+					nandToNodeIn.add(nodeLeft);
+					nodeSize.put(nodeCenter, nodeSize.get(this)-2);
+					nodeCenter.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+					nandToNodeIn.add(nodeRight);
+				}else{//supernode
+					Node supernode =this.children.get(0);
+					this.children.clear();
+					int insertIndex=supernode.parents.indexOf(this);
+					supernode.parents.remove(insertIndex);
+					Node nodeLeft = new Node();
+					Node nodeCenter = new Node();
+					Node nodeRight = new Node();
+					this.add(nodeLeft);
+					this.add(nodeCenter);
+					this.add(nodeRight);
+					nandToNodeIn.add(nodeLeft);
+					nodeSize.put(nodeCenter, nodeSize.get(this)-2);
+					nodeCenter.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+					nandToNodeIn.add(nodeRight);
+					for(int i=0;i<this.children.size();i++){//FIXME: recursive: nodeCenter can now have children
+						supernode.parents.add(insertIndex+i, this.children.get(i));
+						this.children.get(i).children.add(supernode);
+						this.children.get(i).definition=supernode.definition;
+					}
+				}
+			}
+		}
 	}
 	public ArrayList<NandNode> mapOutParents(HashMap<Node, Integer> nodeSize,
 			HashMap<Node, ArrayList<NandNode>> nodeToNands,
