@@ -67,10 +67,7 @@ public class NandForest {//multiple nand trees
 		}
 		return node;
 	}
-	public ArrayList<NandNode> addOuts(ArrayList<NandNode> nodes){
-		this.out.addAll(nodes);
-		return nodes;
-	}
+
 	public ArrayList<FixedBitSet> eval(FixedBitSet ... inValues){
 		ArrayList<FixedBitSet> outs = new ArrayList<FixedBitSet>();
 		for (int i = 0; i < out.size(); i++) {
@@ -121,11 +118,22 @@ public class NandForest {//multiple nand trees
 	public ArrayList<NandNode> addIns(Integer integer) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
 		for (int i = 0; i < integer; i++) {
-			NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+1));
-			nandNodes.add(nandNode);
-			this.in.add(nandNode);
-			this.nodes.put(nandNode.id,nandNode);
+			nandNodes.add(this.addIn());
 		}
 		return nandNodes;
+	}
+	public NandNode addIn() {
+		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+1));
+		this.in.add(nandNode);
+		this.nodes.put(nandNode.id,nandNode);
+		return nandNode;
+	}
+	public ArrayList<NandNode> setOuts(ArrayList<NandNode> nandNodes){
+		this.out.addAll(nandNodes);
+		return nandNodes;
+	}
+	public NandNode setOut(NandNode nandNode) {
+		this.out.add(nandNode);
+		return nandNode;
 	}
 }

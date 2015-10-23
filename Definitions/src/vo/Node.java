@@ -40,26 +40,24 @@ public class Node {
 		}
 		return node;
 	}
-	public ArrayList<NandNode> toNands(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
-		//TODO: this should probably be in definition
+	public ArrayList<NandNode> toNands(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest) {
+		//PRE: Node fission
 		//Nodes are mapped up to down
 		//tree is traversed down to up (so recursive calls needed)
-		//map only the smallest subnodes (NODE FISION)
 		//evaluate node
-		//there should be a better way to do find the smallest node and normalize the rest to it's size
 		//-if a node is both in and out, there's no need to optimize it, nor take it to nandForest
 		//-nand ins maybe set before toNands
 		//-using "indexOf(this) seems unreliable
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
-		if(nodeToNands.containsKey(this)){//evaluated node //this map is useful to keep track of evaluated nodes
-			nandNodes=nodeToNands.get(this);
+		if(nodeToNands.containsKey(this)){//this map is to keep track of evaluated nodes
+			nandNodes=nodeToNands.get(this);//evaluated node
 		}else{//if(!nodeToNands.containsKey(this)){//non evaluated node //this map is useful to keep track of evaluated nodes
 			if(this.outOfInstance!=null){//node is out of an instance
 					if(this.outOfInstance.definition.name=="nand"){//instance of NAND definition //TODO: fix nand checking
 						Node node1=this.outOfInstance.in.get(0);
 						Node node2=this.outOfInstance.in.get(1);
-						ArrayList<NandNode> nandNodes1=node1.toNands(nodeSize, nodeToNands,nandForest);
-						ArrayList<NandNode> nandNodes2=node2.toNands(nodeSize, nodeToNands,nandForest);
+						ArrayList<NandNode> nandNodes1=node1.toNands(nodeToNands,nandForest);
+						ArrayList<NandNode> nandNodes2=node2.toNands(nodeToNands,nandForest);
 						for(int i=0; i< nandNodes1.size(); i++){
 							NandNode nandNode=nandForest.add(nandNodes1.get(i),nandNodes2.get(i));
 							nandNodes.add(nandNode);
@@ -67,7 +65,7 @@ public class Node {
 					}else{//other definition
 						//eval and map ALL instance inputs
 						for (Node node : this.outOfInstance.in) {
-							ArrayList<NandNode> inputNodes = node.toNands(nodeSize,  nodeToNands, nandForest);//maybe not expanded nodes since it's upper nodes
+							ArrayList<NandNode> inputNodes = node.toNands(nodeToNands, nandForest);//maybe not expanded nodes since it's upper nodes
 							nodeToNands.put(node, inputNodes);
 						}
 						//add all instance input nodes to new map definition input nodes
@@ -79,30 +77,30 @@ public class Node {
 						//evaluate definition
 						//evaluate ALL outputs since we already have all the inputs ( VS only THIS output )
 						for (int i = 0; i < this.outOfInstance.out.size(); i++) {
-							ArrayList<NandNode> tempNandNodes = this.outOfInstance.definition.out.get(i).toNands(nodeSize, tempMap, nandForest);
+							ArrayList<NandNode> tempNandNodes = this.outOfInstance.definition.out.get(i).toNands(tempMap, nandForest);
 						    nandNodes.addAll(tempNandNodes);
 							nodeToNands.put(this.outOfInstance.out.get(i), tempNandNodes);//map outs so no need to find index
 						}	
 							
 					}
-				}
-				//eval subnodes only traversing to parents
-				if(this.parents.size()==1){//subnode of supernode parent, so map all the subnodes now
-					Node parent=this.parents.get(0);
-					ArrayList<NandNode> tempNodes=parent.toNands(nodeSize, nodeToNands, nandForest);//add to output all the supernodes of a node
-					int i=0;
-					int j=0;
-					for(Node child:parent.children) {
-						j+=nodeSize.get(child);
-						ArrayList<NandNode> childNandNodes = new ArrayList<NandNode>();
-						childNandNodes.addAll(tempNodes.subList(i, j));
-						nodeToNands.put(child,childNandNodes);
-						i=j;
-					}
-					nandNodes=nodeToNands.get(this);	
+//				}
+//				//eval subnodes only traversing to parents
+//				if(this.parents.size()==1){//subnode of supernode parent, so map all the subnodes now
+//					Node parent=this.parents.get(0);
+//					ArrayList<NandNode> tempNodes=parent.toNands(nodeToNands, nandForest);//add to output all the supernodes of a node
+//					int i=0;
+//					int j=0;
+//					for(Node child:parent.children) {
+//						j+=nodeSize.get(child);
+//						ArrayList<NandNode> childNandNodes = new ArrayList<NandNode>();
+//						childNandNodes.addAll(tempNodes.subList(i, j));
+//						nodeToNands.put(child,childNandNodes);
+//						i=j;
+//					}
+//					nandNodes=nodeToNands.get(this);	
 				}else{
 					for (Node parent : this.parents) {
-							nandNodes.addAll(parent.toNands(nodeSize,nodeToNands, nandForest));//add to output all the subnodes that form a node
+							nandNodes.addAll(parent.toNands(nodeToNands, nandForest));//add to output all the subnodes that form a node
 					}
 				}
 				nodeToNands.put(this, nandNodes);
@@ -390,104 +388,124 @@ public class Node {
 		}
 	}
 	
-	public void mapInChildren(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
+	public ArrayList<NandNode> mapInChildren(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
 		//Only maps nodes that are used in the definition
+		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
-		if(!this.inOfInstances.isEmpty()){
-			nodeToNands.put(this, nandForest.addIns(nodeSize.get(this)));
-			this.mapChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);//all subnodes need to be mapped
-		}else{
-			if(this.children.size()==1){
-				this.children.get(0).mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);//supernode
-			}else{
-				ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
-				for(Node child:this.children){
-					child.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-					if(nodeToNands.containsKey(child)){
-						nandNodes.addAll(nodeToNands.get(child));
-					}
-				}
-				if(!nandNodes.isEmpty())nodeToNands.put(this, nandNodes);
-			}
-		}
-		
-		
-	}
-	private void mapChildren(HashMap<Node, Integer> nodeSize,
-			HashMap<Node, ArrayList<NandNode>> nodeToNands,
-			NandForest nandForest, ArrayList<Node> nandToNodeIn,
-			HashSet<Node> inOutNodes) {
-		inOutNodes.add(this);
-		if(nodeSize.get(this)==1){
+		if(this.children.isEmpty()){
+			NandNode nandNode = nandForest.addIn();
 			nandToNodeIn.add(this);
-		}else{
-			if(this.children.size()==3){
-				for(Node child:this.children){
-					child.mapChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-				}
-			}else{//no children, node fission
-				if(this.children.isEmpty()){
-					Node nodeLeft = new Node();
-					Node nodeCenter = new Node();
-					Node nodeRight = new Node();
-					this.add(nodeLeft);
-					this.add(nodeCenter);
-					this.add(nodeRight);
-					nandToNodeIn.add(nodeLeft);
-					nodeSize.put(nodeCenter, nodeSize.get(this)-2);
-					nodeCenter.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-					nandToNodeIn.add(nodeRight);
-				}else{//supernode
-					Node supernode =this.children.get(0);
-					this.children.clear();
-					int insertIndex=supernode.parents.indexOf(this);
-					supernode.parents.remove(insertIndex);
-					Node nodeLeft = new Node();
-					Node nodeCenter = new Node();
-					Node nodeRight = new Node();
-					this.add(nodeLeft);
-					this.add(nodeCenter);
-					this.add(nodeRight);
-					nandToNodeIn.add(nodeLeft);
-					nodeSize.put(nodeCenter, nodeSize.get(this)-2);
-					nodeCenter.mapInChildren(nodeSize, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-					nandToNodeIn.add(nodeRight);
-					for(int i=0;i<this.children.size();i++){//FIXME: recursive: nodeCenter can now have children
-						supernode.parents.add(insertIndex+i, this.children.get(i));
-						this.children.get(i).children.add(supernode);
-						this.children.get(i).definition=supernode.definition;
-					}
-				}
+			nandNodes.add(nandNode);
+		}else{		
+			for(Node child:this.children){
+				nandNodes.addAll(child.mapInChildren(nodeToNands, nandForest, nandToNodeIn, inOutNodes));	
 			}
+			
 		}
+		nodeToNands.put(this, nandNodes);
+		return nandNodes;
+		
+		
 	}
-	public ArrayList<NandNode> mapOutParents(HashMap<Node, Integer> nodeSize,
-			HashMap<Node, ArrayList<NandNode>> nodeToNands,
+	public ArrayList<NandNode> mapOutParents(HashMap<Node, ArrayList<NandNode>> nodeToNands,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);
-		if(this.parents.isEmpty()||this.parents.get(0).children.size()!=1){
-			if(this.outOfInstance!=null||(!this.parents.isEmpty()&&this.parents.get(0).outOfInstance!=null)){//TODO:make recursive for subnodes
-				nandNodes=nandForest.addOuts(this.toNands(nodeSize,nodeToNands,nandForest));
-				if(nodeSize.get(this)==1){
-					nandToNodeOut.add(this);
-				}else{
-					for(Node parent:this.parents){//TODO: fix for recursive children
-						nandToNodeOut.add(parent);
-					}
-					for (int i = this.parents.size(); i < nodeSize.get(this); i++) {
-						Node parent = new Node();
-						parent.add(this);
-						nandToNodeOut.add(parent);
-					}
-				}
-			}
+		if(this.parents.isEmpty()){
+			NandNode nandNode = nandForest.setOut(this.toNands(nodeToNands,nandForest).get(0));
+			nandToNodeOut.add(this);
+			nandNodes.add(nandNode);
 		}else{
 			for(Node parent:this.parents){
-				nandNodes.addAll(parent.mapOutParents(nodeSize, nodeToNands, nandForest, nandToNodeOut, inOutNodes));
+				nandNodes.addAll(parent.mapOutParents(nodeToNands, nandForest, nandToNodeOut, inOutNodes));
 			}
 		}
 		nodeToNands.put(this, nandNodes);
 		return nandNodes;
+	}
+	public void fission() {
+		//find the smallest node and normalize the rest to it's size
+		for(Node parent:this.parents){
+			parent.fission();
+		}
+		if(this.parents.size()==1){
+			if(this.parents.get(0).children.get(0)==this||this.parents.get(0).children.get(2)==this){
+				//TODO: remove redundant subnodes here?
+			}else{//this.parents.get(0).children.get(1)==this;
+				if(!this.parents.get(0).parents.isEmpty()){
+					this.mirror(this.parents.get(0).parents.get(1));
+				}
+			}
+		}
+		if(this.outOfInstance!=null){//the node is out of instance
+			if(this.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
+				this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes 
+			}else{
+				Definition tempDef=this.outOfInstance.definition.copy();//copy, in order to not modify the definition
+				
+				for(Node nodeIn:this.outOfInstance.in){
+					nodeIn.fission();
+				}
+				for(int i=0;i<tempDef.in.size();i++){
+					tempDef.in.get(i).chopEqual(this.outOfInstance.in.get(i));
+				}
+				for(int i=0;i<tempDef.out.size();i++){
+					this.outOfInstance.out.get(i).mirror(tempDef.out.get(i));
+					
+				}
+				tempDef.nodeFission();
+				for(int i=0;i<tempDef.in.size();i++){
+					tempDef.in.get(i).mirror(this.outOfInstance.in.get(i));
+				}
+				for(int i=0;i<tempDef.out.size();i++){
+					this.outOfInstance.out.get(i).mirror(tempDef.out.get(i));
+				}
+				
+			}
+		}
+	}
+	private void chopEqual(Node node) {
+		for(int i=0;i<this.parents.size();i++){
+			this.parents.get(i).chopEqual(node.parents.get(i));
+		}
+		for(int i=0;i<this.children.size();i++){
+			this.children.get(i).chopEqual(node.children.get(i));
+			
+		}
+		
+	}
+	private void mirror(Node node) {
+		if(node.parents.size()==3){
+			this.split();
+			for(int i=0;i<node.parents.size();i++){
+				this.children.get(i).mirror(node.parents.get(i));
+			}
+		}
+	}
+	public void split() {
+		if(this.children.size()!=3){
+			if(this.children.size()==0){
+				Node leftNode = new Node();
+				Node centerNode = new Node();
+				Node rightNode = new Node();
+				this.add(leftNode);
+				this.add(centerNode);
+				this.add(rightNode);
+			}else{//this.children.size()==1
+				Node supernode =this.children.get(0);
+				this.children.clear();
+				int insertIndex=supernode.parents.indexOf(this);
+				supernode.parents.remove(insertIndex);
+				for(int i=0;i<3;i++){
+					Node newChild= new Node();
+					this.add(newChild);
+					supernode.parents.add(insertIndex+i, newChild);
+					newChild.children.add(supernode);
+					newChild.definition=supernode.definition;
+					newChild.definition.nodes.add(this);
+				}
+			}
+		}
+		
 	}
 }

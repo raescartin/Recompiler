@@ -89,7 +89,7 @@ public class Definition implements java.io.Serializable{ /**
 			
 			//CONSTRUCTOR
 			public Definition(int numberOfInputs,int numberOfOutputs, String name){
-				this.name=name;
+				//INITIALIZE VARIABLES
 				this.in = new ArrayList<Node>();
 				this.out = new ArrayList<Node>();
 				this.instances = new ArrayList<Instance>();
@@ -99,6 +99,9 @@ public class Definition implements java.io.Serializable{ /**
 				//DEBUGGING ONLY
 				this.nodes = new HashSet<Node> ();
 				//END OF DEBUGGING ONLY
+				
+				this.name=name;
+				
 				for (int i = 0; i < numberOfInputs; i++) {
 					in.add(new Node());
 					this.add(in.get(i));
@@ -109,10 +112,20 @@ public class Definition implements java.io.Serializable{ /**
 				}			
 			}
 			public Definition() {
-				// TODO Auto-generated constructor stub
+				//INITIALIZE VARIABLES
+				this.in = new ArrayList<Node>();
+				this.out = new ArrayList<Node>();
+				this.instances = new ArrayList<Instance>();
+				this.recursiveInstances = new HashSet<Instance>();
+				this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
+				this.rootIn = new ArrayList<Definition>();
+				//DEBUGGING ONLY
+				this.nodes = new HashSet<Node> ();
+				//END OF DEBUGGING ONLY
 			}
 			public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
 				//PRE: this definition is not recursive and doesn't contain recursive definitions
+				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
 				//more efficient thanks to HashMap's of unique nodes
 				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
@@ -120,12 +133,9 @@ public class Definition implements java.io.Serializable{ /**
 				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
 				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
 				HashSet <Node> inOutNodes = new HashSet <Node>();
-				//NODE FISSION
-				this.getNodesSize(nodeSize);//get the size of all the definition nodes//FIXME not ok sizes with dec
-//				this.removeRedundantSubnodes(nodeSize);FIXME: if? needed should be done when adding nodes
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeSize,nodeToNands,nandForest,nandToNodeIn,inOutNodes);//from bottom to top//(mapping in and finding inputs size first is needed)
-				this.mapOuts(nodeSize,nodeToNands,nandForest,nandToNodeOut,inOutNodes);
+				this.mapIns(nodeToNands,nandForest,nandToNodeIn,inOutNodes);
+				this.mapOuts(nodeToNands,nandForest,nandToNodeOut,inOutNodes);
 				//IN and OUTS mapped and in nandForest
 				this.instances.clear();
 				this.rootIn.clear();
@@ -187,18 +197,17 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				
 			}
-			private void mapIns(HashMap<Node, Integer> nodeSize, HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+			private void mapIns(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
 				for(Node inNode:this.in){
-					inNode.mapInChildren(nodeSize,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+					inNode.mapInChildren(nodeToNands,nandForest, nandToNodeIn,inOutNodes);
 				}			
 			}
-			private void mapOuts(HashMap<Node, Integer> nodeSize,
-					HashMap<Node, ArrayList<NandNode>> nodeToNands,
+			private void mapOuts(HashMap<Node, ArrayList<NandNode>> nodeToNands,
 					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 				//map output nodes to nandNodes
 				for(Node outNode:this.out){
-					outNode.mapOutParents(nodeSize,nodeToNands,nandForest, nandToNodeOut,inOutNodes);
+					outNode.mapOutParents(nodeToNands,nandForest, nandToNodeOut,inOutNodes);
 				}	
 				
 			}
@@ -523,6 +532,28 @@ public class Definition implements java.io.Serializable{ /**
 				instance.definition=def;
 				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 					if(outNode==this.out.get(0)) def.rootIn.add(this);
+					outNode.outOfInstance=instance;
+				}
+				this.instances.add(instance);
+				return instance;
+			}
+			public Instance addWithoutRootIn(Definition def,Node ... nodes){
+				for(Node node:nodes){
+					this.add(node);	
+				}
+				Instance instance = new Instance();//node == instance of a definition
+				if(def==this){
+					def.recursiveInstances.add(instance);
+				}else if(!def.recursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
+					this.instancesOfRecursiveDefinitions.add(instance);
+				}
+				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
+				for(Node node:instance.in){
+					node.inOfInstances.add(instance);
+				}
+				instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
+				instance.definition=def;
+				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 					outNode.outOfInstance=instance;
 				}
 				this.instances.add(instance);
@@ -1096,7 +1127,7 @@ public class Definition implements java.io.Serializable{ /**
 							ArrayList<Node> nodes = new ArrayList<Node>();
 							nodes.addAll(superInstance.in);
 							nodes.addAll(superInstance.out);
-							this.add(superInstance.definition, (Node[]) nodes.toArray());
+							this.add(superInstance.definition,nodes.toArray(new Node[nodes.size()]));
 							for(Instance candidateInstance:candidateInstances){
 								this.remove(candidateInstance);
 							}
@@ -1106,5 +1137,65 @@ public class Definition implements java.io.Serializable{ /**
 					}
 				}
 					
+			}
+			public void nodeFission() {
+//				ArrayList<Node> splitNodes = new ArrayList<Node>();
+				for(Node outNode:this.out){
+//					splitNodes.addAll(outNode.fission());
+					outNode.fission();
+				}
+//				this.out=splitNodes;
+				
+			}
+			public void chopEquals(Node node1, Node node2, Node node3) {
+				if(node1.children.size()==3||node2.children.size()==3||node3.children.size()==3){
+					node1.split();
+					node2.split();
+					node3.split();
+					chopEquals(node1.children.get(0),node2.children.get(0),node3.children.get(0));
+					chopEquals(node1.children.get(1),node2.children.get(1),node3.children.get(1));
+					chopEquals(node1.children.get(2),node2.children.get(2),node3.children.get(2));
+				}
+				
+			}
+			public Definition copy() {
+				Definition copyDef = new Definition();
+				copyDef.name=this.name;
+				HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
+				//map nodes
+				for(Node node:this.nodes){
+					Node copyNode = new Node();
+					copyDef.add(copyNode);
+					nodeToCopy.put(node, copyNode);
+				}
+				//copy subnodes
+				for(Node node:this.nodes){
+					for(Node child:node.children){
+						nodeToCopy.get(node).children.add(nodeToCopy.get(child));
+					}
+					for(Node parent:node.parents){
+						nodeToCopy.get(node).parents.add(nodeToCopy.get(parent));
+					}
+				}
+				//copy inputs
+				for(Node nodeIn:this.in){
+					copyDef.in.add(nodeToCopy.get(nodeIn));
+				}
+				//copy outpus
+				for(Node nodeOut:this.out){
+					copyDef.out.add(nodeToCopy.get(nodeOut));
+				}
+				//copy instances
+				for(Instance instance:this.instances){
+					ArrayList<Node> copyNodes = new ArrayList<Node>();
+					for(Node nodeIn:instance.in){
+						copyNodes.add(nodeToCopy.get(nodeIn));
+					}
+					for(Node nodeOut:instance.out){
+						copyNodes.add(nodeToCopy.get(nodeOut));
+					}
+					copyDef.addWithoutRootIn(instance.definition, copyNodes.toArray(new Node[copyNodes.size()]));
+				}
+				return copyDef;
 			}
 		}
