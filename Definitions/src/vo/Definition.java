@@ -131,7 +131,6 @@ public class Definition implements java.io.Serializable{ /**
 				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 				NandForest nandForest = new NandForest(0);
 				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
-				HashMap<Node,Integer> nodeSize = new HashMap<Node,Integer>();
 				HashSet <Node> inOutNodes = new HashSet <Node>();
 				///Need to map subnodes of ins and outs to conserve references!!!
 				this.mapIns(nodeToNands,nandForest,nandToNodeIn,inOutNodes);
@@ -199,9 +198,11 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			private void mapIns(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
-				for(Node inNode:this.in){
-					inNode.mapInChildren(nodeToNands,nandForest, nandToNodeIn,inOutNodes);
-				}			
+				HashSet<Node> inNodes = new HashSet<Node>();
+				inNodes.addAll(this.in);
+				for(Node outNode:this.out){
+					outNode.findIns(false,inNodes,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+				}		
 			}
 			private void mapOuts(HashMap<Node, ArrayList<NandNode>> nodeToNands,
 					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
@@ -1139,23 +1140,32 @@ public class Definition implements java.io.Serializable{ /**
 					
 			}
 			public void nodeFission() {
-//				ArrayList<Node> splitNodes = new ArrayList<Node>();
 				for(Node outNode:this.out){
-//					splitNodes.addAll(outNode.fission());
 					outNode.fission();
 				}
-//				this.out=splitNodes;
 				
 			}
 			public void chopEquals(Node node1, Node node2, Node node3) {
-				if(node1.children.size()==3||node2.children.size()==3||node3.children.size()==3){
-					node1.split();
-					node2.split();
-					node3.split();
-					chopEquals(node1.children.get(0),node2.children.get(0),node3.children.get(0));
-					chopEquals(node1.children.get(1),node2.children.get(1),node3.children.get(1));
-					chopEquals(node1.children.get(2),node2.children.get(2),node3.children.get(2));
+				if(node1.parents.size()==2&&node2.parents.size()==2){
+					if(node3.parents.size()==0){
+						Node newNode1 = new Node();
+						Node newNode2 = new Node();
+						newNode1.add(node3);
+						newNode2.add(node3);
+					}
 				}
+//				if(node1.children.size()==3||node2.children.size()==3||node3.children.size()==3){
+//					node1.split();
+//					node2.split();
+//					node3.split();
+//					chopEquals(node1.children.get(1),node2.children.get(1),node3.children.get(1));
+//				}
+//				node2.splitParents(node1.parents.size());
+//				node3.splitParents(node1.parents.size());
+//				node1.splitParents(node2.parents.size());
+//				node3.splitParents(node2.parents.size());
+//				node1.splitParents(node3.parents.size());
+//				node2.splitParents(node3.parents.size());
 				
 			}
 			public Definition copy() {
@@ -1197,5 +1207,33 @@ public class Definition implements java.io.Serializable{ /**
 					copyDef.addWithoutRootIn(instance.definition, copyNodes.toArray(new Node[copyNodes.size()]));
 				}
 				return copyDef;
+			}
+			public void removeRedundantSubnodes() {
+				ArrayList<Node> out = new ArrayList<Node>();
+				for(Node nodeOut:this.out){
+					out.add(nodeOut.removeRedundantSubnodes());
+				}
+				this.out=out;
+			}
+			public void chopNand(Node nodeIn0, Node nodeIn1, Node nodeOut, Definition nand) {
+				if(nodeIn0.parents.size()<2&&nodeIn1.parents.size()<2){
+					if(nodeOut.outOfInstance==null){
+						ArrayList<Node> nodes = new ArrayList<Node>();
+						nodes.add(nodeIn0);
+						nodes.add(nodeIn1);
+						nodes.add(nodeOut);
+						this.add(nand,nodes.toArray(new Node[nodes.size()]));
+					}
+				}else if(nodeIn0.parents.size()==2){
+					if(nodeIn1.parents.size()!=2){
+						nodeIn1.splitParents();
+					}
+					nodeOut.splitParents();
+					chopNand(nodeIn0.parents.get(0),nodeIn1.parents.get(0),nodeOut.parents.get(0), nand);
+					chopNand(nodeIn0.parents.get(1),nodeIn1.parents.get(1),nodeOut.parents.get(1), nand);
+					this.remove(nodeOut.outOfInstance);
+					nodeOut.outOfInstance=null;
+				}
+				
 			}
 		}

@@ -392,9 +392,14 @@ public class Node {
 		//Only maps nodes that are used in the definition
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
-		if(this.children.isEmpty()){
-			NandNode nandNode = nandForest.addIn();
-			nandToNodeIn.add(this);
+		if(this.children.size()<=1){
+			NandNode nandNode;
+			if(nandToNodeIn.contains(this)){
+				nandNode=nodeToNands.get(this).get(0);
+			}else{
+				nandNode = nandForest.addIn();
+				nandToNodeIn.add(this);
+			}
 			nandNodes.add(nandNode);
 		}else{		
 			for(Node child:this.children){
@@ -428,37 +433,27 @@ public class Node {
 		for(Node parent:this.parents){
 			parent.fission();
 		}
-		if(this.parents.size()==1){
-			if(this.parents.get(0).children.get(0)==this||this.parents.get(0).children.get(2)==this){
-				//TODO: remove redundant subnodes here?
-			}else{//this.parents.get(0).children.get(1)==this;
-				if(!this.parents.get(0).parents.isEmpty()){
-					this.mirror(this.parents.get(0).parents.get(1));
-				}
-			}
-		}
 		if(this.outOfInstance!=null){//the node is out of instance
 			if(this.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
 				this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes 
 			}else{
 				Definition tempDef=this.outOfInstance.definition.copy();//copy, in order to not modify the definition
-				
 				for(Node nodeIn:this.outOfInstance.in){
 					nodeIn.fission();
 				}
-				for(int i=0;i<tempDef.in.size();i++){
-					tempDef.in.get(i).chopEqual(this.outOfInstance.in.get(i));
+				for(int i=0;i<tempDef.in.size();i++){//copy in to instance
+					this.outOfInstance.in.get(i).chopEqual(tempDef.in.get(i));
 				}
-				for(int i=0;i<tempDef.out.size();i++){
-					this.outOfInstance.out.get(i).mirror(tempDef.out.get(i));
-					
-				}
-				tempDef.nodeFission();
-				for(int i=0;i<tempDef.in.size();i++){
-					tempDef.in.get(i).mirror(this.outOfInstance.in.get(i));
-				}
-				for(int i=0;i<tempDef.out.size();i++){
-					this.outOfInstance.out.get(i).mirror(tempDef.out.get(i));
+//				for(int i=0;i<tempDef.out.size();i++){//copy out to instance
+//					this.outOfInstance.out.get(i).chopEqual(tempDef.out.get(i));
+//					
+//				}
+				tempDef.nodeFission();//instance recursive call
+//				for(int i=0;i<tempDef.in.size();i++){//copy back in
+//					tempDef.in.get(i).chopEqual(this.outOfInstance.in.get(i));
+//				}
+				for(int i=0;i<tempDef.out.size();i++){//copy back out
+					tempDef.out.get(i).chopEqual(this.outOfInstance.out.get(i));
 				}
 				
 			}
@@ -466,12 +461,13 @@ public class Node {
 	}
 	private void chopEqual(Node node) {
 		for(int i=0;i<this.parents.size();i++){
-			this.parents.get(i).chopEqual(node.parents.get(i));
+			Node newNode = new Node();
+			newNode.add(node);
 		}
-		for(int i=0;i<this.children.size();i++){
-			this.children.get(i).chopEqual(node.children.get(i));
-			
-		}
+//		for(int i=0;i<this.children.size();i++){
+//			this.children.get(i).chopEqual(node.children.get(i));
+//			
+//		}
 		
 	}
 	private void mirror(Node node) {
@@ -503,6 +499,100 @@ public class Node {
 					newChild.children.add(supernode);
 					newChild.definition=supernode.definition;
 					newChild.definition.nodes.add(this);
+				}
+			}
+		}
+		
+	}
+	public Node removeRedundantSubnodes() {
+		Node node = this;
+		if(this.parents.size()==1&&this.parents.get(0).parents.size()>1){
+			if(this.parents.get(0).children.indexOf(this)==0){
+				if(this.parents.get(0).parents.get(0).children.size()==3){
+					node=this.parents.get(0).parents.get(0).children.get(0);
+				}else if(this.parents.get(0).parents.get(0).children.size()==0){
+					Node leftNode = new Node();
+					Node centerNode = new Node();
+					Node rightNode = new Node();
+					this.parents.get(0).parents.get(0).add(leftNode);
+					this.parents.get(0).parents.get(0).add(centerNode);
+					this.parents.get(0).parents.get(0).add(rightNode);
+					node = leftNode;
+				}else if(this.parents.get(0).parents.get(0).children.size()==1){
+					Node supernode =this.parents.get(0).parents.get(0).children.get(0);
+					this.parents.get(0).parents.get(0).children.clear();
+					int insertIndex=supernode.parents.indexOf(this.parents.get(0).parents.get(0));
+					supernode.parents.remove(insertIndex);
+					for(int i=0;i<3;i++){
+						Node newChild= new Node();
+						this.add(newChild);
+						supernode.parents.add(insertIndex+i, newChild);
+						newChild.children.add(supernode);
+						newChild.definition=supernode.definition;
+						newChild.definition.nodes.add(this);
+					}
+					node = this.parents.get(0).parents.get(0).children.get(0);
+				}
+			}
+			if(this.parents.get(0).children.indexOf(this)==2){
+				if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.size()==3){
+					node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.get(2);
+				}else if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.size()==0){
+					Node leftNode = new Node();
+					Node centerNode = new Node();
+					Node rightNode = new Node();
+					this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).add(leftNode);
+					this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).add(centerNode);
+					this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).add(rightNode);
+					node = rightNode;
+				}else if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.size()==1){
+					Node supernode =this.parents.get(this.parents.get(0).parents.size()-1).parents.get(0).children.get(0);
+					this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.clear();
+					int insertIndex=supernode.parents.indexOf(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1));
+					supernode.parents.remove(insertIndex);
+					for(int i=0;i<3;i++){
+						Node newChild= new Node();
+						this.add(newChild);
+						supernode.parents.add(insertIndex+i, newChild);
+						newChild.children.add(supernode);
+						newChild.definition=supernode.definition;
+						newChild.definition.nodes.add(this);
+					}
+					node = this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).children.get(2);
+				}
+			}
+			ArrayList<Node> parents = new ArrayList<Node>();
+			for(Node parent:this.parents){
+				parents.add(parent.removeRedundantSubnodes());
+			}
+			this.parents=parents;
+			if(this.outOfInstance!=null){
+				ArrayList<Node> ins = new ArrayList<Node>();
+				for(Node inNode:this.outOfInstance.in){
+					ins.add(inNode.removeRedundantSubnodes());
+				}
+				this.outOfInstance.in=ins;
+			}
+		}
+		return node;
+	}
+	public void splitParents() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void findIns(Boolean used,HashSet<Node> inNodes,
+			HashMap<Node, ArrayList<NandNode>> nodeToNands,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn,
+			HashSet<Node> inOutNodes) {
+		if(used&&inNodes.contains(this)){
+			this.mapInChildren(nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+		}else{
+			for(Node parent:this.parents){
+				parent.findIns(used,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+			}
+			if(this.outOfInstance!=null){
+				for(Node instanceInNode:this.outOfInstance.in){
+					instanceInNode.findIns(true,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
 				}
 			}
 		}
