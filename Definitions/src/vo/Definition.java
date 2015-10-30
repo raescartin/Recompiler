@@ -198,11 +198,14 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			private void mapIns(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
-				HashSet<Node> inNodes = new HashSet<Node>();
-				inNodes.addAll(this.in);
-				for(Node outNode:this.out){
-					outNode.findIns(false,inNodes,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
-				}		
+//				HashSet<Node> inNodes = new HashSet<Node>();
+//				inNodes.addAll(this.in);
+//				for(Node outNode:this.out){
+//					outNode.findIns(false,inNodes,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+//				}	
+				for(Node inNode:this.in){
+					inNode.mapInChildren(false, nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+				}	
 			}
 			private void mapOuts(HashMap<Node, ArrayList<NandNode>> nodeToNands,
 					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
@@ -1146,20 +1149,27 @@ public class Definition implements java.io.Serializable{ /**
 				
 			}
 			public void chopEquals(Node node1, Node node2, Node node3) {
-				if(node1.parents.size()==2&&node2.parents.size()==2){
+				
+				if(node1.children.size()==3||node2.children.size()==3){
+					node1.splitChildren();
+					node2.splitChildren();
+					node3.splitChildren();
+				}else if(node1.parents.size()>1||node2.parents.size()>1){
+					int nodeSize=0;
+					if(node1.parents.size()==node2.parents.size()){
+						nodeSize=node1.parents.size();
+					}else if(node1.parents.size()==0){
+						nodeSize=node2.parents.size();
+					}else if(node2.parents.size()==0){
+						nodeSize=node1.parents.size();
+					}//TODO: else
 					if(node3.parents.size()==0){
-						Node newNode1 = new Node();
-						Node newNode2 = new Node();
-						newNode1.add(node3);
-						newNode2.add(node3);
+						for(int i=0;i<nodeSize;i++){
+							Node newNode = new Node();
+							newNode.add(node3);
+						}
 					}
 				}
-//				if(node1.children.size()==3||node2.children.size()==3||node3.children.size()==3){
-//					node1.split();
-//					node2.split();
-//					node3.split();
-//					chopEquals(node1.children.get(1),node2.children.get(1),node3.children.get(1));
-//				}
 //				node2.splitParents(node1.parents.size());
 //				node3.splitParents(node1.parents.size());
 //				node1.splitParents(node2.parents.size());
@@ -1236,4 +1246,78 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				
 			}
+			public void toNandDefinitions() {
+				boolean expanded=true;
+				ArrayList<Instance> instances = new ArrayList<Instance>();
+				while(expanded){
+					instances.clear();
+					instances.addAll(this.instances);
+					expanded=false;
+					for(Instance instance:instances){
+						if(instance.definition.name!="nand"){
+							expanded=true;
+							this.expandInstance(instance);
+							this.remove(instance);
+						}
+					}
+				}
+				
+				
+			}
+			private void expandInstance(Instance instance) {
+					HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
+					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+						definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
+						instance.in.get(i).inOfInstances.remove(instance);
+						mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
+						
+					}
+					for (int i = 0; i < instance.out.size(); i++) {//map out nodes
+						definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
+						instance.out.get(i).outOfInstance=null;
+						mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+					}
+					for(Instance definitionInstance:instance.definition.instances){
+							ArrayList<Node> nodes = new ArrayList<Node>();
+							for (Node node: definitionInstance.in) {//map in nodes
+								if(definitionToInstanceNodes.containsKey(node)){
+									nodes.add(definitionToInstanceNodes.get(node));
+								}else{
+									Node newNode = new Node();
+									definitionToInstanceNodes.put(node, newNode);
+									nodes.add(newNode);
+									for(Node parent:node.parents){//map parent nodes //think don't need to map children
+										if(definitionToInstanceNodes.containsKey(parent)){
+											definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
+										}else{
+											Node newParent = new Node();
+											newParent.add(definitionToInstanceNodes.get(node));
+											definitionToInstanceNodes.put(parent, newParent);
+										}
+									}
+								}
+								
+							}
+							for (Node node: definitionInstance.out) {//map out nodes
+								if(definitionToInstanceNodes.containsKey(node)){
+									nodes.add(definitionToInstanceNodes.get(node));
+								}else{
+									Node defNode = new Node();
+									definitionToInstanceNodes.put(node, defNode);
+									nodes.add(defNode);
+									for(Node parent:node.parents){//map parent nodes //think don't need to map children
+										if(definitionToInstanceNodes.containsKey(parent)){
+											definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
+										}else{
+											Node newParent = new Node();
+											newParent.add(definitionToInstanceNodes.get(node));
+											definitionToInstanceNodes.put(parent, newParent);
+										}
+									}
+								}
+							}
+							this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+					}
+					
+				}
 		}

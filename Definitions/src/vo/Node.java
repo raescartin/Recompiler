@@ -388,26 +388,29 @@ public class Node {
 		}
 	}
 	
-	public ArrayList<NandNode> mapInChildren(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
+	public ArrayList<NandNode> mapInChildren(Boolean used,HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
 		//Only maps nodes that are used in the definition
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
+		if(!this.inOfInstances.isEmpty()) used=true;
 		if(this.children.size()<=1){
-			NandNode nandNode;
-			if(nandToNodeIn.contains(this)){
-				nandNode=nodeToNands.get(this).get(0);
-			}else{
-				nandNode = nandForest.addIn();
-				nandToNodeIn.add(this);
+			if(used){
+				NandNode nandNode;
+				if(nandToNodeIn.contains(this)){
+					nandNode=nodeToNands.get(this).get(0);
+				}else{
+					nandNode = nandForest.addIn();
+					nandToNodeIn.add(this);
+				}
+				nandNodes.add(nandNode);
 			}
-			nandNodes.add(nandNode);
 		}else{		
 			for(Node child:this.children){
-				nandNodes.addAll(child.mapInChildren(nodeToNands, nandForest, nandToNodeIn, inOutNodes));	
+				nandNodes.addAll(child.mapInChildren(used, nodeToNands, nandForest, nandToNodeIn, inOutNodes));	
 			}
 			
 		}
-		nodeToNands.put(this, nandNodes);
+		if(!nandNodes.isEmpty()) nodeToNands.put(this, nandNodes);
 		return nandNodes;
 		
 		
@@ -416,48 +419,69 @@ public class Node {
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);
-		if(this.parents.isEmpty()){
-			NandNode nandNode = nandForest.setOut(this.toNands(nodeToNands,nandForest).get(0));
-			nandToNodeOut.add(this);
+		if(this.outOfInstance!=null){
+			NandNode nandNode;
+			if(nandToNodeOut.contains(this)){
+				nandNode = nodeToNands.get(this).get(0);
+			}else{
+				nandNode = nandForest.setOut(this.toNands(nodeToNands,nandForest).get(0));//FIXME
+				nandToNodeOut.add(this);
+			}
 			nandNodes.add(nandNode);
 		}else{
 			for(Node parent:this.parents){
 				nandNodes.addAll(parent.mapOutParents(nodeToNands, nandForest, nandToNodeOut, inOutNodes));
 			}
 		}
-		nodeToNands.put(this, nandNodes);
+		if(!nandNodes.isEmpty()) nodeToNands.put(this, nandNodes);
 		return nandNodes;
 	}
 	public void fission() {
+		//PRE: only nand definitions
 		//find the smallest node and normalize the rest to it's size
-		for(Node parent:this.parents){
-			parent.fission();
-		}
-		if(this.outOfInstance!=null){//the node is out of instance
-			if(this.outOfInstance.definition.name=="nand"){//NAND //TODO: fix nand checking
-				this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes 
-			}else{
-				Definition tempDef=this.outOfInstance.definition.copy();//copy, in order to not modify the definition
-				for(Node nodeIn:this.outOfInstance.in){
-					nodeIn.fission();
-				}
-				for(int i=0;i<tempDef.in.size();i++){//copy in to instance
-					this.outOfInstance.in.get(i).chopEqual(tempDef.in.get(i));
-				}
-//				for(int i=0;i<tempDef.out.size();i++){//copy out to instance
-//					this.outOfInstance.out.get(i).chopEqual(tempDef.out.get(i));
-//					
-//				}
-				tempDef.nodeFission();//instance recursive call
-//				for(int i=0;i<tempDef.in.size();i++){//copy back in
-//					tempDef.in.get(i).chopEqual(this.outOfInstance.in.get(i));
-//				}
-				for(int i=0;i<tempDef.out.size();i++){//copy back out
-					tempDef.out.get(i).chopEqual(this.outOfInstance.out.get(i));
-				}
-				
+		if(this.outOfInstance!=null){//the node is out of NAND instance
+				this.outOfInstance.in.get(0).fission();
+				this.outOfInstance.in.get(1).fission();
+				this.carryNand(this.outOfInstance.definition,this.outOfInstance.in.get(0),this.outOfInstance.in.get(1));
+		}else{
+			for(Node parent:this.parents){
+				parent.fission();
 			}
 		}
+	}
+	private void carryNand(Definition definition, Node node0, Node node1) {
+		this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes 
+		if(!this.parents.isEmpty()&&node0.children.isEmpty()&&node1.children.isEmpty()){
+			this.definition.remove(this.outOfInstance);
+			this.outOfInstance=null;
+			node0.inOfInstances.remove(this.outOfInstance);
+			node1.inOfInstances.remove(this.outOfInstance);
+			for(int i=0;i<this.parents.size();i++){
+				Node[] nodes={node0.parents.get(i),node1.parents.get(i),this.parents.get(i)};
+				this.definition.add(definition, nodes);
+				this.parents.get(i).carryNand(definition, node0.parents.get(i), node1.parents.get(i));
+			}
+//			}else{
+//				for(int i=0;i<this.parents.size();i++){
+//					Node[] nodes={node0.children.get(i),node1.children.get(i),this.parents.get(i)};
+//					this.definition.add(definition, nodes);
+//					this.parents.get(i).carryNand(definition, node0.children.get(i), node1.children.get(i));
+//				}
+//				
+//			}
+		}
+		if(this.parents.isEmpty()&&!node0.children.isEmpty()&&!node1.children.isEmpty()){
+			this.definition.remove(this.outOfInstance);
+			this.outOfInstance=null;
+			node0.inOfInstances.remove(this.outOfInstance);
+			node1.inOfInstances.remove(this.outOfInstance);
+			for(int i=0;i<this.children.size();i++){
+				Node[] nodes={node0.children.get(i),node1.children.get(i),this.children.get(i)};
+				this.definition.add(definition, nodes);
+				this.children.get(i).carryNand(definition, node0.children.get(i), node1.children.get(i));
+			}
+		}
+		
 	}
 	private void chopEqual(Node node) {
 		for(int i=0;i<this.parents.size();i++){
@@ -472,13 +496,13 @@ public class Node {
 	}
 	private void mirror(Node node) {
 		if(node.parents.size()==3){
-			this.split();
+			this.splitChildren();
 			for(int i=0;i<node.parents.size();i++){
 				this.children.get(i).mirror(node.parents.get(i));
 			}
 		}
 	}
-	public void split() {
+	public void splitChildren() {
 		if(this.children.size()!=3){
 			if(this.children.size()==0){
 				Node leftNode = new Node();
@@ -487,19 +511,19 @@ public class Node {
 				this.add(leftNode);
 				this.add(centerNode);
 				this.add(rightNode);
-			}else{//this.children.size()==1
-				Node supernode =this.children.get(0);
-				this.children.clear();
-				int insertIndex=supernode.parents.indexOf(this);
-				supernode.parents.remove(insertIndex);
-				for(int i=0;i<3;i++){
-					Node newChild= new Node();
-					this.add(newChild);
-					supernode.parents.add(insertIndex+i, newChild);
-					newChild.children.add(supernode);
-					newChild.definition=supernode.definition;
-					newChild.definition.nodes.add(this);
-				}
+//			}else{//this.children.size()==1
+//				Node supernode =this.children.get(0);
+//				this.children.clear();
+//				int insertIndex=supernode.parents.indexOf(this);
+//				supernode.parents.remove(insertIndex);
+//				for(int i=0;i<3;i++){
+//					Node newChild= new Node();
+//					this.add(newChild);
+//					supernode.parents.add(insertIndex+i, newChild);
+//					newChild.children.add(supernode);
+//					newChild.definition=supernode.definition;
+//					newChild.definition.nodes.add(this);
+//				}
 			}
 		}
 		
@@ -580,22 +604,22 @@ public class Node {
 		// TODO Auto-generated method stub
 		
 	}
-	public void findIns(Boolean used,HashSet<Node> inNodes,
-			HashMap<Node, ArrayList<NandNode>> nodeToNands,
-			NandForest nandForest, ArrayList<Node> nandToNodeIn,
-			HashSet<Node> inOutNodes) {
-		if(used&&inNodes.contains(this)){
-			this.mapInChildren(nodeToNands,nandForest, nandToNodeIn,inOutNodes);
-		}else{
-			for(Node parent:this.parents){
-				parent.findIns(used,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-			}
-			if(this.outOfInstance!=null){
-				for(Node instanceInNode:this.outOfInstance.in){
-					instanceInNode.findIns(true,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
-				}
-			}
-		}
-		
-	}
+//	public void findIns(Boolean used,HashSet<Node> inNodes,
+//			HashMap<Node, ArrayList<NandNode>> nodeToNands,
+//			NandForest nandForest, ArrayList<Node> nandToNodeIn,
+//			HashSet<Node> inOutNodes) {//Trying not to use inOfInstances
+//		if(used&&this.parents.isEmpty()&&this.outOfInstance==null){
+//			this.mapInChildren(nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+//		}else{
+//			for(Node parent:this.parents){
+//				parent.findIns(used,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+//			}
+//			if(this.outOfInstance!=null){
+//				for(Node instanceInNode:this.outOfInstance.in){
+//					instanceInNode.findIns(true,inNodes, nodeToNands, nandForest, nandToNodeIn, inOutNodes);
+//				}
+//			}
+//		}
+//		
+//	}
 }
