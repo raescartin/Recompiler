@@ -130,11 +130,11 @@ public class Definition implements java.io.Serializable{ /**
 				//more efficient thanks to HashMap's of unique nodes
 				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 				NandForest nandForest = new NandForest(0);
-				HashMap<Node, ArrayList<NandNode>> nodeToNands = new HashMap<Node, ArrayList<NandNode>>();
+				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 				HashSet <Node> inOutNodes = new HashSet <Node>();
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeToNands,nandForest,nandToNodeIn,inOutNodes);
-				this.mapOuts(nodeToNands,nandForest,nandToNodeOut,inOutNodes);
+				this.mapIns(nodeToNand,nandForest,nandToNodeIn,inOutNodes);
+				this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
 				//IN and OUTS mapped and in nandForest
 				this.instances.clear();
 				this.rootIn.clear();
@@ -196,7 +196,7 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				
 			}
-			private void mapIns(HashMap<Node, ArrayList<NandNode>> nodeToNands, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+			private void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
 //				HashSet<Node> inNodes = new HashSet<Node>();
 //				inNodes.addAll(this.in);
@@ -204,10 +204,10 @@ public class Definition implements java.io.Serializable{ /**
 //					outNode.findIns(false,inNodes,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
 //				}	
 				for(Node inNode:this.in){
-					inNode.mapInChildren(false, nodeToNands,nandForest, nandToNodeIn,inOutNodes);
+					inNode.mapInChildren(false, nodeToNand,nandForest, nandToNodeIn,inOutNodes);
 				}	
 			}
-			private void mapOuts(HashMap<Node, ArrayList<NandNode>> nodeToNands,
+			private void mapOuts(HashMap<Node, NandNode> nodeToNands,
 					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 				//map output nodes to nandNodes
 				for(Node outNode:this.out){

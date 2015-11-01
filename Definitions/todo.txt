@@ -1,4 +1,5 @@
 ﻿-fix mapIns and mapOuts
+-fix :add removes second "and"
 -fix children=1,3or0
 	-definition 
 		removeRedundantSubnodes on node add
