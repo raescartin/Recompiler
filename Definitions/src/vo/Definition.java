@@ -1144,9 +1144,11 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			public void nodeFission() {
 				for(Node outNode:this.out){
-					outNode.fission();
+					outNode.childrenFission();
 				}
-				
+				for(Node inNode:this.in){
+					inNode.parentsFission();
+				}
 			}
 			public void chopEquals(Node node1, Node node2, Node node3) {
 				

@@ -244,7 +244,7 @@ class test {
     	decRif.add(dec.out.get(0));
     	decNnot.add(dec.out.get(0));
     	dec.printEval(A);
-    	definitionDB.put("dec",dec);//FIXME: intersection with recursion not optimized
+    	definitionDB.put("dec",dec);
     	dec.printEval(A);//FIXME: intersection with recursion not optimized
     	System.out.print(definitionDB.toString());
     	//cmp definition////definition to test if two values are equal, returns a bit
