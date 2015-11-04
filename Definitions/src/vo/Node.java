@@ -571,14 +571,14 @@ public class Node {
 //	}
 	public void childrenFission() {
 		if(this.parents.size()==1){
-			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
-				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
-				this.nandChildrenFission();
-			}else if(this.parents.get(0).parents.size()==1){//child with children (recursive)
+			if(this.parents.get(0).parents.size()==1){//child with children (recursive)
 				for(int i=0;i<3;i++){
 					this.parents.get(0).parents.get(0).children.get(i).childrenFission();
 				}
-				this.childrenFission();
+			}
+			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
+				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
+				this.nandChildrenFission();
 			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
 				Node parent = this.parents.get(0);//variables to conserve references
 				Node left = parent.children.get(0);
@@ -596,11 +596,14 @@ public class Node {
 				parentRight.children.set(2,right);
 				parent.parents.remove(0);
 				parent.parents.remove(parent.parents.size()-1);
-				mid.parents.add(parentLeft.children.get(1));
-				mid.parents.add(parentLeft.children.get(2));
-				mid.parents.add(parent);//may add parent parents instead and remove parent
-				mid.parents.add(parentRight.children.get(0));
-				mid.parents.add(parentRight.children.get(1));
+				mid.parents.clear();
+				parentLeft.children.get(1).add(mid);
+				parentLeft.children.get(2).add(mid);
+				for(Node par:parent.parents){//remove parent
+					par.add(mid);
+				}
+				parentRight.children.get(0).add(mid);
+				parentRight.children.get(1).add(mid);
 				parentLeft.children.get(1).childrenFission();//only need recursion on one of the three nodes
 				parentRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
 			}
@@ -639,8 +642,8 @@ public class Node {
 		if(this.children.size()==1){
 			if(this.children.get(0).children.size()==1){//recursive
 				this.children.get(0).parentsFission();
-				this.parentsFission();
-			}else if(!this.children.get(0).inOfInstances.isEmpty()){//is in of at least one instance of nand definition
+			}
+			if(!this.children.get(0).inOfInstances.isEmpty()){//is in of at least one instance of nand definition
 				for(Instance nandInstance:this.children.get(0).inOfInstances){
 					Definition nand = nandInstance.definition;
 					Node in0=nandInstance.in.get(0);
@@ -648,7 +651,9 @@ public class Node {
 					Node out=nandInstance.out.get(0);
 					//TODO make sure in0.children.size()==in1.children.size() by going up
 					//should be recursive into parents
-					if(in0.children.size()==in1.children.size()){
+					if(in0.children.size()!=in1.children.size()){
+						System.out.print("Error, different parentSize.");
+					}else{
 						this.definition.remove(nandInstance);
 						in0.inOfInstances.remove(nandInstance);
 						in1.inOfInstances.remove(nandInstance);
@@ -660,6 +665,7 @@ public class Node {
 							newNode.add(out);
 						}
 						out.parents.get(0).parentsFission();
+					
 					}
 					
 				}
