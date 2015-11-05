@@ -639,10 +639,10 @@ public class Node {
 		inRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
 	}
 	public void parentsFission() {
+		for(Node children:this.children){//recursive
+			children.parentsFission();
+		}
 		if(this.children.size()==1){
-			if(this.children.get(0).children.size()==1){//recursive
-				this.children.get(0).parentsFission();
-			}
 			if(!this.children.get(0).inOfInstances.isEmpty()){//is in of at least one instance of nand definition
 				for(Instance nandInstance:this.children.get(0).inOfInstances){
 					Definition nand = nandInstance.definition;
@@ -670,15 +670,45 @@ public class Node {
 					
 				}
 			}
-		}else if(!this.inOfInstances.isEmpty()){//is in of at least one instance of nand definition
+		}
+		if(!this.inOfInstances.isEmpty()){//is in of at least one instance of nand definition
 			for(Instance nandInstance:this.inOfInstances){
 				nandInstance.out.get(0).parentsFission();
 			}
-		}else{
-			for(Node children:this.children){
-				children.parentsFission();
-			}
 		}
 		
+	}
+	public void recursivelyMapParents(HashMap<Node, Node> definitionToInstanceNodes) {
+		if(this.parents.size()==1){
+			Node parent=this.parents.get(0);
+			if(definitionToInstanceNodes.containsKey(parent)){
+				definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(this));
+			}else{
+				Node newParent = new Node();
+				definitionToInstanceNodes.put(parent, newParent);
+				parent.recursivelyMapParents(definitionToInstanceNodes);
+			}
+			for(int j=0;j<3;j++){
+				Node child=parent.children.get(j);
+				if(definitionToInstanceNodes.containsKey(child)){
+					definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(child));
+				}else{
+					Node newChild = new Node();
+					definitionToInstanceNodes.get(parent).add(newChild);
+					definitionToInstanceNodes.put(child, newChild);
+				}
+			}
+		}else{
+			for(Node parent:this.parents){//map parent nodes //think don't need to map children//TODO:recursive
+				if(definitionToInstanceNodes.containsKey(parent)){
+					definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(this));
+				}else{
+					Node newParent = new Node();
+					newParent.add(definitionToInstanceNodes.get(this));
+					definitionToInstanceNodes.put(parent, newParent);
+					parent.recursivelyMapParents(definitionToInstanceNodes);
+				}
+			}
+		}
 	}
 }
