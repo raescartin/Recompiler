@@ -156,10 +156,12 @@ class test {
     	//ADD definition//
     	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) 
     	Definition add = new Definition(2,1,"add");
-    	Node A0 = add.in.get(0).add(new Node());
+    	@SuppressWarnings("unused")
+		Node A0 = add.in.get(0).add(new Node());
     	Node Arest = add.in.get(0).add(new Node());
     	Node An = add.in.get(0).add(new Node());
-    	Node B0 = add.in.get(1).add(new Node());
+    	@SuppressWarnings("unused")
+		Node B0 = add.in.get(1).add(new Node());
     	Node Brest = add.in.get(1).add(new Node());
     	Node Bn = add.in.get(1).add(new Node());
     	Node Awithout0 = new Node();
@@ -300,12 +302,11 @@ class test {
     	Node mul1 = new Node();
     	Node mul2 = new Node();
     	Node mul3 = new Node();
-    	Node mul4 = new Node();
     	mul.add(eq0,mul.in.get(0),mul0);
-    	mul.add(dec,mul.in.get(0),mul2);
-    	mul.add(mul,mul2,mul.in.get(1),mul3);
-    	mul.add(add,mul3,mul.in.get(1),mul4);
-    	mul.add(rifDef,mul0,mul.in.get(0),mul4,mul.out.get(0));//TODO:Test with ifdef and rifdef
+    	mul.add(dec,mul.in.get(0),mul1);
+    	mul.add(mul,mul1,mul.in.get(1),mul2);
+    	mul.add(add,mul2,mul.in.get(1),mul3);
+    	mul.add(rifDef,mul0,mul.in.get(0),mul3,mul.out.get(0));//TODO:Test with ifdef and rifdef
     	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
     	mul.printEval(B,B);

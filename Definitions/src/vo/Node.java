@@ -430,25 +430,25 @@ public class Node {
 			}
 		}
 	}
-	private void chopEqual(Node node) {
-		for(int i=0;i<this.parents.size();i++){
-			Node newNode = new Node();
-			newNode.add(node);
-		}
-//		for(int i=0;i<this.children.size();i++){
-//			this.children.get(i).chopEqual(node.children.get(i));
-//			
+//	private void chopEqual(Node node) {
+//		for(int i=0;i<this.parents.size();i++){
+//			Node newNode = new Node();
+//			newNode.add(node);
 //		}
-		
-	}
-	private void mirror(Node node) {
-		if(node.parents.size()==3){
-			this.splitChildren();
-			for(int i=0;i<node.parents.size();i++){
-				this.children.get(i).mirror(node.parents.get(i));
-			}
-		}
-	}
+////		for(int i=0;i<this.children.size();i++){
+////			this.children.get(i).chopEqual(node.children.get(i));
+////			
+////		}
+//		
+//	}
+//	private void mirror(Node node) {
+//		if(node.parents.size()==3){
+//			this.splitChildren();
+//			for(int i=0;i<node.parents.size();i++){
+//				this.children.get(i).mirror(node.parents.get(i));
+//			}
+//		}
+//	}
 	public void splitChildren() {
 		if(this.children.size()!=3){
 			if(this.children.size()==0){
@@ -547,10 +547,6 @@ public class Node {
 		}
 		return node;
 	}
-	public void splitParents() {
-		// TODO Auto-generated method stub
-		
-	}
 //	public void findIns(Boolean used,HashSet<Node> inNodes,
 //			HashMap<Node, ArrayList<NandNode>> nodeToNands,
 //			NandForest nandForest, ArrayList<Node> nandToNodeIn,
@@ -619,8 +615,11 @@ public class Node {
 	private void nandChildrenFission() {
 		//remove this instance of nand definition
 		Node parent=this.parents.get(0);
+		@SuppressWarnings("unused")
 		Node left=parent.children.get(0);
+		@SuppressWarnings("unused")
 		Node mid=parent.children.get(1);
+		@SuppressWarnings("unused")
 		Node right=parent.children.get(2);
 		Node inLeft=parent.outOfInstance.in.get(0);
 		Node inRight=parent.outOfInstance.in.get(1);
@@ -650,7 +649,7 @@ public class Node {
 					Node in1=nandInstance.in.get(1);
 					Node out=nandInstance.out.get(0);
 					//TODO make sure in0.children.size()==in1.children.size() by going up
-					//should be recursive into parents
+					//should be RECURSIVE into parents
 					if(in0.children.size()!=in1.children.size()){
 						System.out.print("Error, different parentSize.");
 					}else{

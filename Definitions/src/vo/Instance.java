@@ -30,7 +30,6 @@ public class Instance implements java.io.Serializable{
 	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {
 			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
 			boolean empties = false;
-			boolean nulls = false;
 			boolean ins = false;
 			for (int i = 0; i < this.in.size(); i++) {
 				this.in.get(i).eval(valueMap, recursiveInstances, instancesToExpand);
@@ -40,8 +39,6 @@ public class Instance implements java.io.Serializable{
 					if(valueMap.get(this.in.get(i)).length()==0){
 						empties=true;
 					}
-				}else{
-					nulls=true;
 				}
 			}
 			//recursive and all inputs or not recursive and some ins
