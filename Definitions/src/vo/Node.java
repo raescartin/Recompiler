@@ -567,15 +567,22 @@ public class Node {
 //	}
 	public void childrenFission() {
 		if(this.parents.size()==1){
-			if(this.parents.get(0).parents.size()==1){//child with children (recursive)
-				for(int i=0;i<3;i++){
-					this.parents.get(0).parents.get(0).children.get(i).childrenFission();
+			if(this.parents.get(0).parents.size()==1){//child with children (recursive)//remove redundant subnodes
+				Node parent=this.parents.get(0);
+				Node grandparent=this.parents.get(0).parents.get(0);
+				if(grandparent.children.indexOf(parent)==0){
+					//replace this with grandparent{0}
+				}
+				if(grandparent.children.indexOf(parent)==2){
+					//replace this with grandparent{2}
 				}
 			}
 			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
 				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
 				this.nandChildrenFission();
 			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
+//				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
+//				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
 				Node parent = this.parents.get(0);//variables to conserve references
 				Node left = parent.children.get(0);
 				Node mid = parent.children.get(1);
@@ -600,8 +607,9 @@ public class Node {
 				}
 				parentRight.children.get(0).add(mid);
 				parentRight.children.get(1).add(mid);
-				parentLeft.children.get(1).childrenFission();//only need recursion on one of the three nodes
-				parentRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
+				mid.childrenFission();
+//				parentLeft.children.get(1).childrenFission();//only need recursion on one of the three nodes
+//				parentRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
 			}
 		}else if(this.parents.size()>1){
 			for(Node parent:this.parents){
@@ -631,9 +639,13 @@ public class Node {
 		//add the 3 new nands that replace the removed nand
 		for(int i=0;i<3;i++){
 			Node[] nodes={inLeft.children.get(i),inRight.children.get(i),parent.children.get(i)};
-			this.definition.add(this.parents.get(0).outOfInstance.definition, nodes);
+			this.definition.add(parent.outOfInstance.definition, nodes);
+			parent.children.get(i).parents.clear();
 		}
 		parent.outOfInstance=null;//no need to parent.children.clear() nor child.parents.remove(parent);
+//		for(int i=0;i<3;i++){
+//			this.parents.get(0).children.get(i).childrenFission();//only need recursion on one of the three nodes
+//		}
 		inLeft.children.get(1).childrenFission();//only need recursion on one of the three nodes
 		inRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
 	}
