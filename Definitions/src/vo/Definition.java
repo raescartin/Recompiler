@@ -1020,27 +1020,8 @@ public class Definition implements java.io.Serializable{ /**
 								Node parentRight = node.parents.get(node.parents.size()-1);
 								parentRight.children.clear();
 								Node newNode = new Node();
-								if(parentLeft.parents.size()==1&&(parentLeft.parents.get(0).children.indexOf(parentLeft)==0||parentLeft.parents.get(0).children.indexOf(parentLeft)==2)){
-									//if node is not divisible
-									parentLeft=parentLeft.parents.get(0);
-
-								}else{
-									parentLeft.splitChildren();
-									parentLeft.children.get(1).add(newNode);
-									parentLeft.children.get(2).add(newNode);
-								}
-								for(int i=1;i<node.parents.size()-1;i++){
-									node.parents.get(i).children.clear();
-									node.parents.get(i).add(newNode);
-								}
-								if(parentRight.parents.size()==1&&(parentRight.parents.get(0).children.indexOf(parentRight)==0||parentRight.parents.get(0).children.indexOf(parentRight)==2)){
-									//if node is not divisible
-									parentRight=parentRight.parents.get(0);
-								}else{
-									parentRight.splitChildren();
-									parentRight.children.get(0).add(newNode);
-									parentRight.children.get(1).add(newNode);
-								}
+								parentLeft=this.mapLeft(parentLeft,newNode);
+								parentRight=this.mapRight(parentRight,newNode);
 								definitionToInstanceNodes.put(definitionNode.children.get(0), parentLeft.children.get(0));
 								mapSubnodeChildren(parentLeft.children.get(0),definitionNode.children.get(0),definitionToInstanceNodes);
 								definitionToInstanceNodes.put(definitionNode.children.get(2), parentRight.children.get(2));
@@ -1075,6 +1056,44 @@ public class Definition implements java.io.Serializable{ /**
 						}
 					}
 				}
+			}
+			private Node mapLeft(Node parentLeft, Node newNode) {
+				if(parentLeft.parents.size()>1){
+					parentLeft=mapLeft(parentLeft.parents.get(0),newNode);
+					for(int i=1;i<parentLeft.parents.size();i++){
+						parentLeft.parents.get(i).children.clear();
+						parentLeft.parents.get(i).add(newNode);
+					}
+				}else{
+					if(parentLeft.parents.size()==1&&(parentLeft.parents.get(0).children.indexOf(parentLeft)==0||parentLeft.parents.get(0).children.indexOf(parentLeft)==2)){
+						//if node is not divisible
+						parentLeft=parentLeft.parents.get(0);
+					}else{
+						parentLeft.splitChildren();
+						parentLeft.children.get(1).add(newNode);
+						parentLeft.children.get(2).add(newNode);
+					}
+				}
+				return parentLeft;
+			}
+			private Node mapRight(Node parentRight, Node newNode) {
+				if(parentRight.parents.size()>1){
+					for(int i=0;i<parentRight.parents.size()-1;i++){
+						parentRight.parents.get(i).children.clear();
+						parentRight.parents.get(i).add(newNode);
+					}
+					parentRight=mapRight(parentRight.parents.get(parentRight.parents.size()-1),newNode);
+				}else{
+					if(parentRight.parents.size()==1&&(parentRight.parents.get(0).children.indexOf(parentRight)==0||parentRight.parents.get(0).children.indexOf(parentRight)==2)){
+						//if node is not divisible
+						parentRight=parentRight.parents.get(0);
+					}else{
+						parentRight.splitChildren();
+						parentRight.children.get(0).add(newNode);
+						parentRight.children.get(1).add(newNode);
+					}
+				}
+				return parentRight;
 			}
 			public void recoverRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
 				this.in.subList(this.in.size()-addedNodes.in, this.in.size()).clear();//remove added nodes
