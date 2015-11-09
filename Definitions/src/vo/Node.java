@@ -567,49 +567,40 @@ public class Node {
 //	}
 	public void childrenFission() {
 		if(this.parents.size()==1){
-			if(this.parents.get(0).parents.size()==1){//child with children (recursive)//remove redundant subnodes
-				Node parent=this.parents.get(0);
-				Node grandparent=this.parents.get(0).parents.get(0);
-				if(grandparent.children.indexOf(parent)==0){
-					//replace this with grandparent{0}
-				}
-				if(grandparent.children.indexOf(parent)==2){
-					//replace this with grandparent{2}
-				}
-			}
+//			if(this.parents.get(0).parents.size()==1){//child with children (recursive)//remove redundant subnodes
+////we may need to divide node in the smallest subnodes
+//			}
 			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
 				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
 				this.nandChildrenFission();
-			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
-//				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
-//				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
-				Node parent = this.parents.get(0);//variables to conserve references
-				Node left = parent.children.get(0);
-				Node mid = parent.children.get(1);
-				Node right = parent.children.get(2);
-				Node parentLeft = parent.parents.get(0);
-				Node parentRight = parent.parents.get(parent.parents.size()-1);
-				parentLeft.children.clear();
-				parentLeft.splitChildren();//split parents in the extremes into children
-				parentRight.children.clear();
-				parentRight.splitChildren();
-				left.parents.set(0,parentLeft);
-				parentLeft.children.set(0,left);
-				right.parents.set(0,parentRight);
-				parentRight.children.set(2,right);
-				parent.parents.remove(0);
-				parent.parents.remove(parent.parents.size()-1);
-				mid.parents.clear();
-				parentLeft.children.get(1).add(mid);
-				parentLeft.children.get(2).add(mid);
-				for(Node par:parent.parents){//remove parent
-					par.add(mid);
-				}
-				parentRight.children.get(0).add(mid);
-				parentRight.children.get(1).add(mid);
-				mid.childrenFission();
-//				parentLeft.children.get(1).childrenFission();//only need recursion on one of the three nodes
-//				parentRight.children.get(1).childrenFission();//only need recursion on one of the three nodes
+//			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
+////				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
+////				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
+//				Node parent = this.parents.get(0);//variables to conserve references
+//				Node left = parent.children.get(0);
+//				Node mid = parent.children.get(1);
+//				Node right = parent.children.get(2);
+//				Node parentLeft = parent.parents.get(0);
+//				Node parentRight = parent.parents.get(parent.parents.size()-1);
+//				parentLeft.children.clear();
+//				parentLeft.splitChildren();//split parents in the extremes into children
+//				parentRight.children.clear();
+//				parentRight.splitChildren();
+//				left.parents.set(0,parentLeft);
+//				parentLeft.children.set(0,left);
+//				right.parents.set(0,parentRight);
+//				parentRight.children.set(2,right);
+//				parent.parents.remove(0);
+//				parent.parents.remove(parent.parents.size()-1);
+//				mid.parents.clear();
+//				parentLeft.children.get(1).add(mid);
+//				parentLeft.children.get(2).add(mid);
+//				for(Node par:parent.parents){//remove parent
+//					par.add(mid);
+//				}
+//				parentRight.children.get(0).add(mid);
+//				parentRight.children.get(1).add(mid);
+//				mid.childrenFission();
 			}
 		}else if(this.parents.size()>1){
 			for(Node parent:this.parents){

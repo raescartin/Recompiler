@@ -1013,31 +1013,64 @@ public class Definition implements java.io.Serializable{ /**
 						}
 					}else{
 						if(definitionNode.children.size()==3){//supernode
-							if(node.children.isEmpty()){
-								for(Node child:definitionNode.children){
-									Node newChild= new Node();
-									node.add(newChild);
-									definitionToInstanceNodes.put(child, newChild);
-									mapSubnodeChildren(newChild,child,definitionToInstanceNodes);
+							if(node.parents.size()>1){//prevent redundant subnodes
+								//variables to conserve references
+								Node parentLeft = node.parents.get(0);
+								parentLeft.children.clear();
+								Node parentRight = node.parents.get(node.parents.size()-1);
+								parentRight.children.clear();
+								Node newNode = new Node();
+								if(parentLeft.parents.size()==1&&(parentLeft.parents.get(0).children.indexOf(parentLeft)==0||parentLeft.parents.get(0).children.indexOf(parentLeft)==2)){
+									//if node is not divisible
+									parentLeft=parentLeft.parents.get(0);
+
+								}else{
+									parentLeft.splitChildren();
+									parentLeft.children.get(1).add(newNode);
+									parentLeft.children.get(2).add(newNode);
 								}
-							}else{//node.children.size()==1 splice
-								Node supernode =node.children.get(0);
-								node.children.clear();
-								int insertIndex=supernode.parents.indexOf(node);
-								supernode.parents.remove(insertIndex);
-								for(int i=0;i<3;i++){
-									Node newChild= new Node();
-									node.add(newChild);
-									definitionToInstanceNodes.put(definitionNode.children.get(i), newChild);
-									supernode.parents.add(insertIndex+i, newChild);
-									newChild.children.add(supernode);
-									newChild.definition=supernode.definition;
-									
+								for(int i=1;i<node.parents.size()-1;i++){
+									node.parents.get(i).children.clear();
+									node.parents.get(i).add(newNode);
+								}
+								if(parentRight.parents.size()==1&&(parentRight.parents.get(0).children.indexOf(parentRight)==0||parentRight.parents.get(0).children.indexOf(parentRight)==2)){
+									//if node is not divisible
+									parentRight=parentRight.parents.get(0);
+								}else{
+									parentRight.splitChildren();
+									parentRight.children.get(0).add(newNode);
+									parentRight.children.get(1).add(newNode);
+								}
+								definitionToInstanceNodes.put(definitionNode.children.get(0), parentLeft.children.get(0));
+								mapSubnodeChildren(parentLeft.children.get(0),definitionNode.children.get(0),definitionToInstanceNodes);
+								definitionToInstanceNodes.put(definitionNode.children.get(2), parentRight.children.get(2));
+								mapSubnodeChildren(parentRight.children.get(2),definitionNode.children.get(2),definitionToInstanceNodes);
+								definitionToInstanceNodes.put(definitionNode.children.get(1), newNode);
+								mapSubnodeChildren(newNode,definitionNode.children.get(1),definitionToInstanceNodes);
+							}else{
+								if(node.children.isEmpty()){
+									for(Node child:definitionNode.children){
+										Node newChild= new Node();
+										node.add(newChild);
+									}
+								}else{//node.children.size()==1 splice
+									Node supernode =node.children.get(0);
+									node.children.clear();
+									int insertIndex=supernode.parents.indexOf(node);
+									supernode.parents.remove(insertIndex);
+									for(int i=0;i<3;i++){
+										Node newChild= new Node();
+										node.add(newChild);
+										supernode.parents.add(insertIndex+i, newChild);
+										newChild.children.add(supernode);
+										newChild.definition=supernode.definition;
+										
+									}
 								}
 								for(int i=0;i<3;i++){
+									definitionToInstanceNodes.put(definitionNode.children.get(i), node.children.get(i));
 									mapSubnodeChildren(node.children.get(i),definitionNode.children.get(i),definitionToInstanceNodes);
 								}
-								
 							}
 						}
 					}
