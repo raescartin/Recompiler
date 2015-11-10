@@ -994,7 +994,7 @@ public class Definition implements java.io.Serializable{ /**
 					}else if(node.parents.size()==definitionNode.parents.size()){
 						for(int j=0;j<node.parents.size();j++){
 							definitionToNewNodes.put(definitionNode.parents.get(j),node.parents.get(j));
-							mapSubnodeChildren(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes);
+							mapSubnodeParents(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes);
 						}
 					}else{
 						System.out.print("can happen?");
@@ -1016,9 +1016,9 @@ public class Definition implements java.io.Serializable{ /**
 							if(node.parents.size()>1){//prevent redundant subnodes
 								//variables to conserve references
 								Node parentLeft = node.parents.get(0);
-								parentLeft.children.clear();
+								if(parentLeft.children.size()==1)parentLeft.children.clear();
 								Node parentRight = node.parents.get(node.parents.size()-1);
-								parentRight.children.clear();
+								if(parentRight.children.size()==1)parentRight.children.clear();
 								Node newNode = new Node();
 								parentLeft=this.mapLeft(parentLeft,newNode);
 								parentRight=this.mapRight(parentRight,newNode);
@@ -1069,9 +1069,10 @@ public class Definition implements java.io.Serializable{ /**
 						//if node is not divisible
 						parentLeft=parentLeft.parents.get(0);
 					}else{
-						parentLeft.splitChildren();
-						parentLeft.children.get(1).add(newNode);
-						parentLeft.children.get(2).add(newNode);
+						if(parentLeft.children.size()==1)parentLeft.children.clear();
+							parentLeft.splitChildren();
+							parentLeft.children.get(1).add(newNode);
+							parentLeft.children.get(2).add(newNode);
 					}
 				}
 				return parentLeft;
@@ -1088,6 +1089,7 @@ public class Definition implements java.io.Serializable{ /**
 						//if node is not divisible
 						parentRight=parentRight.parents.get(0);
 					}else{
+						if(parentRight.children.size()==1)parentRight.children.clear();
 						parentRight.splitChildren();
 						parentRight.children.get(0).add(newNode);
 						parentRight.children.get(1).add(newNode);

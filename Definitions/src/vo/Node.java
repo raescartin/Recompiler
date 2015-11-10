@@ -14,6 +14,7 @@ import java.util.HashSet;
 import utils.FixedBitSet;
 //Each node may have 1 or 3 children, if a node has 1 children it's a subnode of this 1 node, if a node has 3 children it's a supernode of these
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
+//Each node can only be parent to one children, but each node may me "in" of multiple instances
 public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
@@ -573,34 +574,34 @@ public class Node {
 			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
 				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
 				this.nandChildrenFission();
-//			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
-////				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
-////				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
-//				Node parent = this.parents.get(0);//variables to conserve references
-//				Node left = parent.children.get(0);
-//				Node mid = parent.children.get(1);
-//				Node right = parent.children.get(2);
-//				Node parentLeft = parent.parents.get(0);
-//				Node parentRight = parent.parents.get(parent.parents.size()-1);
-//				parentLeft.children.clear();
-//				parentLeft.splitChildren();//split parents in the extremes into children
-//				parentRight.children.clear();
-//				parentRight.splitChildren();
-//				left.parents.set(0,parentLeft);
-//				parentLeft.children.set(0,left);
-//				right.parents.set(0,parentRight);
-//				parentRight.children.set(2,right);
-//				parent.parents.remove(0);
-//				parent.parents.remove(parent.parents.size()-1);
-//				mid.parents.clear();
-//				parentLeft.children.get(1).add(mid);
-//				parentLeft.children.get(2).add(mid);
-//				for(Node par:parent.parents){//remove parent
-//					par.add(mid);
-//				}
-//				parentRight.children.get(0).add(mid);
-//				parentRight.children.get(1).add(mid);
-//				mid.childrenFission();
+			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
+//				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
+//				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
+				Node parent = this.parents.get(0);//variables to conserve references
+				Node left = parent.children.get(0);
+				Node mid = parent.children.get(1);
+				Node right = parent.children.get(2);
+				Node parentLeft = parent.parents.get(0);
+				Node parentRight = parent.parents.get(parent.parents.size()-1);
+				parentLeft.children.clear();
+				parentLeft.splitChildren();//split parents in the extremes into children
+				parentRight.children.clear();
+				parentRight.splitChildren();
+				left.parents.set(0,parentLeft);
+				parentLeft.children.set(0,left);
+				right.parents.set(0,parentRight);
+				parentRight.children.set(2,right);
+				parent.parents.remove(0);
+				parent.parents.remove(parent.parents.size()-1);
+				mid.parents.clear();
+				parentLeft.children.get(1).add(mid);
+				parentLeft.children.get(2).add(mid);
+				for(Node par:parent.parents){//remove parent
+					par.add(mid);
+				}
+				parentRight.children.get(0).add(mid);
+				parentRight.children.get(1).add(mid);
+				mid.childrenFission();
 			}
 		}else if(this.parents.size()>1){
 			for(Node parent:this.parents){
