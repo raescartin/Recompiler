@@ -21,6 +21,7 @@ import vo.Node;
 //-optimize to assembler including always nand for simplicity (possible in any turing-complete language)
 
 //TODO
+//-REFACTOR THIS (modular)
 //-subnodes need supernode attribute?
 //-use only one bit in if condition
 //-FIXME: can't have definition outside of DefinitionDB (or else inconsistencies)
@@ -61,6 +62,9 @@ class test {
         //NOT definition//
     	Definition not = new Definition(1,1,"not");
     	not.add(nand,not.in.get(0),not.in.get(0),not.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(not.toString());
     	not.printEval(A);
      	definitionDB.put("not",not);
      	not.printEval(A);
@@ -70,6 +74,9 @@ class test {
     	Node and0= new Node();
     	and.add(nand,and.in.get(0),and.in.get(1),and0);
     	and.add(not,and0,and.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(and.toString());
     	and.printEval(A,B);
      	definitionDB.put("and",and);
      	and.printEval(A,B);
@@ -81,6 +88,10 @@ class test {
     	or.add(not,or.in.get(0),or0);
     	or.add(not,or.in.get(1),or1);
     	or.add(nand, or0,or1,or.out.get(0));
+
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(or.toString());
     	or.printEval(A,B);
      	definitionDB.put("or",or);
      	or.printEval(A,B);
@@ -92,6 +103,9 @@ class test {
     	xor.add(or, xor.in.get(0),xor.in.get(1),xor0);
     	xor.add(nand, xor.in.get(0),xor.in.get(1),xor1);
     	xor.add(and,xor0,xor1,xor.out.get(0)); 
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(xor.toString());
     	xor.printEval(A,B);
     	definitionDB.put("xor",xor);
     	xor.printEval(A,B);
@@ -106,6 +120,9 @@ class test {
     	ifDef.add(or,ifdef0,ifDef.in.get(1),ifdef1);
     	ifDef.add(or,ifDef.in.get(0),ifDef.in.get(2),ifdef2);
     	ifDef.add(and,ifdef1,ifdef2,ifDef.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(ifDef.toString());
     	ifDef.printEval(A,B,C);
     	definitionDB.put("if",ifDef);
     	ifDef.printEval(A,B,C);
@@ -143,6 +160,9 @@ class test {
     	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
     	rifdef12.add(rifDef.out.get(0));
     	rifdef9.add(rifDef.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(rifDef.toString());
     	rifDef.printEval(D,B,C);
     	definitionDB.put("rif",rifDef);
     	rifDef.printEval(D,B,C);
@@ -187,6 +207,9 @@ class test {
     	add.add(add, xorwithoutN,addAndOut,addOut);
     	addOut.add(add.out.get(0));
     	xorn.add(add.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(add.toString());
     	add.printEval(A,B);
     	definitionDB.put("add",add);
     	add.printEval(A,B);
@@ -194,6 +217,9 @@ class test {
     	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");
     	zeros.add(xor,zeros.in.get(0),zeros.in.get(0),zeros.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(zeros.toString());
     	definitionDB.put("zeros",zeros);
     	zeros.printEval(A);
     	System.out.print(definitionDB.toString());
@@ -202,6 +228,9 @@ class test {
     	Node zeroNode = new Node();
     	ones.add(zeros, ones.in.get(0),zeroNode);
     	ones.add(not,zeroNode,ones.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(ones.toString());
     	definitionDB.put("ones",ones);
     	ones.printEval(A);
     	System.out.print(definitionDB.toString());
@@ -245,6 +274,9 @@ class test {
     	dec.add(rifDef,decN,decR,decRout,decRif);
     	decRif.add(dec.out.get(0));
     	decNnot.add(dec.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(dec.toString());
     	dec.printEval(A);
     	definitionDB.put("dec",dec);
     	dec.printEval(A);//FIXME: intersection with recursion not optimized
@@ -270,6 +302,9 @@ class test {
     	Node cmpXnor = new Node();
     	cmp.add(not, cmpXor,cmpXnor);
     	cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); //should cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0)); work? cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); simple
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(cmp.toString());
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
@@ -281,6 +316,9 @@ class test {
     	Node eq=new Node();
     	eq0.add(zeros,eq0.in.get(0),eq);
     	eq0.add(cmp,eq,eq0.in.get(0),eq0.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(eq0.toString());
     	eq0.printEval(A);
     	eq0.printEval(B);
     	definitionDB.put("eq0",eq0);
@@ -307,6 +345,9 @@ class test {
     	mul.add(mul,mul1,mul.in.get(1),mul2);
     	mul.add(add,mul2,mul.in.get(1),mul3);
     	mul.add(rifDef,mul0,mul.in.get(0),mul3,mul.out.get(0));//TODO:Test with ifdef and rifdef
+    	System.out.println();
+    	System.out.print("New definition: ");
+    	System.out.print(mul.toString());
     	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
     	mul.printEval(B,B);

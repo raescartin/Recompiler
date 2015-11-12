@@ -566,52 +566,106 @@ public class Node {
 //		}
 //		
 //	}
-	public void childrenFission() {
-		if(this.parents.size()==1){
-//			if(this.parents.get(0).parents.size()==1){//child with children (recursive)//remove redundant subnodes
-////we may need to divide node in the smallest subnodes
-//			}
-			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
-				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
-				this.nandChildrenFission();
-			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
-//				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
-//				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
-				Node parent = this.parents.get(0);//variables to conserve references
-				Node left = parent.children.get(0);
-				Node mid = parent.children.get(1);
-				Node right = parent.children.get(2);
-				Node parentLeft = parent.parents.get(0);
-				Node parentRight = parent.parents.get(parent.parents.size()-1);
-				parentLeft.children.clear();
-				parentLeft.splitChildren();//split parents in the extremes into children
-				parentRight.children.clear();
-				parentRight.splitChildren();
-				left.parents.set(0,parentLeft);
-				parentLeft.children.set(0,left);
-				right.parents.set(0,parentRight);
-				parentRight.children.set(2,right);
-				parent.parents.remove(0);
-				parent.parents.remove(parent.parents.size()-1);
-				mid.parents.clear();
-				parentLeft.children.get(1).add(mid);
-				parentLeft.children.get(2).add(mid);
-				for(Node par:parent.parents){//remove parent
-					par.add(mid);
-				}
-				parentRight.children.get(0).add(mid);
-				parentRight.children.get(1).add(mid);
-				mid.childrenFission();
-			}
-		}else if(this.parents.size()>1){
-			for(Node parent:this.parents){
-				parent.childrenFission();
-			}
-		}else if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).childrenFission();
-			this.outOfInstance.in.get(1).childrenFission();
-		}//else: the node is an input	
+public void childrenFission() {
+	for(Node parent:this.parents){
+		parent.childrenFission();
 	}
+	if(this.outOfInstance!=null){
+		this.nandBotInstanceFission();
+	}else if(this.parents.size()==1){
+		this.nandTopInstanceFission();
+	}
+}
+private void nandTopInstanceFission() {
+	if(this.parents.get(0).parents.size()==1){
+		this.parents.get(0).nandTopInstanceFission();
+	}
+	if(this.parents.get(0).outOfInstance!=null){
+		Node inLeft=this.parents.get(0).outOfInstance.in.get(0);
+		Node inRight=this.parents.get(0).outOfInstance.in.get(1);
+		Node out=this.parents.get(0);
+		inLeft.inOfInstances.remove(out.outOfInstance);
+		inRight.inOfInstances.remove(out.outOfInstance);
+		inLeft.splitChildren();
+		inRight.splitChildren();
+		for(int i=0;i<3;i++){
+			Node[] nodes={inLeft.children.get(i),inRight.children.get(i),out.children.get(i)};
+			this.definition.add(out.outOfInstance.definition, nodes);
+		}
+		this.definition.remove(out.outOfInstance);
+		inLeft.childrenFission();
+		inRight.childrenFission();
+	}
+}
+private void nandBotInstanceFission() {
+	Node inLeft=this.outOfInstance.in.get(0);
+	Node inRight=this.outOfInstance.in.get(1);
+	if(inLeft.children.size()>1||inRight.children.size()>1){
+		inLeft.splitChildren();
+		inRight.splitChildren();
+		this.splitChildren();
+		for(int i=0;i<3;i++){
+			Node[] nodes={inLeft.children.get(i),inRight.children.get(i),this.children.get(i)};
+			this.definition.add(this.outOfInstance.definition, nodes);
+		}
+		inLeft.inOfInstances.remove(this.outOfInstance);
+		inRight.inOfInstances.remove(this.outOfInstance);
+		this.definition.remove(this.outOfInstance);
+		this.outOfInstance=null;
+	}else{
+		this.outOfInstance.in.get(0).childrenFission();
+		this.outOfInstance.in.get(1).childrenFission();
+	}
+	for(Node parent:this.parents){
+		parent.nandBotInstanceFission();
+	}
+}
+	//	public void childrenFission() {
+//		if(this.parents.size()==1){
+////			if(this.parents.get(0).parents.size()==1){//child with children (recursive)//remove redundant subnodes
+//////we may need to divide node in the smallest subnodes
+////			}
+//			if(this.parents.get(0).outOfInstance!=null){//out of NAND definition
+//				//REPLACE NAND WITH 3 NAND FOR THE CHILDREN
+//				this.nandChildrenFission();
+//			}else if(this.parents.get(0).parents.size()>1){//parent node has  both children and parents
+////				this.parents.get(0).parents.get(0).childrenFission();//recursively remove redundant subnodes //NOT NEEDED: REDUNDANT
+////				this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenFission();//recursively remove redundant subnodes
+//				Node parent = this.parents.get(0);//variables to conserve references
+//				Node left = parent.children.get(0);
+//				Node mid = parent.children.get(1);
+//				Node right = parent.children.get(2);
+//				Node parentLeft = parent.parents.get(0);
+//				Node parentRight = parent.parents.get(parent.parents.size()-1);
+//				parentLeft.children.clear();
+//				parentLeft.splitChildren();//split parents in the extremes into children
+//				parentRight.children.clear();
+//				parentRight.splitChildren();
+//				left.parents.set(0,parentLeft);
+//				parentLeft.children.set(0,left);
+//				right.parents.set(0,parentRight);
+//				parentRight.children.set(2,right);
+//				parent.parents.remove(0);
+//				parent.parents.remove(parent.parents.size()-1);
+//				mid.parents.clear();
+//				parentLeft.children.get(1).add(mid);
+//				parentLeft.children.get(2).add(mid);
+//				for(Node par:parent.parents){//remove parent
+//					par.add(mid);
+//				}
+//				parentRight.children.get(0).add(mid);
+//				parentRight.children.get(1).add(mid);
+//				mid.childrenFission();
+//			}
+//		}else if(this.parents.size()>1){
+//			for(Node parent:this.parents){
+//				parent.childrenFission();
+//			}
+//		}else if(this.outOfInstance!=null){
+//			this.outOfInstance.in.get(0).childrenFission();
+//			this.outOfInstance.in.get(1).childrenFission();
+//		}//else: the node is an input	
+//	}
 	private void nandChildrenFission() {
 		//remove this instance of nand definition
 		Node parent=this.parents.get(0);
