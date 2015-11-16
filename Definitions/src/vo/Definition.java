@@ -140,7 +140,6 @@ public class Definition implements java.io.Serializable{ /**
 				this.nodes.retainAll(inOutNodes);
 				for(Node inNode:nandToNodeIn){
 //					inNode.children.clear();//children shouldn't be erased to preserve consistency TODO:can this cause a problem?
-					inNode.inOfInstances.clear();
 				}
 				for(Node outNode:nandToNodeOut){
 					outNode.parents.clear();
@@ -197,14 +196,14 @@ public class Definition implements java.io.Serializable{ /**
 //			}
 			private void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 				//map input nodes to nandNodes
-//				HashSet<Node> inNodes = new HashSet<Node>();
-//				inNodes.addAll(this.in);
-//				for(Node outNode:this.out){
-//					outNode.findIns(false,inNodes,nodeToNands,nandForest, nandToNodeIn,inOutNodes);
-//				}	
-				for(Node inNode:this.in){
-					inNode.mapInChildren(false, nodeToNand,nandForest, nandToNodeIn,inOutNodes);
+				HashSet<Node> inNodes = new HashSet<Node>();
+				inNodes.addAll(this.in);
+				for(Node outNode:this.out){
+					outNode.findIns(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes);
 				}	
+//				for(Node inNode:this.in){
+//					inNode.mapInChildren(false, nodeToNand,nandForest, nandToNodeIn,inOutNodes);
+//				}	
 			}
 			private void mapOuts(HashMap<Node, NandNode> nodeToNands,
 					NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
@@ -528,9 +527,6 @@ public class Definition implements java.io.Serializable{ /**
 					this.instancesOfRecursiveDefinitions.add(instance);
 				}
 				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
-				for(Node node:instance.in){
-					node.inOfInstances.add(instance);
-				}
 				instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 				instance.definition=def;
 				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
@@ -551,9 +547,6 @@ public class Definition implements java.io.Serializable{ /**
 					this.instancesOfRecursiveDefinitions.add(instance);
 				}
 				instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
-				for(Node node:instance.in){
-					node.inOfInstances.add(instance);
-				}
 				instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 				instance.definition=def;
 				for (Node outNode:instance.out) {//nºinst outs = nºdef outs
@@ -918,7 +911,6 @@ public class Definition implements java.io.Serializable{ /**
 				HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 				for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 					definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
-					instance.in.get(i).inOfInstances.remove(instance);
 					mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
 				}
 				for (int i = 0; i < instance.out.size(); i++) {//map out nodes
@@ -977,7 +969,6 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				addedNodes.out+=instance.in.size();
 				for (int i = 0; i < instance.in.size(); i++) {//add in nodes to def out
-					instance.in.get(i).inOfInstances.remove(instance);
 					this.out.add(instance.in.get(i));
 				}
 				this.instances.remove(instance);
@@ -1322,7 +1313,6 @@ public class Definition implements java.io.Serializable{ /**
 					HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 					for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 						definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
-						instance.in.get(i).inOfInstances.remove(instance);
 						mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 						
 					}

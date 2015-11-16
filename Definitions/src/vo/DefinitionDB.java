@@ -158,8 +158,6 @@ public class DefinitionDB implements java.io.Serializable{
 				in2 = nandToNode.get(nandNode.in2);
 			}
 			Instance nandInstance = new Instance();//instance of a definition
-			in1.inOfInstances.add(nandInstance);
-			in2.inOfInstances.add(nandInstance);
 			nandInstance.in = new ArrayList<Node>();
 			nandInstance.in.add(in1);
 			nandInstance.in.add(in2);

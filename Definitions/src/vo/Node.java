@@ -19,7 +19,6 @@ public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
 	public Instance outOfInstance;
-	public HashSet<Instance> inOfInstances;	
 	public Definition definition;
 	//DEBUGGING ONLY
 	public int idForDefinition;//id of node for the definition where it's used
@@ -28,7 +27,6 @@ public class Node {
 	public Node() { 
 		this.parents = new ArrayList<Node>();
 		this.children = new ArrayList<Node>();
-		this.inOfInstances = new HashSet<Instance>();//FIXME:needed?
 	}
 	public Node add(Node node) {//add subnode to supernode		
 		node.parents.add(this);
@@ -206,27 +204,41 @@ public class Node {
 			parent.getParents(inOutNodes);
 		}
 	}
-	
-	public void mapInChildren(Boolean used,HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
+	public void findIns(HashSet<Node> inNodes,
+			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
+			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+			if(inNodes.contains(this)){
+				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+			}else{
+				for(Node parent:this.parents){
+					parent.findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
+				}
+				if(this.outOfInstance!=null){
+					this.outOfInstance.in.get(0).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+					this.outOfInstance.in.get(1).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+				}
+			}
+		
+	}
+	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
 		//Only maps nodes that are used in the definition		
 		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
-		if(!this.inOfInstances.isEmpty()) used=true;
-		if(this.children.size()<=1){
-			if(used){
-				NandNode nandNode;
-				if(nandToNodeIn.contains(this)){
-					nandNode=nodeToNand.get(this);
-				}else{
-					nandNode = nandForest.addIn();
-					nandToNodeIn.add(this);
-				}
-				nodeToNand.put(this, nandNode);
+		int subnodes=0;
+		for(Node child:this.children){
+			if(child.parents.size()==1){//subnode  
+				subnodes++;
+				child.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
 			}
-		}else{		
-			for(Node child:this.children){
-				child.mapInChildren(used, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
+		}
+		if(subnodes==0){
+			NandNode nandNode;
+			if(nandToNodeIn.contains(this)){
+				nandNode=nodeToNand.get(this);
+			}else{
+				nandNode = nandForest.addIn();
+				nandToNodeIn.add(this);
 			}
-			
+			nodeToNand.put(this, nandNode);
 		}
 	}
 	public void mapOutParents(HashMap<Node, NandNode> nodeToNand,
@@ -272,8 +284,6 @@ public class Node {
 			this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes
 			this.definition.remove(this.outOfInstance);
 			this.outOfInstance=null;
-			node0.inOfInstances.remove(this.outOfInstance);
-			node1.inOfInstances.remove(this.outOfInstance);
 			for(int i=0;i<this.children.size();i++){
 				Node[] nodes={node0.children.get(i),node1.children.get(i),this.children.get(i)};
 				this.definition.add(definition, nodes);
@@ -286,8 +296,6 @@ public class Node {
 			this.outOfInstance.definition.chopEquals(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0));//recursively splits nodes in the same quantity of subnodes
 			this.definition.remove(this.outOfInstance);
 			this.outOfInstance=null;
-			node0.inOfInstances.remove(this.outOfInstance);
-			node1.inOfInstances.remove(this.outOfInstance);
 			for(int i=0;i<this.parents.size();i++){
 				Node[] nodes={node0.parents.get(i),node1.parents.get(i),this.parents.get(i)};
 				this.definition.add(definition, nodes);
@@ -324,8 +332,6 @@ private void nandChildrenFission() {
 		Node inLeft=this.parents.get(0).outOfInstance.in.get(0);
 		Node inRight=this.parents.get(0).outOfInstance.in.get(1);
 		Node out=this.parents.get(0);
-		inLeft.inOfInstances.remove(out.outOfInstance);
-		inRight.inOfInstances.remove(out.outOfInstance);
 		if(inLeft.parents.size()==1){
 			if(inLeft.parents.get(0).children.indexOf(inLeft)==0||inLeft.parents.get(0).children.indexOf(inLeft)==2){
 				
@@ -366,8 +372,6 @@ private void nandParentFission() {
 			System.out.print("Error, different parentSize.");
 		}else{
 			this.definition.remove(this.outOfInstance);
-			in0.inOfInstances.remove(this.outOfInstance);
-			in1.inOfInstances.remove(this.outOfInstance); 
 			for(int i=0;i<in0.parents.size();i++){//should be recursive into parents
 				Node newNode = new Node();
 				Node[] nodes={in0.parents.get(i),in1.parents.get(i),newNode};
