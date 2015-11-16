@@ -69,11 +69,7 @@ public class DefinitionDB implements java.io.Serializable{
 		//toBest functions with recursion
 		//TODO:
 			//intersection optimization of recursive definitions
-			//nandtree->definition node fusion maybe? not needed
-			
-		
-
-		
+			//nandtree->definition node fusion maybe? not needed	
 		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
@@ -96,9 +92,7 @@ public class DefinitionDB implements java.io.Serializable{
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
 		}
-		
-//		definition.nodeFusion();
-		
+//		definition.nodeFusion();		
 		return definition;
 	}
 
@@ -136,8 +130,6 @@ public class DefinitionDB implements java.io.Serializable{
 				}
 				i++;
 		}
-
-
 		return definition;
 	}
 	public void addNands(Node outNode,NandNode nandNode, Definition def,
