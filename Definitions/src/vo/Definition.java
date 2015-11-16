@@ -1030,7 +1030,7 @@ public class Definition implements java.io.Serializable{ /**
 								mapSubnodeChildren(newNode,definitionNode.children.get(1),definitionToInstanceNodes);
 							}else{
 								if(node.children.isEmpty()){
-									for(Node child:definitionNode.children){
+									for(@SuppressWarnings("unused") Node child:definitionNode.children){
 										Node newChild= new Node();
 										node.add(newChild);
 									}
@@ -1198,8 +1198,8 @@ public class Definition implements java.io.Serializable{ /**
 				for(Node outNode:this.out){
 					outNode.childrenFission();
 				}
-				for(Node inNode:this.in){
-					inNode.parentsFission();
+				for(Node outNode:this.out){
+					outNode.parentsFission();
 				}
 			}
 			public void chopEquals(Node node1, Node node2, Node node3) {
@@ -1272,13 +1272,13 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				return copyDef;
 			}
-			public void removeRedundantSubnodes() {
-				ArrayList<Node> out = new ArrayList<Node>();
-				for(Node nodeOut:this.out){
-					out.add(nodeOut.removeRedundantSubnodes());
-				}
-				this.out=out;
-			}
+//			public void removeRedundantSubnodes() {
+//				ArrayList<Node> out = new ArrayList<Node>();
+//				for(Node nodeOut:this.out){
+//					out.add(nodeOut.removeRedundantSubnodes());
+//				}
+//				this.out=out;
+//			}
 //			public void chopNand(Node nodeIn0, Node nodeIn1, Node nodeOut, Definition nand) {
 //				if(nodeIn0.parents.size()<2&&nodeIn1.parents.size()<2){
 //					if(nodeOut.outOfInstance==null){
