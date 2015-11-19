@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import utils.FixedBitSet;
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
 //Each node may have multiple children (if a node has only 1 children it's a subnode of this node)
+//FIXME: parents of a supernode cannot be recursive
 public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
@@ -370,5 +372,57 @@ public class Node {
 				}
 			}
 		}
+	}
+	public void flattenParents() {
+		if(this.parents.size()==1){
+			this.parents.get(0).flattenParents();
+		}else{
+			ArrayList<Node> parents = new ArrayList<Node>();
+			parents.addAll(this.parents);
+			for(Node parent:parents){
+				if(parent.parents.size()>1){
+					parent.flattenParents();
+					int parentIndex=this.parents.indexOf(parent);
+					for(Node parentParent:parent.parents){
+						Collections.replaceAll(parentParent.children, parent,this);
+					}
+					this.parents.remove(parentIndex);
+					this.parents.addAll(parentIndex, parent.parents);
+				}
+			}
+		}
+		if(this.outOfInstance!=null){//out of nand
+			this.outOfInstance.in.get(0).flattenParents();
+			this.outOfInstance.in.get(1).flattenParents();
+		}
+	}
+	public void nodeFussion() {
+		for(int i=0;i<this.parents.size();i++){
+			if(this.parents.size()-i>=3){
+				if(this.parents.get(i).parents.size()==1){
+					Node grandfather=this.parents.get(i).parents.get(0);
+					if(grandfather.children.get(0)==this.parents.get(i)){
+						if(grandfather.children.get(1)==this.parents.get(i+1)){
+							if(grandfather.children.get(2)==this.parents.get(i+2)){
+								this.parents.remove(i);
+								this.parents.remove(i);
+								this.parents.remove(i);
+								grandfather.children.add(this);
+								this.parents.add(i,grandfather);
+							}
+						}
+						
+					}
+				}
+			}
+		}
+		for(Node parent:this.parents){
+			parent.nodeFussion();
+		}
+		if(this.outOfInstance!=null){//out of nand
+			this.outOfInstance.in.get(0).nodeFussion();
+			this.outOfInstance.in.get(1).nodeFussion();
+		}
+		
 	}
 }
