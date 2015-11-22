@@ -212,7 +212,7 @@ class test {
     	System.out.print(add.toString());
     	add.printEval(A,B);
     	definitionDB.put("add",add);
-    	add.printEval(A,B);
+//    	add.printEval(A,B);//FIXME
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");

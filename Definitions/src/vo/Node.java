@@ -425,4 +425,48 @@ public class Node {
 		}
 		
 	}
+	public void carryNodeIndexes(HashSet<Node> inNodes) {
+		if(!inNodes.contains(this)){
+			for(Node parent:this.parents){
+				parent.carryNodeIndexes(inNodes);
+			}
+			if(this.outOfInstance!=null){//out of nand
+				this.outOfInstance.in.get(0).carryNodeIndexes(inNodes);
+				this.outOfInstance.in.get(1).carryNodeIndexes(inNodes);
+				int index=-1;
+				if(this.outOfInstance.in.get(0).parents.size()==1){
+					index=this.outOfInstance.in.get(0).parents.get(0).children.indexOf(this.outOfInstance.in.get(0));
+					if(this.outOfInstance.in.get(1).parents.isEmpty()){
+						Node supernode = new Node();
+						this.definition.add(supernode);
+						supernode.splitChildren();
+						this.outOfInstance.in.get(1).parents.add(supernode);
+						supernode.children.set(index, this.outOfInstance.in.get(1));
+					}
+				}
+				if(this.outOfInstance.in.get(1).parents.size()==1){
+					index=this.outOfInstance.in.get(1).parents.get(0).children.indexOf(this.outOfInstance.in.get(1));
+					if(this.outOfInstance.in.get(0).parents.isEmpty()){
+						Node supernode = new Node();
+						this.definition.add(supernode);
+						supernode.splitChildren();
+						this.outOfInstance.in.get(0).parents.add(supernode);
+						supernode.children.set(index, this.outOfInstance.in.get(0));
+					}
+				}
+				if(index>=0){//this.outOfInstance.in.get(0).parents.size()==1&&this.outOfInstance.in.get(1).parents.size()==1
+					Node supernode = new Node();
+					supernode.splitChildren();
+					this.parents.add(supernode);
+					supernode.children.set(index, this);
+					Node[] nodes={this.outOfInstance.in.get(0).parents.get(0),this.outOfInstance.in.get(1).parents.get(0),supernode};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					this.definition.instances.remove(this.outOfInstance);
+					this.outOfInstance=null;
+					
+				}
+			}
+		}
+		
+	}
 }

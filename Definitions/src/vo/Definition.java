@@ -514,6 +514,7 @@ public class Definition implements java.io.Serializable{ /**
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
+			mapSubnodeParents(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 			mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
 			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
 		}
@@ -521,6 +522,8 @@ public class Definition implements java.io.Serializable{ /**
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 			instance.out.get(i).outOfInstance=null;
 			mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+//			mapSubnodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);	
+//			mapSupernodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
 		for(Instance definitionInstance:instance.definition.instances){
 				ArrayList<Node> nodes = new ArrayList<Node>();
@@ -582,11 +585,23 @@ public class Definition implements java.io.Serializable{ /**
 	private void mapSubnodeParents(Node node, Node definitionNode, HashMap<Node, Node> definitionToNewNodes) {
 		if(!definitionNode.parents.isEmpty()){
 			if(node.parents.isEmpty()){
-				for(Node parent:definitionNode.parents){
-					Node newParent= new Node();
-					newParent.add(node);
-					definitionToNewNodes.put(parent, newParent);
-					mapSubnodeParents(newParent,parent,definitionToNewNodes);
+				if(definitionNode.parents.size()==1){
+					Node supernode= new Node();
+					node.definition.add(supernode);
+					supernode.splitChildren();
+					supernode.children.set(definitionNode.parents.get(0).children.indexOf(definitionNode), node);
+					node.parents.add(supernode);
+					definitionToNewNodes.put(definitionNode.parents.get(0), supernode);
+					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(0), supernode.children.get(0));
+					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(1), supernode.children.get(1));
+					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(2), supernode.children.get(2));
+				}else{
+					for(Node parent:definitionNode.parents){
+						Node newParent= new Node();
+						newParent.add(node);
+						definitionToNewNodes.put(parent, newParent);
+						mapSubnodeParents(newParent,parent,definitionToNewNodes);
+					}
 				}
 			}else if(node.parents.size()==definitionNode.parents.size()){
 				for(int j=0;j<node.parents.size();j++){
@@ -898,4 +913,11 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			
 		}
+	public void fussion() {
+		HashSet<Node> inNodes = new HashSet<Node>();
+		inNodes.addAll(this.in);
+		for(Node outNode:this.out){
+			outNode.carryNodeIndexes(inNodes);
+		}
+	}
 }

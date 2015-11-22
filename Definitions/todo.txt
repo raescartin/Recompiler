@@ -1,9 +1,4 @@
-﻿-fix mapIns and mapOuts
--fix :add removes second "and"
--fix children=1,3or0
-	-definition 
-		removeRedundantSubnodes on node add
-		expand
+﻿-flatten should be done before so there's no duplicate nodes (unique)
 -execute definition (to test) -> first iteration of recursive instances should be executed with missing inputs(rif==if)
 -fix dec optimization:
 	dec [0;1] = not [0{2};5] dec [7(0{0}&0{1});8] rif [0{2},6(0{0}&0{1}&5),9(8&5);1]  root in:  

@@ -81,6 +81,7 @@ public class DefinitionDB implements java.io.Serializable{
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
+				definition.fussion();
 				this.toBest(definition);//nand definition to best definition (higher level)//TODO: subnodes
 			}	
 		}else{//definition has recursion
@@ -95,7 +96,6 @@ public class DefinitionDB implements java.io.Serializable{
 //		definition.nodeFusion();		
 		return definition;
 	}
-
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition	
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
