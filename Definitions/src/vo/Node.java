@@ -285,29 +285,59 @@ public class Node {
 			this.parents.get(0).nandChildrenFission();
 		}
 		if(this.parents.get(0).outOfInstance!=null){
-			Node inLeft=this.parents.get(0).outOfInstance.in.get(0);
-			Node inRight=this.parents.get(0).outOfInstance.in.get(1);
+			Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
+			if(parentLeft.children.size()==1)parentLeft.children.clear();//needed?
+			Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
+			if(parentRight.children.size()==1)parentRight.children.clear();
+			Node newNode= new Node();
+			parentLeft=this.definition.mapLeft(parentLeft,newNode);
+			parentRight=this.definition.mapRight(parentRight,newNode);
 			Node out=this.parents.get(0);
-			if(inLeft.parents.size()==1){
-				if(inLeft.parents.get(0).children.indexOf(inLeft)==0||inLeft.parents.get(0).children.indexOf(inLeft)==2){
-					
-				}
-			}
-			if(inRight.parents.size()==1){
-				if(inRight.parents.get(0).children.indexOf(inRight)==0||inRight.parents.get(0).children.indexOf(inRight)==2){
-					
-				}
-			}
-			inLeft.splitChildren();
-			inRight.splitChildren();
+//			Node inLeftLeft;
+//			Node inLeftMid;
+//			Node inLeftRight;
+//			Node inRight=this.parents.get(0).outOfInstance.in.get(1);
+//			Node inRightLeft;
+//			Node inRightMid;
+//			Node inRightRight;
+			
+//			if(inLeft.parents.size()>1){
+//				inLeftLeft=inLeft.parents.get(0);
+//			}else{
+//				inLeft.splitChildren();
+//				inLeftLeft=inLeft.children.get(0);
+//				inLeftMid=inLeft.children.get(1);
+//				inLeftRight=inLeft.children.get(2);
+//			}
+//			if(inRight.parents.size()>1){
+//				inRightRight=inRight.parents.get(inRight.parents.size()-1);
+//			}else{
+//				inRight.splitChildren();
+//				inRightLeft=inLeft.children.get(0);
+//				inRightMid=inLeft.children.get(1);
+//				inRightRight=inRight.children.get(2);
+//			}
+//			if(inLeft.parents.size()==1&&(inLeft.parents.get(0).children.indexOf(inLeft)==0||inLeft.parents.get(0).children.indexOf(inLeft)==2)){
+//				inLeftLeft=inLeft;
+//			}else{
+//				inLeft.splitChildren();
+//				inLeftLeft=inLeft.children.get(0);
+//			}
+//				
+//			if(inRight.parents.size()==1&&(inRight.parents.get(0).children.indexOf(inRight)==0||inRight.parents.get(0).children.indexOf(inRight)==2)){
+//				inRightRight=inRight;
+//			}else{
+//				inRight.splitChildren();
+//				inRightRight=inRight.children.get(2);
+//			}
 			for(int i=0;i<3;i++){
-				Node[] nodes={inLeft.children.get(i),inRight.children.get(i),out.children.get(i)};
+				Node[] nodes={parentLeft.children.get(i),parentRight.children.get(i),out.children.get(i)};
 				this.definition.add(out.outOfInstance.definition, nodes);
 				out.children.get(i).parents.clear();
 			}
 			this.definition.instances.remove(out.outOfInstance);
-			inLeft.children.get(1).childrenFission();
-			inRight.children.get(1).childrenFission();
+			parentLeft.children.get(1).childrenFission();
+			parentRight.children.get(1).childrenFission();
 		}
 	}
 	public void parentsFission() {
@@ -398,7 +428,7 @@ public class Node {
 	}
 	public void nodeFussion() {
 		for(int i=0;i<this.parents.size();i++){
-			if(this.parents.size()-i>=3){
+			if(this.parents.size()-i>=3){//posible subnodes(indexes) of the same node
 				if(this.parents.get(i).parents.size()==1){
 					Node grandfather=this.parents.get(i).parents.get(0);
 					if(grandfather.children.get(0)==this.parents.get(i)){

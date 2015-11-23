@@ -615,8 +615,8 @@ public class Definition implements java.io.Serializable{ /**
 	}
 	private void mapSubnodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
 		if(!definitionNode.children.isEmpty()){
-				if(definitionNode.children.get(0).parents.size()==1){//the children are subnodes
-				if(node.children.size()==definitionNode.children.size()){//==3
+			if(definitionNode.children.get(0).parents.size()==1){//the children are subnodes
+				if(node.children.size()==definitionNode.children.size()){
 					for(int i=0;i<node.children.size();i++){
 						definitionToInstanceNodes.put(definitionNode.children.get(i),node.children.get(i));	
 					}
@@ -693,7 +693,7 @@ public class Definition implements java.io.Serializable{ /**
 			}
 		}
 	}
-	private Node mapLeft(Node parentLeft, Node newNode) {
+	Node mapLeft(Node parentLeft, Node newNode) {
 		if(parentLeft.parents.size()>1){
 			parentLeft=mapLeft(parentLeft.parents.get(0),newNode);
 			for(int i=1;i<parentLeft.parents.size();i++){
@@ -713,7 +713,7 @@ public class Definition implements java.io.Serializable{ /**
 		}
 		return parentLeft;
 	}
-	private Node mapRight(Node parentRight, Node newNode) {
+	Node mapRight(Node parentRight, Node newNode) {
 		if(parentRight.parents.size()>1){
 			for(int i=0;i<parentRight.parents.size()-1;i++){
 				parentRight.parents.get(i).children.clear();
