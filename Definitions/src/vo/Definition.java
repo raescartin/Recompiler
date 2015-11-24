@@ -915,9 +915,11 @@ public class Definition implements java.io.Serializable{ /**
 		}
 	public void fussion() {
 		HashSet<Node> inNodes = new HashSet<Node>();
+		HashMap<Node,ArrayList<Instance>> in0OfInstances = new HashMap<Node,ArrayList<Instance>>();
+		HashMap<Node,ArrayList<Instance>> in1OfInstances = new HashMap<Node,ArrayList<Instance>>();
 		inNodes.addAll(this.in);
 		for(Node outNode:this.out){
-			outNode.carryNodeIndexes(inNodes);
+			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
 		}
 	}
 }

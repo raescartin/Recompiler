@@ -455,14 +455,16 @@ public class Node {
 		}
 		
 	}
-	public void carryNodeIndexes(HashSet<Node> inNodes) {
+	public void carryNodeIndexes(HashSet<Node> inNodes, HashMap<Node, ArrayList<Instance>> in0OfInstances, HashMap<Node, ArrayList<Instance>> in1OfInstances) {
 		if(!inNodes.contains(this)){
 			for(Node parent:this.parents){
-				parent.carryNodeIndexes(inNodes);
+				parent.carryNodeIndexes(inNodes, in0OfInstances, in1OfInstances);
 			}
 			if(this.outOfInstance!=null){//out of nand
-				this.outOfInstance.in.get(0).carryNodeIndexes(inNodes);
-				this.outOfInstance.in.get(1).carryNodeIndexes(inNodes);
+				this.put(in0OfInstances,this.outOfInstance.in.get(0),this.outOfInstance);
+				this.put(in1OfInstances,this.outOfInstance.in.get(1),this.outOfInstance);
+				this.outOfInstance.in.get(0).carryNodeIndexes(inNodes, in0OfInstances, in1OfInstances);
+				this.outOfInstance.in.get(1).carryNodeIndexes(inNodes, in0OfInstances, in1OfInstances);
 				int index=-1;
 				if(this.outOfInstance.in.get(0).parents.size()==1){
 					index=this.outOfInstance.in.get(0).parents.get(0).children.indexOf(this.outOfInstance.in.get(0));
@@ -490,12 +492,38 @@ public class Node {
 					this.parents.add(supernode);
 					supernode.children.set(index, this);
 					Node[] nodes={this.outOfInstance.in.get(0).parents.get(0),this.outOfInstance.in.get(1).parents.get(0),supernode};
-					this.definition.add(this.outOfInstance.definition, nodes);
+					ArrayList<Instance> instances = new ArrayList<Instance>();
+					if(in0OfInstances.containsKey(nodes[0])&&in1OfInstances.containsKey(nodes[1])){
+						instances.addAll(in0OfInstances.get(nodes[0]));
+						instances.retainAll(in1OfInstances.get(nodes[1]));
+					}
+					if(instances.isEmpty()){
+						Instance newInstance=this.definition.add(this.outOfInstance.definition, nodes);
+						this.put(in0OfInstances,nodes[0],newInstance);
+						this.put(in1OfInstances,nodes[1],newInstance);
+					}else{
+						Instance instance=instances.get(0);
+						instance.out.get(0).children.set(index,this);
+						this.parents.clear();
+						this.parents.add(instance.out.get(0));
+					}
 					this.definition.instances.remove(this.outOfInstance);
 					this.outOfInstance=null;
 					
 				}
 			}
+		}
+		
+	}
+	private void put(HashMap<Node, ArrayList<Instance>> inOfInstances,
+			Node node, Instance instance) {
+		if(inOfInstances.containsKey(node)){
+			ArrayList<Instance> instances=inOfInstances.get(node);
+			instances.add(instance);
+		}else{
+			ArrayList<Instance> newArray = new ArrayList<Instance>();
+			newArray.add(instance);
+			inOfInstances.put(node, newArray);
 		}
 		
 	}
