@@ -466,7 +466,7 @@ public class Node {
 				this.outOfInstance.in.get(0).carryNodeIndexes(inNodes, in0OfInstances, in1OfInstances);
 				this.outOfInstance.in.get(1).carryNodeIndexes(inNodes, in0OfInstances, in1OfInstances);
 				int index=-1;
-				if(this.outOfInstance.in.get(0).parents.size()==1){
+				if(this.outOfInstance.in.get(0).parents.size()==1&&this.outOfInstance.in.get(1)!=this.outOfInstance.in.get(0).parents.get(0)){
 					index=this.outOfInstance.in.get(0).parents.get(0).children.indexOf(this.outOfInstance.in.get(0));
 					if(this.outOfInstance.in.get(1).parents.isEmpty()){
 						Node supernode = new Node();
@@ -476,9 +476,9 @@ public class Node {
 						supernode.children.set(index, this.outOfInstance.in.get(1));
 					}
 				}
-				if(this.outOfInstance.in.get(1).parents.size()==1){
+				if(this.outOfInstance.in.get(1).parents.size()==1&&this.outOfInstance.in.get(0)!=this.outOfInstance.in.get(1).parents.get(0)){
 					index=this.outOfInstance.in.get(1).parents.get(0).children.indexOf(this.outOfInstance.in.get(1));
-					if(this.outOfInstance.in.get(0).parents.isEmpty()){
+					if(this.outOfInstance.in.get(0).parents.isEmpty()&&this.outOfInstance.in.get(0)!=this.outOfInstance.in.get(1).parents.get(0)){
 						Node supernode = new Node();
 						this.definition.add(supernode);
 						supernode.splitChildren();
@@ -524,6 +524,25 @@ public class Node {
 			ArrayList<Instance> newArray = new ArrayList<Instance>();
 			newArray.add(instance);
 			inOfInstances.put(node, newArray);
+		}
+		
+	}
+	public void mapParents(HashSet<Node> inOutNodes) {
+		inOutNodes.add(this);
+		if(this.parents.size()==1){
+			inOutNodes.add(this.parents.get(0));
+		}else{
+			for(Node parent:this.parents){
+				parent.mapParents(inOutNodes);
+			}	
+		}
+	}
+	public void mapChildren(HashSet<Node> inOutNodes) {
+		inOutNodes.add(this);
+		for(Node child:this.children){
+			if(child.parents.size()==1){
+				child.mapChildren(inOutNodes);
+			}
 		}
 		
 	}

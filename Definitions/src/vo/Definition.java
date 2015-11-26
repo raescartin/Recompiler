@@ -144,7 +144,7 @@ public class Definition implements java.io.Serializable{ /**
 		}
 		return nandForest;
 	}
-	private void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+	void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 		//map input nodes to nandNodes
 		HashSet<Node> inNodes = new HashSet<Node>();
 		inNodes.addAll(this.in);
@@ -154,7 +154,7 @@ public class Definition implements java.io.Serializable{ /**
 			}
 		}	
 	}
-	private void mapOuts(HashMap<Node, NandNode> nodeToNands,
+	void mapOuts(HashMap<Node, NandNode> nodeToNands,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
@@ -245,7 +245,8 @@ public class Definition implements java.io.Serializable{ /**
 		string+="\n";
 		return string;
 	}
-	public boolean apply(Instance instance, Definition appliedDefinition) {
+	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> inOutNodes) {
+		//if the replaced instances have a node from inOutNodes as a halfway node don't replace
 		//TODO: expand out of nodes
 		//TODO: remove from out of nodes
 		//TODO: replace only non outside referenced instances
@@ -346,7 +347,11 @@ public class Definition implements java.io.Serializable{ /**
 			removableInstances.remove(instance);
 			//remove the removable instances
 			for (Instance removableInstance : removableInstances) {
-				this.instances.remove(removableInstance);//TODO:change to 퓄ist?HASH퓅ap? to remove in O(1) instead O(n)?
+				boolean containsInOutNode=false;//checking not to remove a non removable node
+				for(Node outNode:removableInstance.out){
+					if(inOutNodes.contains(outNode)) containsInOutNode=true;
+				}
+				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to 퓄ist?HASH퓅ap? to remove in O(1) instead O(n)?
 			}
 		}
 		return true;
@@ -418,7 +423,7 @@ public class Definition implements java.io.Serializable{ /**
 			ins.add(valueMap.get(this.in.get(i)).toString());
 		}
 		for(int i=0;i<this.out.size();i++){
-			outs.add(valueMap.get(this.out.get(i)).toString());
+			outs.add(valueMap.get(this.out.get(i)).toString());//FIMXE: 48{2} not in valueMap
 		}
 		System.out.print(ins);
 		System.out.print(this.name);
@@ -921,5 +926,22 @@ public class Definition implements java.io.Serializable{ /**
 		for(Node outNode:this.out){
 			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
 		}
+	}
+	public void mapInOutNodes(HashSet<Node> inOutNodes) {
+		this.mapIns(inOutNodes);
+		this.mapOuts(inOutNodes);
+		
+	}
+	private void mapIns(HashSet<Node> inOutNodes) {
+		for(Node inNode:this.in){
+			inNode.mapChildren(inOutNodes);
+		}
+		
+	}
+	private void mapOuts(HashSet<Node> inOutNodes) {
+		for(Node outNode:this.out){
+			outNode.mapParents(inOutNodes);
+		}
+		
 	}
 }

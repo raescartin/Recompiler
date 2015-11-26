@@ -212,7 +212,7 @@ class test {
     	System.out.print(add.toString());
     	add.printEval(A,B);
     	definitionDB.put("add",add);
-//    	add.printEval(A,B);//FIXME
+    	add.printEval(A,B);//FIXME
     	System.out.print(definitionDB.toString());
     	//zeros definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");
@@ -279,7 +279,7 @@ class test {
     	System.out.print(dec.toString());
     	dec.printEval(A);
     	definitionDB.put("dec",dec);
-    	dec.printEval(A);//FIXME: intersection with recursion not optimized
+//    	dec.printEval(A);//FIXME: intersection with recursion not optimized
     	System.out.print(definitionDB.toString());
     	//cmp definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
@@ -308,8 +308,8 @@ class test {
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
-    	cmp.printEval(A,A);
-    	cmp.printEval(A,B);
+//    	cmp.printEval(A,A);
+//    	cmp.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	//EQ0 definition////definition to test if a value is zero
     	Definition eq0 = new Definition(1,1,"eq0");
@@ -319,11 +319,11 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(eq0.toString());
-    	eq0.printEval(A);
-    	eq0.printEval(B);
+//    	eq0.printEval(A);
+//    	eq0.printEval(B);
     	definitionDB.put("eq0",eq0);
-    	eq0.printEval(A);
-    	eq0.printEval(B);
+//    	eq0.printEval(A);
+//    	eq0.printEval(B);
     	System.out.print(definitionDB.toString());
 //    	//forDef definition////for loop definition
 //    	Definition forDef = new Definition(2,1,"for");
