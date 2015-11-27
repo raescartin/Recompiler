@@ -293,43 +293,6 @@ public class Node {
 			parentLeft=this.definition.mapLeft(parentLeft,newNode);
 			parentRight=this.definition.mapRight(parentRight,newNode);
 			Node out=this.parents.get(0);
-//			Node inLeftLeft;
-//			Node inLeftMid;
-//			Node inLeftRight;
-//			Node inRight=this.parents.get(0).outOfInstance.in.get(1);
-//			Node inRightLeft;
-//			Node inRightMid;
-//			Node inRightRight;
-			
-//			if(inLeft.parents.size()>1){
-//				inLeftLeft=inLeft.parents.get(0);
-//			}else{
-//				inLeft.splitChildren();
-//				inLeftLeft=inLeft.children.get(0);
-//				inLeftMid=inLeft.children.get(1);
-//				inLeftRight=inLeft.children.get(2);
-//			}
-//			if(inRight.parents.size()>1){
-//				inRightRight=inRight.parents.get(inRight.parents.size()-1);
-//			}else{
-//				inRight.splitChildren();
-//				inRightLeft=inLeft.children.get(0);
-//				inRightMid=inLeft.children.get(1);
-//				inRightRight=inRight.children.get(2);
-//			}
-//			if(inLeft.parents.size()==1&&(inLeft.parents.get(0).children.indexOf(inLeft)==0||inLeft.parents.get(0).children.indexOf(inLeft)==2)){
-//				inLeftLeft=inLeft;
-//			}else{
-//				inLeft.splitChildren();
-//				inLeftLeft=inLeft.children.get(0);
-//			}
-//				
-//			if(inRight.parents.size()==1&&(inRight.parents.get(0).children.indexOf(inRight)==0||inRight.parents.get(0).children.indexOf(inRight)==2)){
-//				inRightRight=inRight;
-//			}else{
-//				inRight.splitChildren();
-//				inRightRight=inRight.children.get(2);
-//			}
 			for(int i=0;i<3;i++){
 				Node[] nodes={parentLeft.children.get(i),parentRight.children.get(i),out.children.get(i)};
 				this.definition.add(out.outOfInstance.definition, nodes);
@@ -373,9 +336,7 @@ public class Node {
 	public void recursivelyMapParents(HashMap<Node, Node> definitionToInstanceNodes) {
 		if(this.parents.size()==1){
 			Node parent=this.parents.get(0);
-			if(definitionToInstanceNodes.containsKey(parent)){
-				definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(this));
-			}else{
+			if(!definitionToInstanceNodes.containsKey(parent)){
 				Node newParent = new Node();
 				definitionToInstanceNodes.put(parent, newParent);
 				parent.recursivelyMapParents(definitionToInstanceNodes);
@@ -391,7 +352,7 @@ public class Node {
 				}
 			}
 		}else{
-			for(Node parent:this.parents){//map parent nodes //think don't need to map children//TODO:recursive
+			for(Node parent:this.parents){//map parent nodes //think don't need to map children
 				if(definitionToInstanceNodes.containsKey(parent)){
 					definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(this));
 				}else{

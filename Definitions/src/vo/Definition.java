@@ -245,7 +245,7 @@ public class Definition implements java.io.Serializable{ /**
 		string+="\n";
 		return string;
 	}
-	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> inOutNodes) {
+	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> outs) {
 		//if the replaced instances have a node from inOutNodes as a halfway node don't replace
 		//TODO: expand out of nodes
 		//TODO: remove from out of nodes
@@ -349,7 +349,7 @@ public class Definition implements java.io.Serializable{ /**
 			for (Instance removableInstance : removableInstances) {
 				boolean containsInOutNode=false;//checking not to remove a non removable node
 				for(Node outNode:removableInstance.out){
-					if(inOutNodes.contains(outNode)) containsInOutNode=true;
+					if(outs.contains(outNode)) containsInOutNode=true;
 				}
 				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to ¿list?HASH¿map? to remove in O(1) instead O(n)?
 			}
@@ -546,18 +546,10 @@ public class Definition implements java.io.Serializable{ /**
 					if(definitionToInstanceNodes.containsKey(node)){
 						nodes.add(definitionToInstanceNodes.get(node));
 					}else{
-						Node defNode = new Node();
-						definitionToInstanceNodes.put(node, defNode);
-						nodes.add(defNode);	
-						for(Node parent:node.parents){//map parent nodes //think don't need to map children//TODO:recursive
-							if(definitionToInstanceNodes.containsKey(parent)){
-								definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
-							}else{
-								Node newParent = new Node();
-								newParent.add(definitionToInstanceNodes.get(node));
-								definitionToInstanceNodes.put(parent, newParent);
-							}
-						}
+						Node newNode = new Node();
+						definitionToInstanceNodes.put(node, newNode);
+						nodes.add(newNode);
+						node.recursivelyMapParents(definitionToInstanceNodes);
 					}
 				}
 				Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
@@ -927,18 +919,18 @@ public class Definition implements java.io.Serializable{ /**
 			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
 		}
 	}
-	public void mapInOutNodes(HashSet<Node> inOutNodes) {
-		this.mapIns(inOutNodes);
-		this.mapOuts(inOutNodes);
-		
-	}
-	private void mapIns(HashSet<Node> inOutNodes) {
-		for(Node inNode:this.in){
-			inNode.mapChildren(inOutNodes);
-		}
-		
-	}
-	private void mapOuts(HashSet<Node> inOutNodes) {
+//	public void mapInOutNodes(HashSet<Node> inOutNodes) {
+//		this.mapIns(inOutNodes);
+//		this.mapOuts(inOutNodes);
+//		
+//	}
+//	private void mapIns(HashSet<Node> inOutNodes) {
+//		for(Node inNode:this.in){
+//			inNode.mapChildren(inOutNodes);
+//		}
+//		
+//	}
+	void mapOuts(HashSet<Node> inOutNodes) {
 		for(Node outNode:this.out){
 			outNode.mapParents(inOutNodes);
 		}
