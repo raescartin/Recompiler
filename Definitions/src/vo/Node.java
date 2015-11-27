@@ -281,27 +281,28 @@ public class Node {
 		}
 	}
 	private void nandChildrenFission() {
-		if(this.parents.get(0).parents.size()==1){
-			this.parents.get(0).nandChildrenFission();
-		}
-		if(this.parents.get(0).outOfInstance!=null){
-			Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-			if(parentLeft.children.size()==1)parentLeft.children.clear();//needed?
-			Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-			if(parentRight.children.size()==1)parentRight.children.clear();
-			Node newNode= new Node();
-			parentLeft=this.definition.mapLeft(parentLeft,newNode);
-			parentRight=this.definition.mapRight(parentRight,newNode);
-			Node out=this.parents.get(0);
-			for(int i=0;i<3;i++){
-				Node[] nodes={parentLeft.children.get(i),parentRight.children.get(i),out.children.get(i)};
-				this.definition.add(out.outOfInstance.definition, nodes);
-				out.children.get(i).parents.clear();
+			if(this.parents.get(0).parents.size()==1){
+				this.parents.get(0).nandChildrenFission();
 			}
-			this.definition.instances.remove(out.outOfInstance);
-			parentLeft.children.get(1).childrenFission();
-			parentRight.children.get(1).childrenFission();
-		}
+			if(this.parents.get(0).outOfInstance!=null){
+				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
+				if(parentLeft.children.size()==1)parentLeft.children.clear();//needed?
+				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
+				if(parentRight.children.size()==1)parentRight.children.clear();
+				Node newNode= new Node();
+				parentLeft=this.definition.mapLeft(parentLeft,newNode);
+				parentRight=this.definition.mapRight(parentRight,newNode);
+				Node out=this.parents.get(0);
+				for(int i=0;i<3;i++){
+					Node[] nodes={parentLeft.children.get(i),parentRight.children.get(i),out.children.get(i)};
+					this.definition.add(out.outOfInstance.definition, nodes);
+	//				out.children.get(i).parents.clear();
+				}
+				this.definition.instances.remove(out.outOfInstance);
+				out.outOfInstance=null;
+				parentLeft.children.get(1).childrenFission();
+				parentRight.children.get(1).childrenFission();
+			}
 	}
 	public void parentsFission() {
 		for(Node parent:this.parents){

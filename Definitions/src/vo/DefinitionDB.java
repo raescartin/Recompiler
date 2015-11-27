@@ -75,7 +75,6 @@ public class DefinitionDB implements java.io.Serializable{
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 				//NODE FISSION
-//				definition.removeRedundantSubnodes();//TODO:FIX (at least outs)
 				definition.toNandDefinitions();
 				definition.nodeFission();//fission also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
