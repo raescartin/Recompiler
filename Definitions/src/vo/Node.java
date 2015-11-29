@@ -508,4 +508,17 @@ public class Node {
 		}
 		
 	}
+	public Definition findRootDef() {
+		Definition def;
+		if(this.outOfInstance!=null){
+			def=this.outOfInstance.definition;
+		}else{
+			if(this.parents.isEmpty()){
+				def=null;
+			}else{
+				def=this.parents.get(0).findRootDef();
+			}
+		}
+		return def;
+	}
 }

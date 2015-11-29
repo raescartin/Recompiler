@@ -136,7 +136,7 @@ public class Definition implements java.io.Serializable{ /**
 		this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
 		//IN and OUTS mapped and in nandForest
 		this.instances.clear();
-		this.rootIn.clear();
+//		this.rootIn.clear();
 		this.nodes.retainAll(inOutNodes);
 		for(Node outNode:nandToNodeOut){
 			outNode.parents.clear();
@@ -175,7 +175,7 @@ public class Definition implements java.io.Serializable{ /**
 		instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 		instance.definition=def;
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
-			if(outNode==this.out.get(0)) def.rootIn.add(this);
+//			if(outNode==this.out.get(0)) def.rootIn.add(this);
 			outNode.outOfInstance=instance;
 		}
 		this.instances.add(instance);
@@ -316,13 +316,13 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			for (Node node : appliedDefinition.out) {
 				Node outNode=nodeMap.get(node);
-				if(outNode==this.out.get(0)){//if change of root update rootIn
-					outNode.outOfInstance.definition.rootIn.remove(this);//previous instance definition remove rootIn(this) //TODO: CHANGE TO HASH
-					if(!appliedDefinition.rootIn.contains(this)){//FIXME:needed because not Hash
-						appliedDefinition.rootIn.add(this);//new node add rootIn
-					}
-					
-				}
+//				if(outNode==this.out.get(0)){//if change of root update rootIn
+//					outNode.outOfInstance.definition.rootIn.remove(this);//previous instance definition remove rootIn(this) //TODO: CHANGE TO HASH
+//					if(!appliedDefinition.rootIn.contains(this)){//FIXME:needed because not Hash
+//						appliedDefinition.rootIn.add(this);//new node add rootIn
+//					}
+//					
+//				}
 				outArray.add(outNode);
 				outNode.outOfInstance=instance;
 			}
@@ -933,6 +933,18 @@ public class Definition implements java.io.Serializable{ /**
 	void mapOuts(HashSet<Node> inOutNodes) {
 		for(Node outNode:this.out){
 			outNode.mapParents(inOutNodes);
+		}
+		
+	}
+	public void clearRoot() {
+		Definition def = this.out.get(0).findRootDef();
+		if(def!=null)def.rootIn.remove(this);
+		
+	}
+	public void getRoot() {
+		Definition def = this.out.get(0).findRootDef();
+		if(def!=null&&def!=this){
+			if(!def.rootIn.contains(this))def.rootIn.add(this);
 		}
 		
 	}

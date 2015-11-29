@@ -1,4 +1,11 @@
-﻿-get mul to work
+﻿FIX rootIn: 2 posibilites: 
+1- change rootIn to "used in"
+2- fix rootIn by traversing parents of root node
+	i) remove rootIn of instanced root definition
+	ii) trasnform
+	iii) set rootIn of instance root to definition
+-fix toBest to work with subnodes
+-get mul to work
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
 	recursive mul:
 	mul(a,b,c)= mul(a,b-1,d)&add(d,a,c)

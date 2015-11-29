@@ -70,6 +70,7 @@ public class DefinitionDB implements java.io.Serializable{
 		//TODO:
 			//intersection optimization of recursive definitions
 			//nandtree->definition node fusion maybe? not needed	
+		definition.clearRoot();
 		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
@@ -92,7 +93,7 @@ public class DefinitionDB implements java.io.Serializable{
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
 		}
-//		definition.nodeFusion();		
+		definition.getRoot();
 		return definition;
 	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
@@ -123,9 +124,9 @@ public class DefinitionDB implements java.io.Serializable{
 				}
 				this.addNands(node,nandForest.out.get(i),definition,nandForest,nandToNode);
 				if(definition.out.isEmpty()&&node.outOfInstance!=null&&node.outOfInstance.definition!=null){//avoid applying definition to self, first def->instance second def->definition 
-					if(!node.outOfInstance.definition.rootIn.contains(definition)){//FIXME:needed because not hash
-						node.outOfInstance.definition.rootIn.add(definition);
-					}
+//					if(!node.outOfInstance.definition.rootIn.contains(definition)){//FIXME:needed because not hash
+//						node.outOfInstance.definition.rootIn.add(definition);
+//					}
 				}
 				i++;
 		}
