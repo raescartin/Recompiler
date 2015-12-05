@@ -75,14 +75,13 @@ public class DefinitionDB implements java.io.Serializable{
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
-				//NODE FISSION
 				definition.toNandDefinitions();
 				definition.nodeFission();//fission also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				definition.fussion();
-				this.toBest(definition);//nand definition to best definition (higher level)//TODO: keep needed halfway nodes
+//				this.toBest(definition);//nand definition to best definition (higher level)//TODO: keep needed halfway nodes
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	

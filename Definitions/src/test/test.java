@@ -348,9 +348,9 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(mul.toString());
-    	mul.printEval(B,B);
+//    	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
-    	mul.printEval(B,B);
+//    	mul.printEval(B,B);
     	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER

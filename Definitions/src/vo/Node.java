@@ -399,7 +399,7 @@ public class Node {
 								this.parents.remove(i);
 								this.parents.remove(i);
 								this.parents.remove(i);
-								grandfather.children.add(this);
+//								grandfather.children.add(this);//error, cant do this because we don't know if the subnodes are used//a node can't have both subnode and supernode children
 								this.parents.add(i,grandfather);
 							}
 						}
@@ -520,5 +520,45 @@ public class Node {
 			}
 		}
 		return def;
+	}
+	public void removeRedundantSubnodes() {
+		if(this.outOfInstance!=null){
+			this.outOfInstance.in.get(0).removeRedundantSubnodes();
+			this.outOfInstance.in.get(1).removeRedundantSubnodes();
+		}else{
+			if(this.parents.size()==1&&this.parents.get(0).parents.size()>1){//remove redundant subnodes
+				//variables to conserve references
+				Node parentLeft =this.parents.get(0).parents.get(0);
+				Node parentRight = this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1);
+				Node left=this.parents.get(0).children.get(0);
+				Node mid=this.parents.get(0).children.get(1);
+				Node right=this.parents.get(0).children.get(2);
+				Node newNode = new Node();
+				parentLeft=this.definition.mapLeft(parentLeft,newNode);//FIXME should be on node, not definition
+				Node leftLeft=parentLeft.children.get(0);
+				parentRight=this.definition.mapRight(parentRight,newNode);
+				Node rightRight=parentRight.children.get(2);
+				parentLeft.children.set(0,left);
+				left.parents=leftLeft.parents;
+				for(Node parent:newNode.parents){
+					parent.children.set(0, mid);
+				}
+				mid.parents=newNode.parents;
+				right.parents=rightRight.parents;
+				parentRight.children.set(2,right);
+			}
+			for(Node parent:this.parents){
+				parent.removeRedundantSubnodes();
+			}
+		}
+	}
+	public void splice(Node childMid) {
+		if(childMid.children.size()==3&&childMid.children.get(0).parents.size()==1){
+			this.splice(childMid.children.get(0));
+			this.splice(childMid.children.get(1));
+			this.splice(childMid.children.get(2));
+		}else{
+			childMid.add(this);
+		}
 	}
 }

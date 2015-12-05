@@ -261,7 +261,10 @@ public class Definition implements java.io.Serializable{ /**
 		HashMap<Instance,Instance> instanceMap = new HashMap<Instance,Instance>();//map of expanded instances
 		HashMap<Node,Node> nodeMap = new HashMap<Node,Node>();//map of expanded nodes
 		if(appliedDefinition.out!=null&&!appliedDefinition.out.isEmpty()&&this.name!="nand"){//if applied definition is not nand//FIXME: only third term needed?//FIX nand checking
-			expandingAppliedInstance=appliedDefinition.out.get(0).outOfInstance;
+			Node expandingAppliedNode = appliedDefinition.out.get(0);
+			Node expandingNode = appliedDefinition.out.get(0);
+			nodeMap.put(expandingAppliedNode, expandingNode);
+			expandingAppliedInstance=expandingAppliedNode.outOfInstance;
 			instanceMap.put(expandingAppliedInstance,expandingInstance);
 			toExpand.add(expandingAppliedInstance);
 			while(!toExpand.isEmpty()){
@@ -592,15 +595,77 @@ public class Definition implements java.io.Serializable{ /**
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(0), supernode.children.get(0));
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(1), supernode.children.get(1));
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(2), supernode.children.get(2));
-				}else{
-					for(Node parent:definitionNode.parents){
-						Node newParent= new Node();
-						newParent.add(node);
-						definitionToNewNodes.put(parent, newParent);
-						mapSubnodeParents(newParent,parent,definitionToNewNodes);
+				}else if(definitionNode.parents.size()>1){
+					if(node.children.size()==3&&node.children.get(0).parents.size()==1){//prevent redundant subnodes
+						Node childLeft=node.children.get(0);
+						Node childMid=node.children.get(1);
+						Node childRight=node.children.get(2);
+						Node definitionParentLeft = definitionNode.parents.get(0);
+						Node definitionParentRight = definitionNode.parents.get(definitionNode.parents.size()-1);
+						Node parentLeft=new Node();
+						Node parentRight=new Node();
+						childLeft.parents.clear();
+						parentLeft.add(childLeft);
+						parentLeft.add(new Node());
+						parentLeft.add(new Node());
+						childRight.parents.clear();
+						parentRight.add(new Node());
+						parentRight.add(new Node());
+						parentRight.add(childRight);
+						childMid.parents.clear();
+						if(definitionParentLeft.parents.size()==1){
+							definitionParentLeft=definitionParentLeft.parents.get(0);
+						}else{
+							parentLeft.children.get(1).add(childMid);
+							parentLeft.children.get(2).add(childMid);
+						}
+						for(int i=1;i<definitionNode.parents.size()-1;i++){
+							Node parent=new Node();
+							definitionToNewNodes.put(definitionNode.parents.get(i), parent);
+							parent.add(childMid);
+						}
+						if(definitionParentRight.parents.size()==1){
+							definitionParentRight=definitionParentRight.parents.get(0);
+						}else{
+							parentRight.children.get(0).add(childMid);
+							parentRight.children.get(1).add(childMid);
+						}
+						definitionToNewNodes.put(definitionParentLeft, parentLeft);
+						mapSubnodeChildren(parentLeft, definitionParentLeft, definitionToNewNodes);//FIXME
+						definitionToNewNodes.put(definitionParentRight, parentRight);
+						mapSubnodeChildren(parentRight, definitionParentRight, definitionToNewNodes);//FIXME
+						node.parents.clear();
+						node.children.clear();
+						childLeft.add(node);
+						node.splice(childMid);
+						childRight.add(node);
+//						node.parents.add(childLeft);//forcing inconsistency by making the relation one way
+//						node.parents.add(childMid);
+//						node.parents.add(childRight);
+//						node.flattenParents();
+//						node.nodeFussion();
+//						for(Node child:childLeft.children){
+//							child.flattenParents();
+//							child.nodeFussion();
+//						}
+//						for(Node child:childMid.children){
+//							child.flattenParents();
+//							child.nodeFussion();
+//						}
+//						for(Node child:childRight.children){
+//							child.flattenParents();
+//							child.nodeFussion();
+//						}
+					}else{
+						for(Node parent:definitionNode.parents){
+							Node newParent= new Node();
+							newParent.add(node);
+							definitionToNewNodes.put(parent, newParent);
+							mapSubnodeParents(newParent,parent,definitionToNewNodes);
+						}
 					}
 				}
-			}else if(node.parents.size()==definitionNode.parents.size()){
+			}else if(node.parents.size()==definitionNode.parents.size()){//not sure if this check is enough
 				for(int j=0;j<node.parents.size();j++){
 					definitionToNewNodes.put(definitionNode.parents.get(j),node.parents.get(j));
 					mapSubnodeParents(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes);
@@ -625,9 +690,9 @@ public class Definition implements java.io.Serializable{ /**
 						if(node.parents.size()>1){//prevent redundant subnodes
 							//variables to conserve references
 							Node parentLeft = node.parents.get(0);
-							if(parentLeft.children.size()==1)parentLeft.children.clear();
+							parentLeft.children.remove(node);
 							Node parentRight = node.parents.get(node.parents.size()-1);
-							if(parentRight.children.size()==1)parentRight.children.clear();
+							parentRight.children.remove(node);
 							Node newNode = new Node();
 							parentLeft=this.mapLeft(parentLeft,newNode);
 							parentRight=this.mapRight(parentRight,newNode);
@@ -637,6 +702,14 @@ public class Definition implements java.io.Serializable{ /**
 							mapSubnodeChildren(parentRight.children.get(2),definitionNode.children.get(2),definitionToInstanceNodes);
 							definitionToInstanceNodes.put(definitionNode.children.get(1), newNode);
 							mapSubnodeChildren(newNode,definitionNode.children.get(1),definitionToInstanceNodes);
+							Node childLeft=parentLeft.children.get(0);//FIXME
+							Node childMid=newNode;
+							Node childRight=parentRight.children.get(2);
+							node.parents.clear();
+							node.children.clear();
+							node.splice(childLeft);
+							node.splice(childMid);
+							node.splice(childRight);
 						}else{
 							if(node.children.isEmpty()){
 								for(@SuppressWarnings("unused") Node child:definitionNode.children){
@@ -827,9 +900,12 @@ public class Definition implements java.io.Serializable{ /**
 		for(Node outNode:this.out){
 			outNode.flattenParents();
 		}
-		for(Node outNode:this.out){
-			outNode.nodeFussion();
-		}
+//		for(Node outNode:this.out){
+//			outNode.removeRedundantSubnodes();
+//		}
+//		for(Node outNode:this.out){
+//			outNode.nodeFussion();
+//		}
 		for(Node outNode:this.out){
 			outNode.childrenFission();
 		}
