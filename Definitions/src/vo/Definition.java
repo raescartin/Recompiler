@@ -622,6 +622,7 @@ public class Definition implements java.io.Serializable{ /**
 						for(int i=1;i<definitionNode.parents.size()-1;i++){
 							Node parent=new Node();
 							definitionToNewNodes.put(definitionNode.parents.get(i), parent);
+//							mapSubnodeChildren(parent, definitionNode.parents.get(i), definitionToNewNodes);//FIXME:Needed?
 							parent.add(childMid);
 						}
 						if(definitionParentRight.parents.size()==1){
@@ -631,7 +632,7 @@ public class Definition implements java.io.Serializable{ /**
 							parentRight.children.get(1).add(childMid);
 						}
 						definitionToNewNodes.put(definitionParentLeft, parentLeft);
-						mapSubnodeChildren(parentLeft, definitionParentLeft, definitionToNewNodes);//FIXME
+						mapSubnodeChildren(parentLeft, definitionParentLeft, definitionToNewNodes);
 						definitionToNewNodes.put(definitionParentRight, parentRight);
 						mapSubnodeChildren(parentRight, definitionParentRight, definitionToNewNodes);//FIXME
 						node.parents.clear();
@@ -639,9 +640,6 @@ public class Definition implements java.io.Serializable{ /**
 						childLeft.add(node);
 						node.splice(childMid);
 						childRight.add(node);
-//						node.parents.add(childLeft);//forcing inconsistency by making the relation one way
-//						node.parents.add(childMid);
-//						node.parents.add(childRight);
 //						node.flattenParents();
 //						node.nodeFussion();
 //						for(Node child:childLeft.children){
@@ -775,10 +773,14 @@ public class Definition implements java.io.Serializable{ /**
 				//if node is not divisible
 				parentLeft=parentLeft.parents.get(0);
 			}else{
-				if(parentLeft.children.size()==1)parentLeft.children.clear();
-					parentLeft.splitChildren();
+//				if(parentLeft.children.size()==1)parentLeft.children.clear();
+				parentLeft.splitChildren();
+				if(!parentLeft.children.get(1).children.isEmpty()&&parentLeft.children.get(1).children.get(0).parents.size()==1){//node has subnodes
+					newNode.addSubnodes(parentLeft.children.get(1));
+				}else{
 					parentLeft.children.get(1).add(newNode);
-					parentLeft.children.get(2).add(newNode);
+				}
+				parentLeft.children.get(2).add(newNode);
 			}
 		}
 		return parentLeft;
@@ -795,10 +797,14 @@ public class Definition implements java.io.Serializable{ /**
 				//if node is not divisible
 				parentRight=parentRight.parents.get(0);
 			}else{
-				if(parentRight.children.size()==1)parentRight.children.clear();
+//				if(parentRight.children.size()==1)parentRight.children.clear();
 				parentRight.splitChildren();
 				parentRight.children.get(0).add(newNode);
-				parentRight.children.get(1).add(newNode);
+				if(!parentRight.children.get(1).children.isEmpty()&&parentRight.children.get(1).children.get(0).parents.size()==1){//node has subnodes
+					newNode.addSubnodes(parentRight.children.get(1));
+				}else{
+					parentRight.children.get(1).add(newNode);
+				}
 			}
 		}
 		return parentRight;

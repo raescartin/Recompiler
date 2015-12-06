@@ -286,9 +286,9 @@ public class Node {
 			}
 			if(this.parents.get(0).outOfInstance!=null){
 				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-				if(parentLeft.children.size()==1)parentLeft.children.clear();//needed?
+				parentLeft.children.remove(this.parents.get(0));//needed?
 				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-				if(parentRight.children.size()==1)parentRight.children.clear();
+				parentRight.children.remove(this.parents.get(0));
 				Node newNode= new Node();
 				parentLeft=this.definition.mapLeft(parentLeft,newNode);
 				parentRight=this.definition.mapRight(parentRight,newNode);
@@ -560,5 +560,12 @@ public class Node {
 		}else{
 			childMid.add(this);
 		}
+	}
+	public void addSubnodes(Node node) {
+		node.children.get(0).add(this);
+		if(!node.children.get(1).children.isEmpty()&&node.children.get(1).children.get(0).parents.size()==1){
+			this.addSubnodes(node.children.get(1));
+		}
+		node.children.get(2).add(this);
 	}
 }
