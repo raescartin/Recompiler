@@ -316,7 +316,7 @@ public class Node {
 				for(int i=0; i<3;i++){
 					Node[] nodes={leftArray.get(i),rightArray.get(i),out.children.get(i)};
 					this.definition.add(out.outOfInstance.definition, nodes);
-					out.children.get(i).parents.clear();
+//					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
 				}
 				this.definition.instances.remove(out.outOfInstance);
 				out.outOfInstance=null;
@@ -324,32 +324,33 @@ public class Node {
 	}
 	void splitChildren(ArrayList<Node> childArray) {
 		if(this.parents.size()>1){
-			Node leftLeft = new Node();
-			Node leftMid = new Node();
-			Node leftRight = new Node();
-			ArrayList<Node> leftArray = new ArrayList<Node>();
-			leftArray.add(leftLeft);
-			leftArray.add(leftMid);
-			leftArray.add(leftRight);
-			Node rightLeft = new Node();
-			Node rightMid = new Node();
-			Node rightRight = new Node();
-			ArrayList<Node> rightArray = new ArrayList<Node>();
-			rightArray.add(rightLeft);
-			rightArray.add(rightMid);
-			rightArray.add(rightRight);
 			Node leftParent=this.parents.get(0);
-			leftParent.splitChildren(leftArray);
 			Node rightParent=this.parents.get(this.parents.size()-1);
-			rightParent.splitChildren(rightArray);
 			Node newMid= new Node();
-			leftMid.add(newMid);
-			leftRight.add(newMid);
-			rightLeft.add(newMid);
-			rightMid.add(newMid);
-			childArray.add(leftLeft);
+			if(leftParent.parents.size()==1&&(leftParent.parents.get(0).children.indexOf(leftParent)==0||leftParent.parents.get(0).children.indexOf(leftParent)==2)){
+				//if node is not divisible
+				childArray.add(leftParent);
+			}else{
+				ArrayList<Node> leftArray = new ArrayList<Node>();
+				leftParent.splitChildren(leftArray);
+				childArray.add(leftArray.get(0));
+				leftArray.get(1).add(newMid);
+				leftArray.get(2).add(newMid);
+			}
+			for(int i=1;i<this.parents.size()-1;i++){
+				this.parents.get(i).add(newMid);
+			}
 			childArray.add(newMid);
-			childArray.add(rightRight);
+			if(rightParent.parents.size()==1&&(rightParent.parents.get(0).children.indexOf(rightParent)==0||rightParent.parents.get(0).children.indexOf(rightParent)==2)){
+				//if node is not divisible
+				childArray.add(rightParent);
+			}else{
+				ArrayList<Node> rightArray = new ArrayList<Node>();
+				rightParent.splitChildren(rightArray);
+				rightArray.get(0).add(newMid);
+				rightArray.get(1).add(newMid);
+				childArray.add(rightArray.get(2));
+			}
 		}else{
 			//split in 3 children/subnodes
 			if(this.children.size()==0){
