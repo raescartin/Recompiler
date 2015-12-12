@@ -14,8 +14,8 @@ import java.util.HashSet;
 
 import utils.FixedBitSet;
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
-//Each node may have multiple children (if a node has only 1 children it's a subnode of this node)
-//FIXME: parents of a supernode cannot be recursive
+//Each node may have supernode OR subnode children but not both
+//When a node has children has 3 children subnodes, the leftmost represents the leftmost bit, the rightmost the rightmost bit and the middle one the rest
 public class Node {
 	public ArrayList<Node> parents;//ArrayList, since there can be repetition
 	public ArrayList<Node> children;//TODO:LinkedHashSet for order without repetition //needed?//size min 3?
@@ -247,7 +247,7 @@ public class Node {
 				this.add(centerNode);
 				this.add(rightNode);
 			}else{//this.children.size()>0
-				if(this.children.get(0).parents.size()!=1){//if not already split
+				if(this.children.get(0).parents.size()!=1){//if not already split then splice
 					ArrayList<Node> removedChildren = this.children;
 					HashMap<Node,Integer> insertNode = new HashMap<Node,Integer>();
 					for(Node child:this.children){
@@ -275,6 +275,10 @@ public class Node {
 	public void childrenFission() {
 		if(this.parents.size()==1){
 			this.nandChildrenFission();
+			if(this.outOfInstance!=null){
+				this.outOfInstance.in.get(0).childrenFission();
+				this.outOfInstance.in.get(1).childrenFission();
+			}
 		}
 		for(Node parent:this.parents){
 			parent.childrenFission();
@@ -286,23 +290,116 @@ public class Node {
 			}
 			if(this.parents.get(0).outOfInstance!=null){
 				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-				parentLeft.children.remove(this.parents.get(0));//needed?
+//				parentLeft.children.remove(this.parents.get(0));//needed?
 				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-				parentRight.children.remove(this.parents.get(0));
-				Node newNode= new Node();
-				parentLeft=this.definition.mapLeft(parentLeft,newNode);
-				parentRight=this.definition.mapRight(parentRight,newNode);
+//				parentRight.children.remove(this.parents.get(0));
+//				Node newNode= new Node();//here's the problem node, gets duplicated, never used?
+//				parentLeft=this.definition.mapLeft(parentLeft,newNode);//necessary in add
+//				parentRight=this.definition.mapRight(parentRight,newNode);
+//				Node leftLeft = new Node();
+//				Node leftMid = new Node();
+//				Node leftRight = new Node();
+				ArrayList<Node> leftArray = new ArrayList<Node>();
+//				leftArray.add(leftLeft);
+//				leftArray.add(leftMid);
+//				leftArray.add(leftRight);
+//				Node rightLeft = new Node();
+//				Node rightMid = new Node();
+//				Node rightRight = new Node();
+				ArrayList<Node> rightArray = new ArrayList<Node>();
+//				rightArray.add(rightLeft);
+//				rightArray.add(rightMid);
+//				rightArray.add(rightRight);
+				parentLeft.splitChildren(leftArray);
+				parentRight.splitChildren(rightArray);
 				Node out=this.parents.get(0);
-				for(int i=0;i<3;i++){
-					Node[] nodes={parentLeft.children.get(i),parentRight.children.get(i),out.children.get(i)};
+				for(int i=0; i<3;i++){
+					Node[] nodes={leftArray.get(i),rightArray.get(i),out.children.get(i)};
 					this.definition.add(out.outOfInstance.definition, nodes);
-	//				out.children.get(i).parents.clear();
+					out.children.get(i).parents.clear();
 				}
 				this.definition.instances.remove(out.outOfInstance);
 				out.outOfInstance=null;
-				parentLeft.children.get(1).childrenFission();
-				parentRight.children.get(1).childrenFission();
 			}
+	}
+	void splitChildren(ArrayList<Node> childArray) {
+		if(this.parents.size()>1){
+			Node leftLeft = new Node();
+			Node leftMid = new Node();
+			Node leftRight = new Node();
+			ArrayList<Node> leftArray = new ArrayList<Node>();
+			leftArray.add(leftLeft);
+			leftArray.add(leftMid);
+			leftArray.add(leftRight);
+			Node rightLeft = new Node();
+			Node rightMid = new Node();
+			Node rightRight = new Node();
+			ArrayList<Node> rightArray = new ArrayList<Node>();
+			rightArray.add(rightLeft);
+			rightArray.add(rightMid);
+			rightArray.add(rightRight);
+			Node leftParent=this.parents.get(0);
+			leftParent.splitChildren(leftArray);
+			Node rightParent=this.parents.get(this.parents.size()-1);
+			rightParent.splitChildren(rightArray);
+			Node newMid= new Node();
+			leftMid.add(newMid);
+			leftRight.add(newMid);
+			rightLeft.add(newMid);
+			rightMid.add(newMid);
+			childArray.add(leftLeft);
+			childArray.add(newMid);
+			childArray.add(rightRight);
+		}else{
+			//split in 3 children/subnodes
+			if(this.children.size()==0){
+				Node leftNode = new Node();
+				Node midNode = new Node();
+				Node rightNode = new Node();
+				childArray.add(leftNode);
+				childArray.add(midNode);
+				childArray.add(rightNode);
+				this.add(leftNode);
+				this.add(midNode);
+				this.add(rightNode);
+			}else{//this.children.size()>0
+				if(this.children.get(0).parents.size()==1){
+					Node leftNode=this.children.get(0);
+					Node midNode=this.children.get(1);
+					Node rightNode=this.children.get(2);
+					childArray.add(leftNode);
+					childArray.add(midNode);
+					childArray.add(rightNode);
+				}else{//if not already split then SPLICE
+					Node leftNode = new Node();
+					Node midNode = new Node();
+					Node rightNode = new Node();
+					ArrayList<Node> removedChildren = new ArrayList<Node>();
+					removedChildren.addAll(this.children);
+					HashMap<Node,Integer> insertNode = new HashMap<Node,Integer>();
+					for(Node child:this.children){
+						insertNode.put(child,child.parents.indexOf(this));
+					}
+					this.children.clear();
+					this.add(leftNode);
+					this.add(midNode);
+					this.add(rightNode);
+					childArray.add(leftNode);
+					childArray.add(midNode);
+					childArray.add(rightNode);
+					for(Node child:removedChildren){
+						leftNode.children.add(child);
+						midNode.children.add(child);
+						rightNode.children.add(child);
+						child.parents.remove(insertNode.get(child));
+						child.parents.add(insertNode.get(child), rightNode);
+						child.parents.add(insertNode.get(child), midNode);
+						child.parents.add(insertNode.get(child), leftNode);
+					}
+				}
+			}
+		}
+		
 	}
 	public void parentsFission() {
 		for(Node parent:this.parents){
@@ -521,37 +618,6 @@ public class Node {
 		}
 		return def;
 	}
-	public void removeRedundantSubnodes() {
-		if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).removeRedundantSubnodes();
-			this.outOfInstance.in.get(1).removeRedundantSubnodes();
-		}else{
-			if(this.parents.size()==1&&this.parents.get(0).parents.size()>1){//remove redundant subnodes
-				//variables to conserve references
-				Node parentLeft =this.parents.get(0).parents.get(0);
-				Node parentRight = this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1);
-				Node left=this.parents.get(0).children.get(0);
-				Node mid=this.parents.get(0).children.get(1);
-				Node right=this.parents.get(0).children.get(2);
-				Node newNode = new Node();
-				parentLeft=this.definition.mapLeft(parentLeft,newNode);//FIXME should be on node, not definition
-				Node leftLeft=parentLeft.children.get(0);
-				parentRight=this.definition.mapRight(parentRight,newNode);
-				Node rightRight=parentRight.children.get(2);
-				parentLeft.children.set(0,left);
-				left.parents=leftLeft.parents;
-				for(Node parent:newNode.parents){
-					parent.children.set(0, mid);
-				}
-				mid.parents=newNode.parents;
-				right.parents=rightRight.parents;
-				parentRight.children.set(2,right);
-			}
-			for(Node parent:this.parents){
-				parent.removeRedundantSubnodes();
-			}
-		}
-	}
 	public void splice(Node childMid) {
 		if(childMid.children.size()==3&&childMid.children.get(0).parents.size()==1){
 			this.splice(childMid.children.get(0));
@@ -567,5 +633,42 @@ public class Node {
 			this.addSubnodes(node.children.get(1));
 		}
 		node.children.get(2).add(this);
+	}
+	public Node mapLeft(ArrayList<Node> midArray) {
+//		if(this.parents.size()>1){
+//			this.mapLeft(leftArray,midArray);
+//			for(int i=1;i<this.parents.size();i++){
+//				midArray.add(this.parents.get(i));
+//			}
+//		}else{
+			if(this.parents.size()==1&&(this.parents.get(0).children.indexOf(this)==0||this.parents.get(0).children.indexOf(this)==2)){
+				//if node is not divisible
+				return(this);
+			}else{
+				ArrayList<Node> nodeArray = new ArrayList<Node>();
+				this.splitChildren(nodeArray);
+				midArray.addAll(nodeArray.subList(1, nodeArray.size()));
+				return(nodeArray.get(0));
+				
+//				if(!childrenArray.get(1).children.isEmpty()&&childrenArray.get(1).children.get(0).parents.size()==1){//node has subnodes
+//					midArray.add(childrenArray.get(1));
+//				}else{
+//					childrenArray.get(1).add(newNode);
+//				}
+//				childrenArray.get(2).add(newNode);
+			}
+//		}
+	}
+	public Node mapRight(ArrayList<Node> midArray) {
+		if(this.parents.size()==1&&(this.parents.get(0).children.indexOf(this)==0||this.parents.get(0).children.indexOf(this)==2)){
+			//if node is not divisible
+			return(this);
+		}else{
+			ArrayList<Node> nodeArray = new ArrayList<Node>();
+			this.splitChildren(nodeArray);
+			midArray.addAll(nodeArray.subList(0, nodeArray.size()-1));
+			return(nodeArray.get(nodeArray.size()-1));
+		}
+		
 	}
 }

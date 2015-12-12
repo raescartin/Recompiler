@@ -1,4 +1,5 @@
-﻿FIX rootIn: 2 posibilites: 
+﻿-use mapLeft and mapRight INSTEAD of splitChildren()
+FIX rootIn: 2 posibilites: 
 1- change rootIn to "used in"
 2- fix rootIn by traversing parents of root node
 	i) remove rootIn of instanced root definition
