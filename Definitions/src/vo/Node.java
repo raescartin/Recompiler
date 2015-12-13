@@ -290,26 +290,9 @@ public class Node {
 			}
 			if(this.parents.get(0).outOfInstance!=null){
 				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-//				parentLeft.children.remove(this.parents.get(0));//needed?
 				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-//				parentRight.children.remove(this.parents.get(0));
-//				Node newNode= new Node();//here's the problem node, gets duplicated, never used?
-//				parentLeft=this.definition.mapLeft(parentLeft,newNode);//necessary in add
-//				parentRight=this.definition.mapRight(parentRight,newNode);
-//				Node leftLeft = new Node();
-//				Node leftMid = new Node();
-//				Node leftRight = new Node();
 				ArrayList<Node> leftArray = new ArrayList<Node>();
-//				leftArray.add(leftLeft);
-//				leftArray.add(leftMid);
-//				leftArray.add(leftRight);
-//				Node rightLeft = new Node();
-//				Node rightMid = new Node();
-//				Node rightRight = new Node();
 				ArrayList<Node> rightArray = new ArrayList<Node>();
-//				rightArray.add(rightLeft);
-//				rightArray.add(rightMid);
-//				rightArray.add(rightRight);
 				parentLeft.splitChildren(leftArray);
 				parentRight.splitChildren(rightArray);
 				Node out=this.parents.get(0);

@@ -640,20 +640,20 @@ public class Definition implements java.io.Serializable{ /**
 						childLeft.add(node);
 						node.splice(childMid);
 						childRight.add(node);
-//						node.flattenParents();
+						node.flattenParents();
 //						node.nodeFussion();
-//						for(Node child:childLeft.children){
-//							child.flattenParents();
+						for(Node child:childLeft.children){
+							child.flattenParents();
 //							child.nodeFussion();
-//						}
-//						for(Node child:childMid.children){
-//							child.flattenParents();
+						}
+						for(Node child:childMid.children){
+							child.flattenParents();
 //							child.nodeFussion();
-//						}
-//						for(Node child:childRight.children){
-//							child.flattenParents();
+						}
+						for(Node child:childRight.children){
+							child.flattenParents();
 //							child.nodeFussion();
-//						}
+						}
 					}else{
 						for(Node parent:definitionNode.parents){
 							Node newParent= new Node();
@@ -692,8 +692,8 @@ public class Definition implements java.io.Serializable{ /**
 							Node leftLeft = new Node();
 							ArrayList<Node> midArray = new ArrayList<Node>();
 							Node rightRight = new Node();
-							leftLeft=parentLeft.mapLeft(midArray);
-							rightRight=parentRight.mapRight(midArray);
+							leftLeft=parentLeft.mapLeft(midArray);//FIXME: remove mapLeft
+							rightRight=parentRight.mapRight(midArray);//FIXME: remove mapRight
 							definitionToInstanceNodes.put(definitionNode.children.get(0), leftLeft);
 							mapSubnodeChildren(leftLeft,definitionNode.children.get(0),definitionToInstanceNodes);
 							definitionToInstanceNodes.put(definitionNode.children.get(2), rightRight);
@@ -744,22 +744,22 @@ public class Definition implements java.io.Serializable{ /**
 			if(definitionNode.children.get(0).parents.size()!=1){//the children nodes are supernodes
 				for(Node definitionSupernode:definitionNode.children){
 					if(!definitionToInstanceNodes.containsKey(definitionSupernode)){
-						ArrayList<Node> definitionParents = new ArrayList<Node>();
+						ArrayList<Node> parents = new ArrayList<Node>();
 						for(Node definitionParent:definitionSupernode.parents){
-							definitionParents.add(definitionParent);
+							parents.add(definitionToInstanceNodes.get(definitionParent));
 						}
 						boolean contains=false;
 						for(Node supernode: node.children){
-							if(definitionParents.size()==supernode.parents.size()&&supernode.parents.containsAll(definitionParents)){
+							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
 								definitionToInstanceNodes.put(definitionSupernode,supernode);
 								contains=true;
 							}
 						}
 						if(!contains){
 							Node newSupernode = new Node();
-							for(Node definitionParent:definitionParents){
+							for(Node definitionParent:definitionSupernode.parents){
 								if(!definitionToInstanceNodes.containsKey(definitionParent)){
-									Node newParent = new Node();//FIXME: should be recursive
+									Node newParent = new Node();//FIXME: should be recursive //parents may be not defined yet
 									definitionToInstanceNodes.put(definitionParent, newParent);
 								}
 								definitionToInstanceNodes.get(definitionParent).add(newSupernode);
