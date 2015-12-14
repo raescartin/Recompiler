@@ -200,6 +200,12 @@ public class Node {
 	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
 		//Only maps nodes that are used in the definition		
 		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
+		if(this.parents.size()==1){
+			inOutNodes.add(this.parents.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(1));
+			inOutNodes.add(this.parents.get(0).children.get(2));
+		}
 		int subnodes=0;
 		for(Node child:this.children){
 			if(child.parents.size()==1){//subnode  
@@ -222,6 +228,12 @@ public class Node {
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);
+		if(this.parents.size()==1){
+			inOutNodes.add(this.parents.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(1));
+			inOutNodes.add(this.parents.get(0).children.get(2));
+		}
 		if(this.outOfInstance!=null){
 			NandNode nandNode;
 			if(nandToNodeOut.contains(this)){

@@ -640,20 +640,20 @@ public class Definition implements java.io.Serializable{ /**
 						childLeft.add(node);
 						node.splice(childMid);
 						childRight.add(node);
-						node.flattenParents();
-//						node.nodeFussion();
-						for(Node child:childLeft.children){
-							child.flattenParents();
-//							child.nodeFussion();
-						}
-						for(Node child:childMid.children){
-							child.flattenParents();
-//							child.nodeFussion();
-						}
-						for(Node child:childRight.children){
-							child.flattenParents();
-//							child.nodeFussion();
-						}
+//						node.flattenParents();
+////						node.nodeFussion();
+//						for(Node child:childLeft.children){
+//							child.flattenParents();
+////							child.nodeFussion();
+//						}
+//						for(Node child:childMid.children){
+//							child.flattenParents();
+////							child.nodeFussion();
+//						}
+//						for(Node child:childRight.children){
+//							child.flattenParents();
+////							child.nodeFussion();
+//						}
 					}else{
 						for(Node parent:definitionNode.parents){
 							Node newParent= new Node();
@@ -750,6 +750,7 @@ public class Definition implements java.io.Serializable{ /**
 						}
 						boolean contains=false;
 						for(Node supernode: node.children){
+							supernode.flattenParents();
 							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
 								definitionToInstanceNodes.put(definitionSupernode,supernode);
 								contains=true;
