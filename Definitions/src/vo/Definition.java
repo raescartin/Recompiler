@@ -219,7 +219,7 @@ public class Definition implements java.io.Serializable{ /**
 		//Print this definition translating node id to integers
 		//System.out.print(this.hashCode());
 		string+=this.name;
-		string+=(" [");
+		string+=("[");
 		for (Node node: this.in) {
 			string+=node.toString();
 			string+=(",");
@@ -595,6 +595,7 @@ public class Definition implements java.io.Serializable{ /**
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(0), supernode.children.get(0));
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(1), supernode.children.get(1));
 					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(2), supernode.children.get(2));
+					mapSubnodeParents(node,definitionNode,definitionToNewNodes);
 				}else if(definitionNode.parents.size()>1){
 					if(node.children.size()==3&&node.children.get(0).parents.size()==1){//prevent redundant subnodes
 						Node childLeft=node.children.get(0);
