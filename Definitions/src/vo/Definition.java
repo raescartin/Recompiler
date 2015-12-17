@@ -20,7 +20,7 @@ import utils.FixedBitSet;
 //-Recursive definition:
 //	#A definition is composed by instances of definitions
 //	#Nand is the basic definition
-//-Definitions may be recursive and ARE TURING COMPLETE
+//-Definitions may be recursive and ARE TURING COMPLETE (equivalent to algorithms)
 //PRE: all inputs(and in consequence outpus) of a nand definition must be of the same size
 
 
