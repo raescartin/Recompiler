@@ -589,6 +589,7 @@ public class Definition implements java.io.Serializable{ /**
 					Node supernode= new Node();
 					node.definition.add(supernode);
 					supernode.splitChildren();
+					this.nodes.remove(supernode.children.get(definitionNode.parents.get(0).children.indexOf(definitionNode)));
 					supernode.children.set(definitionNode.parents.get(0).children.indexOf(definitionNode), node);
 					node.parents.add(supernode);
 					definitionToNewNodes.put(definitionNode.parents.get(0), supernode);
@@ -705,7 +706,9 @@ public class Definition implements java.io.Serializable{ /**
 									mid=midArray.get(0);
 								}else{
 									mid= new Node();
-									mid.parents=midArray;
+									for(Node midArrayNode:midArray){
+										midArrayNode.add(mid);
+									}
 								}
 								definitionToInstanceNodes.put(definitionNode.children.get(1), mid);
 								mapSubnodeChildren(mid,definitionNode.children.get(1),definitionToInstanceNodes);
