@@ -251,20 +251,21 @@ public class Node {
 	}
 	public void splitChildren() {
 		//split in 3 children/subnodes
-			if(this.children.size()==0){
+		if(this.children.size()==0){
 				Node leftNode = new Node();
 				Node centerNode = new Node();
 				Node rightNode = new Node();
 				this.add(leftNode);
 				this.add(centerNode);
 				this.add(rightNode);
-			}else{//this.children.size()>0
+		}else if(!(this.children.size()==3&&this.children.get(0).parents.size()==1)){//this.children.size()>0
 				if(this.children.get(0).parents.size()!=1){//if not already split then splice
-					ArrayList<Node> removedChildren = this.children;
+					ArrayList<Node> removedChildren = new ArrayList<Node>();
 					HashMap<Node,Integer> insertNode = new HashMap<Node,Integer>();
 					for(Node child:this.children){
 						insertNode.put(child,child.parents.indexOf(this));
 					}
+					removedChildren.addAll(this.children);
 					this.children.clear();
 					Node leftNode = new Node();
 					Node centerNode = new Node();
@@ -285,14 +286,40 @@ public class Node {
 			}
 	}
 	public void childrenFission() {
-		if(this.parents.size()==1){
-			this.nandChildrenFission();
-			if(this.outOfInstance!=null){
+//		if(this.parents.size()==1){
+//			this.nandChildrenFission();
+//			if(this.outOfInstance!=null){
+//				this.outOfInstance.in.get(0).childrenFission();
+//				this.outOfInstance.in.get(1).childrenFission();
+//			}
+//		}
+		if(this.outOfInstance!=null){
+			this.outOfInstance.in.get(0).childrenFission();
+			this.outOfInstance.in.get(1).childrenFission();
+			if(!this.outOfInstance.in.get(0).children.isEmpty()&&this.outOfInstance.in.get(0).children.get(0).parents.size()==1 
+					||!this.outOfInstance.in.get(1).children.isEmpty()&&this.outOfInstance.in.get(1).children.get(0).parents.size()==1
+					||!this.outOfInstance.out.get(0).children.isEmpty()&&this.outOfInstance.out.get(0).children.get(0).parents.size()==1){
+				Node parentLeft=this.outOfInstance.in.get(0);
+				Node parentRight=this.outOfInstance.in.get(1);
+				ArrayList<Node> leftArray = new ArrayList<Node>();
+				ArrayList<Node> rightArray = new ArrayList<Node>();
+				parentLeft.splitChildren(leftArray);
+				parentRight.splitChildren(rightArray);
+				this.outOfInstance.out.get(0).splitChildren();
+				for(int i=0; i<3;i++){
+					Node[] nodes={leftArray.get(i),rightArray.get(i),this.outOfInstance.out.get(0).children.get(i)};
+					this.definition.add(this.outOfInstance.definition, nodes);
+//					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
+				}
+				this.definition.instances.remove(this.outOfInstance);
 				this.outOfInstance.in.get(0).childrenFission();
 				this.outOfInstance.in.get(1).childrenFission();
+				this.outOfInstance=null;
 			}
 		}
-		for(Node parent:this.parents){
+		ArrayList<Node> parentNodes = new ArrayList<Node>();
+		parentNodes.addAll(this.parents);
+		for(Node parent:parentNodes){
 			parent.childrenFission();
 		}
 	}
@@ -331,9 +358,6 @@ public class Node {
 				childArray.add(leftArray.get(0));
 				leftArray.get(1).add(newMid);
 				leftArray.get(2).add(newMid);
-			}
-			for(int i=1;i<this.parents.size()-1;i++){
-				this.parents.get(i).add(newMid);
 			}
 			childArray.add(newMid);
 			if(rightParent.parents.size()==1&&(rightParent.parents.get(0).children.indexOf(rightParent)==0||rightParent.parents.get(0).children.indexOf(rightParent)==2)){
@@ -411,8 +435,21 @@ public class Node {
 		in0.parentsFission();
 		in1.parentsFission();
 		if(in0.parents.size()>1||in1.parents.size()>1){
-			if(in0.parents.size()!=in1.parents.size()){
-				System.out.print("Error, different parentSize.");
+			if(in0.parents.size()!=in1.parents.size()){//can happen?
+				ArrayList<Node> leftArray = new ArrayList<Node>();
+				ArrayList<Node> rightArray = new ArrayList<Node>();
+				in0.splitChildren(leftArray);
+				in1.splitChildren(rightArray);
+				this.definition.instances.remove(this.outOfInstance);
+				for(int i=0;i<3;i++){//should be recursive into parents
+					Node newNode = new Node();
+					Node[] nodes={leftArray.get(i),rightArray.get(i),newNode};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					newNode.add(this);
+	//				newNode.nandParentFission();
+				}
+				this.outOfInstance=null;
+				this.parents.get(1).nandParentFission();
 			}else{
 				this.definition.instances.remove(this.outOfInstance);
 				for(int i=0;i<in0.parents.size();i++){//should be recursive into parents
@@ -423,7 +460,6 @@ public class Node {
 					newNode.nandParentFission();
 				}
 				this.outOfInstance=null;
-				
 			}
 		}
 	}
