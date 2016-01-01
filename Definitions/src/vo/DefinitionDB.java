@@ -81,7 +81,7 @@ public class DefinitionDB implements java.io.Serializable{
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				definition.fussion();
-//				this.toBest(definition);//nand definition to best definition (higher level)//TODO: keep needed halfway nodes
+				this.toBest(definition);//nand definition to best definition (higher level)
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -167,13 +167,13 @@ public class DefinitionDB implements java.io.Serializable{
 		definition.mapOuts(outs);
 		int instanceIndex;
 		int rootIndex;
-		boolean appliedOnce;
+		boolean appliedOnce;//at least one definition has been applied
 		Instance instance;
 		Definition appliedDefinition;
 		do{
 			appliedOnce=false;
 			instanceIndex=0;
-			while (instanceIndex<definition.instances.size()) {//one level up //while not for, since list can be modified on loop
+			while (instanceIndex<definition.instances.size()) {//one level up //while needed instead of for, since list can be modified on loop
 				instance=definition.instances.get(instanceIndex);
 				rootIndex=0;
 				boolean applied=false;

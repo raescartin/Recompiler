@@ -637,18 +637,22 @@ public class Node {
 		}
 		
 	}
-	public Definition findRootDef() {
-		Definition def;
+	public Instance findRootInstance() {
+		Instance instance;
 		if(this.outOfInstance!=null){
-			def=this.outOfInstance.definition;
+			if(this.outOfInstance.definition==this.definition){//ensure root instance is not a recursive one
+				instance=this.outOfInstance.in.get(0).findRootInstance();
+			}else{
+				instance=this.outOfInstance;
+			}
 		}else{
 			if(this.parents.isEmpty()){
-				def=null;
+				instance=null;
 			}else{
-				def=this.parents.get(0).findRootDef();
+				instance=this.parents.get(0).findRootInstance();
 			}
 		}
-		return def;
+		return instance;
 	}
 	public void splice(Node childMid) {
 		if(childMid.children.size()==3&&childMid.children.get(0).parents.size()==1){

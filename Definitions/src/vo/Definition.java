@@ -246,6 +246,7 @@ public class Definition implements java.io.Serializable{ /**
 		return string;
 	}
 	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> outs) {
+		//PRE: this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
 		//if the replaced instances have a node from inOutNodes as a halfway node don't replace
 		//TODO: expand out of nodes
 		//TODO: remove from out of nodes
@@ -261,10 +262,7 @@ public class Definition implements java.io.Serializable{ /**
 		HashMap<Instance,Instance> instanceMap = new HashMap<Instance,Instance>();//map of expanded instances
 		HashMap<Node,Node> nodeMap = new HashMap<Node,Node>();//map of expanded nodes
 		if(appliedDefinition.out!=null&&!appliedDefinition.out.isEmpty()&&this.name!="nand"){//if applied definition is not nand//FIXME: only third term needed?//FIX nand checking
-			Node expandingAppliedNode = appliedDefinition.out.get(0);
-			Node expandingNode = appliedDefinition.out.get(0);
-			nodeMap.put(expandingAppliedNode, expandingNode);
-			expandingAppliedInstance=expandingAppliedNode.outOfInstance;
+			expandingAppliedInstance=appliedDefinition.out.get(0).findRootInstance();
 			instanceMap.put(expandingAppliedInstance,expandingInstance);
 			toExpand.add(expandingAppliedInstance);
 			while(!toExpand.isEmpty()){
@@ -272,31 +270,13 @@ public class Definition implements java.io.Serializable{ /**
 					return false;
 				}else{
 					for (int i = 0; i < expandingAppliedInstance.in.size(); i++){//expand all in nodes
-						if(nodeMap.containsKey(expandingAppliedInstance.in.get(i))){//already added node
-							if(nodeMap.get(expandingAppliedInstance.in.get(i))!=expandingInstance.in.get(i)){//added as different node (non unique)
-								return false;
-							}
-						}else{//non-added node
-							nodeMap.put(expandingAppliedInstance.in.get(i),expandingInstance.in.get(i));//expand node
-							if(instanceMap.containsKey(expandingAppliedInstance.in.get(i).outOfInstance)){//already added instance
-								if(instanceMap.get(expandingAppliedInstance.in.get(i).outOfInstance)!=expandingInstance.in.get(i).outOfInstance){//added as instance to different definition
-									return false;
-								}
-							}else{//non-added instance
-								if(expandingAppliedInstance.in.get(i).outOfInstance!=null){
-									instanceMap.put(expandingAppliedInstance.in.get(i).outOfInstance,expandingInstance.in.get(i).outOfInstance);
-									toExpand.add(expandingAppliedInstance.in.get(i).outOfInstance);
-								}
-							}
+						if(!this.expandNodes(expandingAppliedInstance.in.get(i),expandingInstance.in.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
+							return false;
 						}
 					}
 					for (int i = 0; i < expandingAppliedInstance.out.size(); i++){//expand all out nodes
-						if(nodeMap.containsKey(expandingAppliedInstance.out.get(i))){//already added node
-							if(nodeMap.get(expandingAppliedInstance.out.get(i))!=expandingInstance.out.get(i)){//added as different node (non unique)
-								return false;
-							}
-						}else{//non-added node
-							nodeMap.put(expandingAppliedInstance.out.get(i),expandingInstance.out.get(i));//expand node
+						if(!this.expandNodes(expandingAppliedInstance.out.get(i),expandingInstance.out.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
+							return false;
 						}
 					}
 					toExpand.remove(expandingAppliedInstance);
@@ -308,7 +288,7 @@ public class Definition implements java.io.Serializable{ /**
 				}
 				
 			}
-			if(appliedDefinition.instances.size()!=instanceMap.size()){
+			if(appliedDefinition.instances.size()!=instanceMap.size()){//FIXME: needed?
 				System.out.println("Error applying, different number of instances. Parrallel path.");
 				return false;
 			}
@@ -355,6 +335,49 @@ public class Definition implements java.io.Serializable{ /**
 					if(outs.contains(outNode)) containsInOutNode=true;
 				}
 				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to ¿list?HASH¿map? to remove in O(1) instead O(n)?
+			}
+		}
+		return true;
+	}
+	private boolean expandNodes(Node appliedNode, Node node,
+			HashMap<Node, Node> nodeMap, HashMap<Instance, Instance> instanceMap, HashSet<Instance> toExpand) {
+		if(appliedNode.outOfInstance!=null){
+			if(instanceMap.containsKey(appliedNode.outOfInstance)){//already added instance
+				if(instanceMap.get(appliedNode.outOfInstance)!=node.outOfInstance){//added as instance to different definition
+					return false;
+				}
+			}else{//non-added instance
+				if(node.outOfInstance==null){
+					return false;
+				}else{
+					instanceMap.put(appliedNode.outOfInstance,node.outOfInstance);
+					toExpand.add(appliedNode.outOfInstance);
+				}
+			}
+		}
+		if(nodeMap.containsKey(appliedNode)){//already added node
+			if(nodeMap.get(appliedNode)!=node){
+				return false;
+			}
+		}else{//non-added node
+			nodeMap.put(appliedNode,node);//expand node
+			if(!appliedNode.children.isEmpty()||!appliedNode.parents.isEmpty()){
+				if(node.parents.size()<appliedNode.parents.size()){
+					return false;
+				}
+				for(int i=0;i<appliedNode.parents.size();i++){
+					if(!expandNodes(appliedNode.parents.get(i),node.parents.get(i),nodeMap,instanceMap, toExpand)){
+						return false;
+					}
+				}
+				if(node.children.size()<appliedNode.children.size()){
+					return false;
+				}
+				for(int i=0;i<appliedNode.children.size();i++){
+					if(!expandNodes(appliedNode.children.get(i),node.children.get(i),nodeMap,instanceMap, toExpand)){
+						return false;
+					}
+				}
 			}
 		}
 		return true;
@@ -1038,12 +1061,16 @@ public class Definition implements java.io.Serializable{ /**
 		
 	}
 	public void clearRoot() {
-		Definition def = this.out.get(0).findRootDef();
+		Instance instance = this.out.get(0).findRootInstance();
+		Definition def = null;
+		if(instance!=null)def=instance.definition;
 		if(def!=null)def.rootIn.remove(this);
 		
 	}
 	public void getRoot() {
-		Definition def = this.out.get(0).findRootDef();
+		Instance instance = this.out.get(0).findRootInstance();
+		Definition def = null;
+		if(instance!=null)def=instance.definition;
 		if(def!=null&&def!=this){
 			if(!def.rootIn.contains(this))def.rootIn.add(this);
 		}
