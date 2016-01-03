@@ -277,7 +277,7 @@ public class Node {
 						leftNode.children.add(child);
 						centerNode.children.add(child);
 						rightNode.children.add(child);
-						child.parents.remove(insertNode.get(child));
+						child.parents.remove(insertNode.get(child).intValue());//Needs to force int since remove() is overloaded (remove(int) and remove(Object)
 						child.parents.add(insertNode.get(child), rightNode);
 						child.parents.add(insertNode.get(child), centerNode);
 						child.parents.add(insertNode.get(child), leftNode);

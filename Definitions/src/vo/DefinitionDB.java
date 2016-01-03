@@ -81,7 +81,7 @@ public class DefinitionDB implements java.io.Serializable{
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				definition.fussion();
-				this.toBest(definition);//nand definition to best definition (higher level)
+//				this.toBest(definition);//nand definition to best definition (higher level)
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
