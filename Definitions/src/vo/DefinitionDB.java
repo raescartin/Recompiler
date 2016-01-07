@@ -81,7 +81,7 @@ public class DefinitionDB implements java.io.Serializable{
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				definition.fussion();
-//				this.toBest(definition);//nand definition to best definition (higher level)
+				this.toBest(definition);//nand definition to best definition (higher level)
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -161,10 +161,10 @@ public class DefinitionDB implements java.io.Serializable{
 		}
 	}
 	public void toBest(Definition definition) {
-		HashSet<Node> outs= new HashSet<Node>();
+		HashSet<Node> supernodeOuts= new HashSet<Node>();
 		//Use A* type algorithm to locate higher level definitions
 		//Optimize/simplify definition applying all definitions with same root/out(0)
-		definition.mapOuts(outs);
+		definition.mapSupernodeOuts(supernodeOuts);
 		int instanceIndex;
 		int rootIndex;
 		boolean appliedOnce;//at least one definition has been applied
@@ -180,8 +180,10 @@ public class DefinitionDB implements java.io.Serializable{
 				while (rootIndex<instance.definition.rootIn.size()&&applied==false) {//loop while not modified (if one rootIn used, rest worthless)
 					appliedDefinition=instance.definition.rootIn.get(rootIndex);
 					if(definition!=appliedDefinition){//prevent applying definition to self
-						applied=definition.apply(instance,appliedDefinition,outs);
-						if (applied) instanceIndex-=appliedDefinition.instances.size()-1;//remove to instanceIndex the number of deleted instances
+						applied=definition.apply(instance,appliedDefinition,supernodeOuts);
+						if (applied) {
+							instanceIndex-=appliedDefinition.instances.size()-1;//remove to instanceIndex the number of deleted instances
+						}
 						appliedOnce=appliedOnce||applied;
 					}
 					rootIndex++;

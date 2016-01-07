@@ -618,13 +618,13 @@ public class Node {
 		}
 		
 	}
-	public void mapParents(HashSet<Node> inOutNodes) {
-		inOutNodes.add(this);
+	public void mapSupernodeParents(HashSet<Node> supernodeParents) {
 		if(this.parents.size()==1){
-			inOutNodes.add(this.parents.get(0));
+			this.parents.get(0).mapSupernodeParents(supernodeParents);
 		}else{
+			supernodeParents.add(this);
 			for(Node parent:this.parents){
-				parent.mapParents(inOutNodes);
+				parent.mapSupernodeParents(supernodeParents);
 			}	
 		}
 	}
@@ -706,5 +706,12 @@ public class Node {
 			return(nodeArray.get(nodeArray.size()-1));
 		}
 		
+	}
+	public Node supernodeParent() {
+		if(this.parents.size()==1){
+			return this.parents.get(0).supernodeParent();
+		}else{
+			return this;
+		}
 	}
 }

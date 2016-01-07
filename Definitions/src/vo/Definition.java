@@ -245,7 +245,7 @@ public class Definition implements java.io.Serializable{ /**
 		string+="\n";
 		return string;
 	}
-	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> outs) {
+	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> supernodeOuts) {
 		//PRE: this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
 		//if the replaced instances have a node from inOutNodes as a halfway node don't replace
 		//TODO: expand out of nodes
@@ -332,7 +332,7 @@ public class Definition implements java.io.Serializable{ /**
 			for (Instance removableInstance : removableInstances) {
 				boolean containsInOutNode=false;//checking not to remove a non removable node
 				for(Node outNode:removableInstance.out){
-					if(outs.contains(outNode)) containsInOutNode=true;
+					if(supernodeOuts.contains(outNode.supernodeParent())) containsInOutNode=true;
 				}
 				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to ¿list?HASH¿map? to remove in O(1) instead O(n)?
 			}
@@ -1054,11 +1054,10 @@ public class Definition implements java.io.Serializable{ /**
 //		}
 //		
 //	}
-	void mapOuts(HashSet<Node> inOutNodes) {
+	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
 		for(Node outNode:this.out){
-			outNode.mapParents(inOutNodes);
+			outNode.mapSupernodeParents(supernodeParents);
 		}
-		
 	}
 	public void clearRoot() {
 		Instance instance = this.out.get(0).findRootInstance();
