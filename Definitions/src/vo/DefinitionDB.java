@@ -43,7 +43,10 @@ public class DefinitionDB implements java.io.Serializable{
 		this.definitions.put("nand",nand);//nand definition needed as building block for definitions
 	}
 	public void put(String name, Definition definition){
+		definition.clearRoot();
 		this.optimize(definition);
+		this.toBest(definition);//nand definition to best definition (higher level)
+		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
 		//Optimize all definitions where this new definition could be used (implicit bigger than definition) (+++)
 		//TODO: verify that order of adding definitions is irrelevant example: and then not-> not used in and
@@ -70,7 +73,7 @@ public class DefinitionDB implements java.io.Serializable{
 		//TODO:
 			//intersection optimization of recursive definitions
 			//nandtree->definition node fusion maybe? not needed	
-		definition.clearRoot();
+		
 		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
@@ -81,7 +84,6 @@ public class DefinitionDB implements java.io.Serializable{
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
 				definition.fussion();
-				this.toBest(definition);//nand definition to best definition (higher level)
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -92,7 +94,6 @@ public class DefinitionDB implements java.io.Serializable{
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
 		}
-		definition.getRoot();
 		return definition;
 	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
