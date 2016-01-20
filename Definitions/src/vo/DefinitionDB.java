@@ -22,9 +22,7 @@ import utils.AddedNodes;
 //because it doesn't make sense to define such a function (calling a definition not yet defined)
 //IMPLEMENTATION
 //- fix recursion optimization
-//- fusion of NandForest
 //- verify toBest (most critical and complex algorithm)
-//- suitable for in-memory use
 //-FIXME(maybe): can't have definitions outside of DB (or else they're added to usedIn and things get messed up)
 //-take into account optimized in out
 //////////////////////////////////////////////////////
@@ -45,7 +43,7 @@ public class DefinitionDB implements java.io.Serializable{
 	public void put(String name, Definition definition){
 		definition.clearRoot();
 		this.optimize(definition);
-		this.toBest(definition);//nand definition to best definition (higher level)
+		this.toBest(definition);//nand definition to best definition (highest level possible)
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
 		//Optimize all definitions where this new definition could be used (implicit bigger than definition) (+++)
@@ -56,14 +54,13 @@ public class DefinitionDB implements java.io.Serializable{
 	}
 	private Definition optimize(Definition definition) {
 		//PRE: definition's instances are optimized 
-		//POST: definition is optimized, of the highest level possible
+		//POST: definition is optimized
 		
 		//definition may be recursive
 		//map recursions, transform to non-recursive definition
 		//add recursive outputs to in and recursive inputs as outs,
 		//transform definition to NandForest,
-		//transform NandForest to best definitions
-		//use map to return previous recursions 
+		//return previous recursions 
 		//remove added ins and outs from recursions
 		//if recursive then optimize sub-definitions AND MERGE
 		//if not recursive then fromNand to def -> to best
@@ -72,7 +69,6 @@ public class DefinitionDB implements java.io.Serializable{
 		//toBest functions with recursion
 		//TODO:
 			//intersection optimization of recursive definitions
-			//nandtree->definition node fusion maybe? not needed	
 		
 		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
@@ -93,6 +89,17 @@ public class DefinitionDB implements java.io.Serializable{
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
+			if(!definition.recursiveInstances.isEmpty()){
+				Definition tempDef = definition.copy();
+				for(Instance instance : tempDef.recursiveInstances){
+					//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
+					//1 add instances of 1st recursion (expand recursion like its done with instancesOfRecursiveDefinitions)
+					//2 map out/in recursive nodes
+					//3 keep track of these nodes
+					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
+					tempDef.expandRecursiveInstance(instance, addedNodes, removedInstances);				
+				}
+			}
 		}
 		return definition;
 	}

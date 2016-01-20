@@ -352,6 +352,21 @@ class test {
     	definitionDB.put("mul",mul);
 //    	mul.printEval(B,B);
     	System.out.print(definitionDB.toString());
+//    	//SQRT definition//
+//    	Definition sqrt = new Definition(1,1,"sqrt");
+//    	Node counter = new Node();
+//    	Node square = new Node();
+//    	Node sqrtComp = new Node();
+//    	sqrt.add(mul,counter,counter,square);
+//    	sqrt.add(cmp,square,)
+//    	sqrt.add(ifdef,);
+//    	System.out.println();
+//    	System.out.print("New definition: ");
+//    	System.out.print(sqrt.toString());
+////    	sqrt.printEval(B,B);
+//    	definitionDB.put("sqrt",sqrt);
+//    	sqrt.printEval(B,B);
+    	System.out.print(definitionDB.toString());
     	
     	//ASSEMBLER
     	//Declare instruction set

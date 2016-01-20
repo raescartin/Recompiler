@@ -541,7 +541,7 @@ public class Definition implements java.io.Serializable{ /**
 			this.expandRecursiveInstance(instance, addedNodes, removedInstances);
 		}
 	}
-	private void expandRecursiveInstance(Instance instance, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
+	void expandRecursiveInstance(Instance instance, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
@@ -590,7 +590,7 @@ public class Definition implements java.io.Serializable{ /**
 		}
 		
 	}
-	private void removeRecursiveInstance(Instance instance,AddedNodes addedNodes, HashSet<Instance> removedInstances) {
+	void removeRecursiveInstance(Instance instance,AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		removedInstances.add(instance);
 		addedNodes.in+=instance.out.size();
 		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
@@ -1072,6 +1072,78 @@ public class Definition implements java.io.Serializable{ /**
 		if(instance!=null)def=instance.definition;
 		if(def!=null&&def!=this){
 			if(!def.rootIn.contains(this))def.rootIn.add(this);
+		}
+		
+	}
+	public Definition copy() {
+		Definition copyDef = new Definition(this.in.size(),this.out.size(),this.name+"Copy");
+		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
+		for(int i=0;i<this.in.size();i++){
+			nodeToCopy.put(this.in.get(i), copyDef.in.get(i));
+		}
+		HashMap<Instance,Instance> instanceToCopy = new HashMap<Instance,Instance>();
+		for(int i=0;i<this.out.size();i++){
+			copyDef.copyNode(this.out.get(i),copyDef.out.get(i),nodeToCopy,instanceToCopy);
+		}
+		return copyDef;
+	}
+	private void copyNode(Node node, Node copyNode,
+			HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy) {
+		if(!nodeToCopy.containsKey(node)){
+			copyNode.definition=this;
+			nodeToCopy.put(node, copyNode);
+			if(node.outOfInstance!=null){
+				if(!instanceToCopy.containsKey(node.outOfInstance)){
+					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy);
+				}
+			}
+			if(!node.children.isEmpty()){
+				for(int i=0;i<node.children.size();i++){
+					if(!nodeToCopy.containsKey(node.children.get(i))){
+						Node copyChildren = new Node();
+						this.add(copyChildren);
+						copyNode.add(copyChildren);
+						copyNode(node.children.get(i),copyChildren, nodeToCopy, instanceToCopy);
+					}
+				}
+			}
+			if(!node.parents.isEmpty()){
+				for(int i=0;i<node.parents.size();i++){
+					if(!nodeToCopy.containsKey(node.parents.get(i))){
+						Node copyParent = new Node();
+						this.add(copyParent);
+						copyNode(node.parents.get(i),copyParent, nodeToCopy, instanceToCopy);
+					}
+				}
+			}
+		}
+	}
+	private void copyInstance(Instance instance,
+			HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy) {
+		Instance copyInstance=new Instance();
+		this.instances.add(copyInstance);
+		copyInstance.definition=instance.definition;
+		for(int i=0;i<instance.in.size();i++){
+			if(nodeToCopy.containsKey(instance.in.get(i))){
+				copyInstance.in.add(nodeToCopy.get(instance.in.get(i)));
+			}else{
+				Node copyIn = new Node();
+				this.add(copyIn);
+				copyInstance.in.add(copyIn);
+				copyNode(instance.in.get(i),copyInstance.in.get(i), nodeToCopy, instanceToCopy);
+			}
+		}
+		for(int i=0;i<instance.out.size();i++){
+			if(nodeToCopy.containsKey(instance.out.get(i))){
+				copyInstance.out.add(nodeToCopy.get(instance.out.get(i)));
+			}else{
+				Node copyOut = new Node();
+				this.add(copyOut);
+				copyInstance.out.add(copyOut);
+				copyNode(instance.out.get(i),copyInstance.out.get(i), nodeToCopy, instanceToCopy);
+			}
 		}
 		
 	}
