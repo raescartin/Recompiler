@@ -97,7 +97,7 @@ public class DefinitionDB implements java.io.Serializable{
 					//2 map out/in recursive nodes
 					//3 keep track of these nodes
 					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
-					tempDef.expandRecursiveInstance(instance, addedNodes, removedInstances);				
+//					tempDef.expandRecursiveInstance(instance, addedNodes, removedInstances);				
 				}
 			}
 		}
