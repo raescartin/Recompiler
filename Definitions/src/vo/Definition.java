@@ -80,7 +80,7 @@ public class Definition implements java.io.Serializable{ /**
 	public ArrayList<Node> out;//NEEDED
 	public ArrayList<Instance> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
 	public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
-	public HashSet<Instance> recursiveInstances;//Recursive instances of this definition, contained in this definition
+	public HashSet<Instance> selfRecursiveInstances;//Recursive instances of this definition, contained in this definition
 	public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
 	//DEBUGGING ONLY
 	public HashSet<Node> nodes;
@@ -92,7 +92,7 @@ public class Definition implements java.io.Serializable{ /**
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
 		this.instances = new ArrayList<Instance>();
-		this.recursiveInstances = new HashSet<Instance>();
+		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
 		//DEBUGGING ONLY
@@ -115,7 +115,7 @@ public class Definition implements java.io.Serializable{ /**
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
 		this.instances = new ArrayList<Instance>();
-		this.recursiveInstances = new HashSet<Instance>();
+		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
 		//DEBUGGING ONLY
@@ -167,8 +167,8 @@ public class Definition implements java.io.Serializable{ /**
 		}
 		Instance instance = new Instance();//node == instance of a definition
 		if(def==this){
-			def.recursiveInstances.add(instance);
-		}else if(!def.recursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
+			def.selfRecursiveInstances.add(instance);
+		}else if(!def.selfRecursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
 			this.instancesOfRecursiveDefinitions.add(instance);
 		}
 		instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
@@ -187,8 +187,8 @@ public class Definition implements java.io.Serializable{ /**
 		}
 		Instance instance = new Instance();//node == instance of a definition
 		if(def==this){
-			def.recursiveInstances.add(instance);
-		}else if(!def.recursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
+			def.selfRecursiveInstances.add(instance);
+		}else if(!def.selfRecursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
 			this.instancesOfRecursiveDefinitions.add(instance);
 		}
 		instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
@@ -521,7 +521,7 @@ public class Definition implements java.io.Serializable{ /**
 		
 	}
 	public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
-		for(Instance instance : this.recursiveInstances){
+		for(Instance instance : this.selfRecursiveInstances){
 			//remove all recursive instances, to make the definition not self recursive
 			//adding nodes from recursive instances
 			//TODO:
@@ -532,7 +532,7 @@ public class Definition implements java.io.Serializable{ /**
 			//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
 			this.removeRecursiveInstance(instance,addedNodes,removedInstances);					
 		}
-		this.recursiveInstances.clear();
+		this.selfRecursiveInstances.clear();
 		HashSet<Instance> instances = new HashSet<Instance>();
 		instances.addAll(this.instancesOfRecursiveDefinitions);
 		this.instancesOfRecursiveDefinitions.clear();
@@ -547,7 +547,7 @@ public class Definition implements java.io.Serializable{ /**
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
 			mapSubnodeParents(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 			mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
-			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	//FIXME
+			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 		}
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
@@ -582,7 +582,7 @@ public class Definition implements java.io.Serializable{ /**
 				if(newInstance.definition==instance.definition){
 					this.instancesOfRecursiveDefinitions.remove(newInstance);
 					this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
-				}else if(!newInstance.definition.recursiveInstances.isEmpty()){//is recursive
+				}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
 					this.instancesOfRecursiveDefinitions.remove(newInstance);
 					this.instances.remove(newInstance);
 					this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
@@ -971,7 +971,7 @@ public class Definition implements java.io.Serializable{ /**
 			for(Instance instance:instances){
 				if(instance.definition.name!="nand"){
 					expanded=true;
-					this.expandInstance(instance);
+					this.expandInstanceToNandInstances(instance);
 					this.instances.remove(instance);
 				}
 			}
@@ -979,7 +979,7 @@ public class Definition implements java.io.Serializable{ /**
 		
 		
 	}
-	private void expandInstance(Instance instance) {
+	void expandInstanceToNandInstances(Instance instance) {
 			HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 			for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 				definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
@@ -1155,10 +1155,79 @@ public class Definition implements java.io.Serializable{ /**
 				this.copyNode(instance.out.get(i),copyOut, nodeToCopy, instanceToCopy, copyDef);
 			}
 		}
-		if(instance.definition!=this){
+//		if(instance.definition!=this){
 			instanceToCopy.put(instance,copyDef.add(instance.definition,nodes.toArray(new Node[nodes.size()])));
-		}else{
-			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
+//		}else{
+//			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
+//		}
+	}
+	public void expandSelfRecursiveInstance(Instance instance) {
+		this.removeInstance(instance);
+		this.expandSelfRecursiveInstanceInstances(instance);
+	}
+	void removeInstance(Instance instance) {
+		//TODO: maybe need to modify rootIn
+		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
+			instance.out.get(i).outOfInstance=null;
 		}
+		this.instances.remove(instance);
+		this.instancesOfRecursiveDefinitions.remove(instance);
+		this.selfRecursiveInstances.remove(instance);
+	}
+	void expandSelfRecursiveInstanceInstances(Instance instance) {
+		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
+		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
+			mapSubnodeParents(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
+			mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
+			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
+		}
+		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
+			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
+			instance.out.get(i).outOfInstance=null;
+			mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+//			mapSubnodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);	
+//			mapSupernodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+		}
+		for(Instance definitionInstance:instance.definition.instances){
+				ArrayList<Node> nodes = new ArrayList<Node>();
+				for (Node node: definitionInstance.in) {//map in nodes
+					if(definitionToInstanceNodes.containsKey(node)){
+						nodes.add(definitionToInstanceNodes.get(node));
+					}else{
+						Node newNode = new Node();
+						definitionToInstanceNodes.put(node, newNode);
+						nodes.add(newNode);
+						node.recursivelyMapParents(definitionToInstanceNodes);
+					}
+				}
+				for (Node node: definitionInstance.out) {//map out nodes
+					if(definitionToInstanceNodes.containsKey(node)){
+						nodes.add(definitionToInstanceNodes.get(node));
+					}else{
+						Node newNode = new Node();
+						definitionToInstanceNodes.put(node, newNode);
+						nodes.add(newNode);
+						node.recursivelyMapParents(definitionToInstanceNodes);
+					}
+				}
+				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+		}
+		
+	}
+	public void replaceDefinition(Definition definition, Definition newDef) {
+		for(Instance instance :this.instances){
+			if(instance.definition==definition){
+				this.instancesOfRecursiveDefinitions.remove(instance);
+				this.selfRecursiveInstances.remove(instance);
+				instance.definition=newDef;
+				if(this==newDef){
+					this.selfRecursiveInstances.add(instance);
+				}else if(!newDef.selfRecursiveInstances.isEmpty()||!newDef.instancesOfRecursiveDefinitions.isEmpty()){
+					this.instancesOfRecursiveDefinitions.add(instance);
+				}
+			}
+		}
+		
 	}
 }

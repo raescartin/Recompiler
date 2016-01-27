@@ -42,7 +42,7 @@ public class Instance implements java.io.Serializable{
 				}
 			}
 			//recursive and all inputs or not recursive and some ins
-			if((!this.definition.recursiveInstances.isEmpty()&&!empties)||(this.definition.recursiveInstances.isEmpty()&&ins)){
+			if((!this.definition.selfRecursiveInstances.isEmpty()&&!empties)||(this.definition.selfRecursiveInstances.isEmpty()&&ins)){
 				this.definition.eval(tempValueMap);//eval
 				for (int i = 0; i < this.out.size(); i++) {
 					if(tempValueMap.containsKey(this.definition.out.get(i))){
@@ -50,7 +50,7 @@ public class Instance implements java.io.Serializable{
 					}
 				}
 			}else{
-				if(!this.definition.recursiveInstances.isEmpty()){
+				if(!this.definition.selfRecursiveInstances.isEmpty()){
 					for (Node outNode: this.out) {
 						valueMap.put(outNode, new FixedBitSet());
 					}

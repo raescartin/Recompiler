@@ -43,7 +43,7 @@ public class DefinitionDB implements java.io.Serializable{
 	public void put(String name, Definition definition){
 		definition.clearRoot();
 		this.optimize(definition);
-		this.toBest(definition);//nand definition to best definition (highest level possible)
+		this.toHighestLevel(definition);//nand definition to best definition (highest level possible)
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
 		//Optimize all definitions where this new definition could be used (implicit bigger than definition) (+++)
@@ -70,7 +70,7 @@ public class DefinitionDB implements java.io.Serializable{
 		//TODO:
 			//intersection optimization of recursive definitions
 		
-		if(definition.recursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
+		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand already optimized!
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
@@ -89,16 +89,23 @@ public class DefinitionDB implements java.io.Serializable{
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 			//rootIn is not modified
-			if(!definition.recursiveInstances.isEmpty()){
+			if(!definition.selfRecursiveInstances.isEmpty()){
 				Definition tempDef = definition.copy();
-				for(Instance instance : tempDef.recursiveInstances){
+				ArrayList<Instance> instances = new ArrayList<Instance>();
+				instances.addAll(tempDef.instances);
+				for(Instance instance : instances){
 					//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
 					//1 add instances of 1st recursion (expand recursion like its done with instancesOfRecursiveDefinitions)
 					//2 map out/in recursive nodes
 					//3 keep track of these nodes
-					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
-//					tempDef.expandRecursiveInstance(instance, addedNodes, removedInstances);				
+					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)	
+					if(instance.definition==definition){
+						tempDef.expandSelfRecursiveInstance(instance);				
+					}
 				}
+				tempDef.replaceDefinition(definition,tempDef);
+				this.optimize(tempDef);
+				
 			}
 		}
 		return definition;
@@ -168,10 +175,10 @@ public class DefinitionDB implements java.io.Serializable{
 			nandToNode.put(nandNode,outNode);
 		}
 	}
-	public void toBest(Definition definition) {
+	public void toHighestLevel(Definition definition) {
 		HashSet<Node> supernodeOuts= new HashSet<Node>();
-		//Use A* type algorithm to locate higher level definitions
-		//Optimize/simplify definition applying all definitions with same root/out(0)
+		//Use A* type algorithm to locate highest level definitions
+		//applying all definitions with same root
 		definition.mapSupernodeOuts(supernodeOuts);
 		int instanceIndex;
 		int rootIndex;
