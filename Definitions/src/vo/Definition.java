@@ -1034,7 +1034,7 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			
 		}
-	public void fussion() {
+	public void fusion() {
 		HashSet<Node> inNodes = new HashSet<Node>();
 		HashMap<Node,ArrayList<Instance>> in0OfInstances = new HashMap<Node,ArrayList<Instance>>();
 		HashMap<Node,ArrayList<Instance>> in1OfInstances = new HashMap<Node,ArrayList<Instance>>();

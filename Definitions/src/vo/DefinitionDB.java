@@ -13,8 +13,8 @@ import utils.AddedNodes;
 
 //DESCRIPTION
 //-Database of unique definitions, recursively defined by other contained definitions
-//-indexed by name
 //-nand is the base definition
+//-indexed by name
 //-serialized:
 //	-save definitions to file
 //	-load definitions from file
@@ -23,7 +23,7 @@ import utils.AddedNodes;
 //IMPLEMENTATION
 //- fix recursion optimization
 //- verify toBest (most critical and complex algorithm)
-//-FIXME(maybe): can't have definitions outside of DB (or else they're added to usedIn and things get messed up)
+//-FIXME(maybe): can't have definitions outside of DB (or else the references get messed up)
 //-take into account optimized in out
 //////////////////////////////////////////////////////
 //HERE BE DRAGONS (maybe not in Java from here)
@@ -37,27 +37,31 @@ public class DefinitionDB implements java.io.Serializable{
 	private static final long serialVersionUID = 6404880670897370982L;
 	HashMap<String,Definition> definitions;
 	public DefinitionDB(Definition nand){
+		//PRE:nand definition as an argument to have it referenced
+		//POST:constructor for DefinitionDB, definitions database
 		definitions = new HashMap<String,Definition>();
-		this.definitions.put("nand",nand);//nand definition needed as building block for definitions
+		this.definitions.put("nand",nand);//nand definition needed as building block for the other definitions
 	}
 	public void put(String name, Definition definition){
+		//POST:optimize, then add definition to database
 		definition.clearRoot();
 		this.optimize(definition);
-		this.toHighestLevel(definition);//nand definition to best definition (highest level possible)
+		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
-		//Optimize all definitions where this new definition could be used (implicit bigger than definition) (+++)
+		//TODO: Optimize all definitions where this new definition could be used
 		//TODO: verify that order of adding definitions is irrelevant example: and then not-> not used in and
 	}
 	public Definition get(String name){
+		//POST:find and return definition by name
 		return this.definitions.get(name);
 	}
 	private Definition optimize(Definition definition) {
-		//PRE: definition's instances are optimized 
-		//POST: definition is optimized
+		//PRE: definition's instances are optimized (may be not exact because of .toHighestLevel() creating intersections)
+		//POST: definition is optimized, using only instances of nand definition and instances of previously optimized  recursive definitions
 		
 		//definition may be recursive
-		//map recursions, transform to non-recursive definition
+		//optimize() maps recursions, transforms to non-recursive definition
 		//add recursive outputs to in and recursive inputs as outs,
 		//transform definition to NandForest,
 		//return previous recursions 
@@ -66,20 +70,19 @@ public class DefinitionDB implements java.io.Serializable{
 		//if not recursive then fromNand to def -> to best
 		//definition->nandtree node fission
 		//with subnodes and recursion
-		//toBest functions with recursion
 		//TODO:
 			//intersection optimization of recursive definitions
 		
 		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
-			if(definition.name!="nand"){ //if definition is nand already optimized!
+			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 				definition.toNandDefinitions();
-				definition.nodeFission();//fission also removes redundant subnodes
+				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				nandForest.optimize();//to remove possible unused nodes
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
-				definition.fussion();
+				definition.fusion();//fusion of nodes
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -88,33 +91,38 @@ public class DefinitionDB implements java.io.Serializable{
 			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
-			//rootIn is not modified
 			if(!definition.selfRecursiveInstances.isEmpty()){
-				Definition tempDef = definition.copy();
-				ArrayList<Instance> instances = new ArrayList<Instance>();
-				instances.addAll(tempDef.instances);
-				for(Instance instance : instances){
-					//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
-					//1 add instances of 1st recursion (expand recursion like its done with instancesOfRecursiveDefinitions)
-					//2 map out/in recursive nodes
-					//3 keep track of these nodes
-					//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)	
-					if(instance.definition==definition){
-						tempDef.expandSelfRecursiveInstance(instance);				
-					}
-				}
-				tempDef.replaceDefinition(definition,tempDef);
-				this.optimize(tempDef);
-				
+				this.optimizeRecursiveIntersection(definition);		
 			}
 		}
 		return definition;
+	}
+	private void optimizeRecursiveIntersection(Definition definition) {
+		//PRE: recursion is optimized but for self recursive intersection
+		//POST: remove the operations that are repeated during recursion (recursive intersection)
+		//		transforms definition to a new optimized definition containing a new recursive definition  (if needed)
+		Definition tempDef = definition.copy();
+		ArrayList<Instance> instances = new ArrayList<Instance>();
+		instances.addAll(tempDef.instances);
+		for(Instance instance : instances){
+			//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
+			//1 copy definition
+			//2 expand recursive instance in copy
+			//3 compare nodes in definition and copy, keep the nodes that are unchanged
+			//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
+			if(instance.definition==definition){
+				tempDef.expandSelfRecursiveInstance(instance);				
+			}
+		}
+		tempDef.replaceDefinition(definition,tempDef);
+		this.optimize(tempDef);
+		
 	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition	
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		int i=0;
-		for (Node node:nandToNodeIn){//we map only inputs to map bottom to top
+		for (Node node:nandToNodeIn){//we map only inputs because expanding is bottom to top
 			nandToNode.put(nandForest.in.get(i),node);	
 			i++;
 		}
@@ -176,6 +184,9 @@ public class DefinitionDB implements java.io.Serializable{
 		}
 	}
 	public void toHighestLevel(Definition definition) {
+		//PRE: definition may be recrusive
+		//POST: apply defintions from definitionDB to transform the definition to the higher level possible
+		//Design choice: prioritize definition usage to intersection elimination, making less optimized resulting definition, but more practical
 		HashSet<Node> supernodeOuts= new HashSet<Node>();
 		//Use A* type algorithm to locate highest level definitions
 		//applying all definitions with same root
