@@ -4,9 +4,6 @@
  *******************************************************************************/
 package vo;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,32 +15,24 @@ import utils.FixedBitSet;
 //DESCRIPTION
 //-Defines a "Definition", procedure, function with multiple outputs
 //-Recursive definition:
-//	#A definition is composed by instances of definitions
-//	#Nand is the basic definition
+//	-A definition is composed by instances of definitions
+//	-Nand is the basic definition
 //-Definitions may be recursive and ARE TURING COMPLETE (equivalent to algorithms)
-//PRE: all inputs(and in consequence outpus) of a nand definition must be of the same size
+//PRE: all inputs(and in consequence outputs) of a nand definition must be of the same size
 
 
 //FIXME: 
-//-toString of lesser level components only works after definition.toString has been called
 //-can't have definitions outside of DB (or else they're added to usedIn and things get messed up)
-//-remove value
 //TODO: 
-//-Implement logical if
-//-recursion -> implement simple assembler as definitions
-//	-CMP A,B,flag Z (1 bit) / PC ++ (in parallel=extra input/output)
-//	-ADD A,B,C / PC ++ (in parallel=extra input/output)
+//-add arrays
 
 //////////////////////////////////////////////////////
 //HERE BE DRAGONS (maybe not in Java from here)
 //////////////////////////////////////////////////////
 //-optimize definition while adding new node (efficiency)
 //-parallelization of code
-//-out 0 by defect
-//-commands for interactive definition
 //
 //OPTIMIZATION
-//-on eval conserve node values, don't recalculate (like separated functions)-> look toNand
 //-Short-circuit evaluation
 //-Disable infinite self recursion (also indirect) = no CICLES (infinite should only be possible with infinite BitSet)
 //-!=sizes on eval -> fill with 0's
@@ -69,15 +58,11 @@ import utils.FixedBitSet;
 
 
 
-public class Definition implements java.io.Serializable{ /**
-	 * 
-	 */
-	private static final long serialVersionUID = -3804848616644678453L;
+public class Definition {
 	public int maxNode=0;//keep track for easy consistency while removing nodes
-	public String name;//not needed, only for debug
-//	public HashMap<Node,Integer> tradInts;//not needed, only for debug
-	public ArrayList<Node> in;//NEEDED
-	public ArrayList<Node> out;//NEEDED
+	public String name;
+	public ArrayList<Node> in;
+	public ArrayList<Node> out;
 	public ArrayList<Instance> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
 	public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
 	public HashSet<Instance> selfRecursiveInstances;//Recursive instances of this definition, contained in this definition
@@ -118,9 +103,7 @@ public class Definition implements java.io.Serializable{ /**
 		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
-		//DEBUGGING ONLY
 		this.nodes = new HashSet<Node> ();
-		//END OF DEBUGGING ONLY
 	}
 	public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
 		//PRE: this definition is not recursive and doesn't contain recursive definitions
@@ -136,7 +119,6 @@ public class Definition implements java.io.Serializable{ /**
 		this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
 		//IN and OUTS mapped and in nandForest
 		this.instances.clear();
-//		this.rootIn.clear();
 		this.nodes.retainAll(inOutNodes);
 		for(Node outNode:nandToNodeOut){
 			outNode.parents.clear();
@@ -175,26 +157,6 @@ public class Definition implements java.io.Serializable{ /**
 		instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 		instance.definition=def;
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
-//			if(outNode==this.out.get(0)) def.rootIn.add(this);
-			outNode.outOfInstance=instance;
-		}
-		this.instances.add(instance);
-		return instance;
-	}
-	public Instance addWithoutRootIn(Definition def,Node ... nodes){
-		for(Node node:nodes){
-			this.add(node);	
-		}
-		Instance instance = new Instance();//node == instance of a definition
-		if(def==this){
-			def.selfRecursiveInstances.add(instance);
-		}else if(!def.selfRecursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
-			this.instancesOfRecursiveDefinitions.add(instance);
-		}
-		instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
-		instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
-		instance.definition=def;
-		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
 		}
 		this.instances.add(instance);
@@ -217,7 +179,6 @@ public class Definition implements java.io.Serializable{ /**
 	public String toString() {
 		String string = new String();
 		//Print this definition translating node id to integers
-		//System.out.print(this.hashCode());
 		string+=this.name;
 		string+=("[");
 		for (Node node: this.in) {
@@ -299,13 +260,6 @@ public class Definition implements java.io.Serializable{ /**
 			}
 			for (Node node : appliedDefinition.out) {
 				Node outNode=nodeMap.get(node);
-//				if(outNode==this.out.get(0)){//if change of root update rootIn
-//					outNode.outOfInstance.definition.rootIn.remove(this);//previous instance definition remove rootIn(this) //TODO: CHANGE TO HASH
-//					if(!appliedDefinition.rootIn.contains(this)){//FIXME:needed because not Hash
-//						appliedDefinition.rootIn.add(this);//new node add rootIn
-//					}
-//					
-//				}
 				outArray.add(outNode);
 				outNode.outOfInstance=instance;
 			}
@@ -381,59 +335,6 @@ public class Definition implements java.io.Serializable{ /**
 			}
 		}
 		return true;
-	}
-	public void write(ObjectOutputStream stream,
-			HashMap<Definition, Integer> defMap) throws IOException {
-		//FIXME:subnodes
-		//TODO: use least space writing definitions-> optimize parameters as nº
-		HashMap<Node, Integer> nodeMap = new HashMap<Node, Integer>();
-		int nodeIndex=0;
-		stream.write(this.in.size());
-		for(Node node : this.in){
-			nodeIndex=node.write(stream, nodeMap, nodeIndex);
-		}
-		stream.write(this.out.size());
-		for(Node node : this.out){
-			nodeIndex=node.write(stream, nodeMap, nodeIndex);
-		}
-		stream.write(this.instances.size());
-		for(Instance instance : this.instances){
-			nodeIndex=instance.write(stream,nodeMap,nodeIndex,defMap);//fix primitive int pass by value
-		}
-	}
-	public void read(ObjectInputStream stream,
-			HashMap<Integer, Definition> defMap) throws IOException {
-		//TODO: use least space writing definitions-> optimize parameters as nº
-		HashMap<Integer, Node> nodeMap = new HashMap<Integer, Node>();
-		Node node = null;
-		int keyNode;
-		Instance instance = null;
-		int size = stream.read();//nº in nodes
-		for (int i = 0; i < size; i++) {//add in nodes
-			keyNode = stream.read();
-			node = new Node();
-			node.read(stream, nodeMap);
-			this.in.add(node);
-			nodeMap.put(keyNode,node);
-		}
-		size = stream.read();//nº out nodes
-		for (int i = 0; i < size; i++) {//add out nodes
-			keyNode=stream.read();
-			node = new Node();
-			node.read(stream, nodeMap);
-			this.out.add(node);
-			nodeMap.put(keyNode,node);
-		}
-		size = stream.read();//nº of instances
-		for (int i = 0; i < size; i++) {//add instances
-			instance = new Instance();
-			this.instances.add(instance);
-			instance.read(stream,nodeMap,defMap);
-		}
-		//TODO: find root in
-		if(this.out.get(0).outOfInstance!=null){
-			this.out.get(0).outOfInstance.definition.rootIn.add(this);
-		}
 	}
 	public void printEval(String ... strings){
 		
@@ -861,89 +762,7 @@ public class Definition implements java.io.Serializable{ /**
 			this.add(instance.definition,nodes.toArray(new Node[nodes.size()]));
 		}
 	}
-//	public void nodeFusion() {
-//		HashMap<Definition,ArrayList<Instance>> instancesByDefinition = new HashMap<Definition,ArrayList<Instance>>();
-//		for(Instance instance:this.instances){
-//			boolean fusible=true;
-//			for(Node inNode:instance.in){
-//				if(inNode.parents.size()!=1){
-//					fusible=false;
-//				}
-//			}
-//			for(Node outNode:instance.out){
-//				if(outNode.children.size()!=1){
-//					fusible=false;
-//				}
-//			}
-//			if(fusible){
-//				ArrayList<Instance> instancesOfDefinition = new ArrayList<Instance>();
-//				if(instancesByDefinition.containsKey(instance.definition)){
-//					instancesOfDefinition=instancesByDefinition.get(instance.definition);
-//				}
-//				instancesOfDefinition.add(instance);
-//				instancesByDefinition.put(instance.definition, instancesOfDefinition);
-//			}
-//		}
-//		HashMap<Node,ArrayList<Instance>> instancesByNode = new HashMap<Node,ArrayList<Instance>>();
-//		for(Definition definition:instancesByDefinition.keySet()){
-//			for(Instance instance:instancesByDefinition.get(definition)){
-//				if(instance.in.get(0).parents.size()==1){
-//					ArrayList<Instance> instancesWithNode = new ArrayList<Instance>();
-//					if(instancesByNode.containsKey(instance.in.get(0))){
-//						instancesWithNode = instancesByNode.get(instance.in.get(0));
-//					}
-//					instancesWithNode.add(instance);
-//					instancesByNode.put(instance.in.get(0).parents.get(0), instancesWithNode);
-//				}
-//				
-//			}
-//		}
-//		for(Node node:instancesByNode.keySet()){//Heuristic
-//			ArrayList<Instance> instances=instancesByNode.get(node);
-//			for(Instance instance:instances){
-//				Instance superInstance = new Instance();
-//				superInstance.definition=instance.definition;
-//				for(Node inNode:instance.in){
-//					superInstance.in.add(inNode.parents.get(0));
-//				}
-//				for(Node outNode:instance.out){
-//					superInstance.out.add(outNode.children.get(0));
-//				}
-//				ArrayList<Instance> candidateInstances = new ArrayList<Instance>();
-//				for(Instance candidateInstance:instancesByNode.get(node)){
-//					boolean candidate=true;
-//					for (int i = 0; i < superInstance.in.size(); i++) {
-//						if(candidateInstance.in.get(i).parents.get(0)!=superInstance.in.get(i)){
-//							candidate=false;
-//						}
-//					}
-//					for (int i = 0; i < superInstance.out.size(); i++) {
-//						if(candidateInstance.out.get(i).children.get(0)!=superInstance.out.get(i)){
-//							candidate=false;
-//						}
-//					}
-//					if(candidate){
-//						candidateInstances.add(candidateInstance);
-//						instances.remove(candidate);
-//					}
-//					
-//				}
-//				//if we have all subinstances to this superinstance, replace subinstances with superinstance (fusion)
-//				if(candidateInstances.size()==node.children.size()){
-//					ArrayList<Node> nodes = new ArrayList<Node>();
-//					nodes.addAll(superInstance.in);
-//					nodes.addAll(superInstance.out);
-//					this.add(superInstance.definition,nodes.toArray(new Node[nodes.size()]));
-//					for(Instance candidateInstance:candidateInstances){
-//						this.instances.remove(candidateInstance);
-//					}
-//				}
-//				
-//				
-//			}
-//		}
-//			
-//	}
+
 	public void nodeFission() {
 		for(Node outNode:this.out){
 			outNode.flattenParents();
@@ -1043,17 +862,6 @@ public class Definition implements java.io.Serializable{ /**
 			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
 		}
 	}
-//	public void mapInOutNodes(HashSet<Node> inOutNodes) {
-//		this.mapIns(inOutNodes);
-//		this.mapOuts(inOutNodes);
-//		
-//	}
-//	private void mapIns(HashSet<Node> inOutNodes) {
-//		for(Node inNode:this.in){
-//			inNode.mapChildren(inOutNodes);
-//		}
-//		
-//	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
 		for(Node outNode:this.out){
 			outNode.mapSupernodeParents(supernodeParents);

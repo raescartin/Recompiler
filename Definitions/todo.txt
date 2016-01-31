@@ -1,5 +1,5 @@
 ﻿-sqrt
--definition with array
+-add arrays of nodes to definition
 -interseccion entre iteraciones de los bucles
 -todo: recursive intersection merge (if/rif)
 -fix eval of definitions

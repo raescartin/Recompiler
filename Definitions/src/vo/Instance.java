@@ -4,9 +4,6 @@
  *******************************************************************************/
 package vo;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,53 +87,5 @@ public class Instance implements java.io.Serializable{
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=("] ");
 		return string;
-	}
-	public int write(ObjectOutputStream stream,
-			HashMap<Node, Integer> nodeMap, int nodeIndex, HashMap<Definition, Integer> defMap) throws IOException {
-		//FIXME: write subnodes
-		stream.write(this.in.size());
-		for(Node node : this.in){
-			nodeIndex=node.write(stream, nodeMap, nodeIndex);
-		}
-		stream.write(this.out.size());
-		for(Node node : this.out){
-			nodeIndex=node.write(stream, nodeMap, nodeIndex);
-		}
-		stream.write(defMap.get(this.definition));
-		return nodeIndex;
-	}
-	public void read(ObjectInputStream stream, HashMap<Integer, Node> nodeMap, HashMap<Integer, Definition> defMap) throws IOException {
-		//FIXME: read subnodes
-		Node node = null;
-		int keyNode = 0;
-		int size = stream.read();//nº in nodes
-		for (int i = 0; i < size; i++) {//add in nodes
-			keyNode=stream.read();
-			if(nodeMap.containsKey(keyNode)){
-				this.in.add(nodeMap.get(keyNode));
-			}else{
-				node = new Node();
-				node.read(stream, nodeMap);
-				this.in.add(node);
-				nodeMap.put(keyNode,node);
-			}
-		}
-		size = stream.read();//nº out nodes
-		for (int i = 0; i < size; i++) {//add out nodes
-			keyNode=stream.read();
-			if(nodeMap.containsKey(keyNode)){
-				node=nodeMap.get(keyNode);
-				node.outOfInstance=this;
-				this.out.add(node);
-			}else{
-				node = new Node();
-				node.read(stream, nodeMap);
-				node.outOfInstance=this;
-				this.out.add(node);
-				nodeMap.put(keyNode,node);
-			}
-		}
-		keyNode=stream.read();
-		this.definition=defMap.get(keyNode);
 	}
 }

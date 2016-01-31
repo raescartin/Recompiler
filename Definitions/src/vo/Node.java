@@ -4,9 +4,6 @@
  *******************************************************************************/
 package vo;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,39 +80,6 @@ public class Node {
 			string+=this.idForDefinition;
 		}
 		return string;
-	}
-	public int write(ObjectOutputStream stream, HashMap<Node, Integer> nodeMap, int nodeIndex) throws IOException {//TODO
-		if(nodeMap.containsKey(this)){
-			stream.write(nodeMap.get(this));
-		}else{
-			nodeMap.put(this, nodeIndex);
-			stream.write(nodeIndex);
-			nodeIndex++;
-			stream.write(this.parents.size());
-			for (Node node : this.parents) {
-				nodeIndex=node.write(stream,nodeMap,nodeIndex);
-			}
-		}
-		return nodeIndex;
-	}
-	public void read(ObjectInputStream stream, HashMap<Integer, Node> nodeMap) throws IOException {//TODO
-		//TODO: read subnodes
-		Node node;
-		int keyNode;
-		int size =stream.read();//subnodes size
-		for (int i = 0; i < size; i++) {//add subnodes
-			keyNode=stream.read();
-			if(nodeMap.containsKey(keyNode)){
-				node=nodeMap.get(keyNode);
-				this.parents.add(node);
-			}else{
-				node = new Node();
-				node.read(stream,nodeMap);
-				this.parents.add(node);
-				nodeMap.put(keyNode,node);
-			}
-		}
-		
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {//FIXME
 		if(!valueMap.containsKey(this)){//Non evaluated node
@@ -323,27 +287,27 @@ public class Node {
 			parent.childrenFission();
 		}
 	}
-	private void nandChildrenFission() {
-			if(this.parents.get(0).parents.size()==1){
-				this.parents.get(0).nandChildrenFission();
-			}
-			if(this.parents.get(0).outOfInstance!=null){
-				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-				ArrayList<Node> leftArray = new ArrayList<Node>();
-				ArrayList<Node> rightArray = new ArrayList<Node>();
-				parentLeft.splitChildren(leftArray);
-				parentRight.splitChildren(rightArray);
-				Node out=this.parents.get(0);
-				for(int i=0; i<3;i++){
-					Node[] nodes={leftArray.get(i),rightArray.get(i),out.children.get(i)};
-					this.definition.add(out.outOfInstance.definition, nodes);
-//					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
-				}
-				this.definition.instances.remove(out.outOfInstance);
-				out.outOfInstance=null;
-			}
-	}
+//	private void nandChildrenFission() {
+//			if(this.parents.get(0).parents.size()==1){
+//				this.parents.get(0).nandChildrenFission();
+//			}
+//			if(this.parents.get(0).outOfInstance!=null){
+//				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
+//				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
+//				ArrayList<Node> leftArray = new ArrayList<Node>();
+//				ArrayList<Node> rightArray = new ArrayList<Node>();
+//				parentLeft.splitChildren(leftArray);
+//				parentRight.splitChildren(rightArray);
+//				Node out=this.parents.get(0);
+//				for(int i=0; i<3;i++){
+//					Node[] nodes={leftArray.get(i),rightArray.get(i),out.children.get(i)};
+//					this.definition.add(out.outOfInstance.definition, nodes);
+////					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
+//				}
+//				this.definition.instances.remove(out.outOfInstance);
+//				out.outOfInstance=null;
+//			}
+//	}
 	void splitChildren(ArrayList<Node> childArray) {
 		if(this.parents.size()>1){
 			Node leftParent=this.parents.get(0);

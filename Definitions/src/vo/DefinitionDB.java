@@ -4,7 +4,6 @@
  *******************************************************************************/
 package vo;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,11 +29,7 @@ import utils.AddedNodes;
 //////////////////////////////////////////////////////
 //-take into account synonyms
 //-optimize using intersections instead of brute force (merge already optimized definitions vs full nandtree of definition each time)
-public class DefinitionDB implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6404880670897370982L;
+public class DefinitionDB {
 	HashMap<String,Definition> definitions;
 	public DefinitionDB(Definition nand){
 		//PRE:nand definition as an argument to have it referenced
@@ -72,6 +67,8 @@ public class DefinitionDB implements java.io.Serializable{
 		//with subnodes and recursion
 		//TODO:
 			//intersection optimization of recursive definitions
+			//intersection optimization of definition with contained recursive definitions
+			//intersection optimization between contained recursive definitions
 		
 		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
@@ -91,9 +88,9 @@ public class DefinitionDB implements java.io.Serializable{
 			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
-			if(!definition.selfRecursiveInstances.isEmpty()){
-				this.optimizeRecursiveIntersection(definition);		
-			}
+//			if(!definition.selfRecursiveInstances.isEmpty()){
+//				this.optimizeRecursiveIntersection(definition);		
+//			}
 		}
 		return definition;
 	}
@@ -101,15 +98,15 @@ public class DefinitionDB implements java.io.Serializable{
 		//PRE: recursion is optimized but for self recursive intersection
 		//POST: remove the operations that are repeated during recursion (recursive intersection)
 		//		transforms definition to a new optimized definition containing a new recursive definition  (if needed)
+		//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
+		//1 copy definition
+		//2 expand recursive instance in copy
+		//3 compare nodes in definition and copy, keep the nodes that are unchanged
+		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
 		Definition tempDef = definition.copy();
 		ArrayList<Instance> instances = new ArrayList<Instance>();
 		instances.addAll(tempDef.instances);
 		for(Instance instance : instances){
-			//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
-			//1 copy definition
-			//2 expand recursive instance in copy
-			//3 compare nodes in definition and copy, keep the nodes that are unchanged
-			//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
 			if(instance.definition==definition){
 				tempDef.expandSelfRecursiveInstance(instance);				
 			}
@@ -121,36 +118,27 @@ public class DefinitionDB implements java.io.Serializable{
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition	
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
-		int i=0;
-		for (Node node:nandToNodeIn){//we map only inputs because expanding is bottom to top
-			nandToNode.put(nandForest.in.get(i),node);	
-			i++;
+		for (int i=0;i<nandToNodeIn.size();i++) {//we map only inputs because expanding is bottom to top
+			nandToNode.put(nandForest.in.get(i),nandToNodeIn.get(i));
 		}
-		i=0;
-		for (Node node : nandToNodeOut) {//node can be out node of definition OR a subnode from one
+		for (int i=0;i<nandToNodeOut.size();i++) {//node can be out node of definition OR a subnode from one
 				for (int j = 0; j < nandForest.in.size(); j++) {//FIX FOR WHEN A NANDFOREST NODE IS BOTH IN AND OUT
 					if(nandForest.in.get(j)==nandForest.out.get(i)){
 						for (int k = 0; k < definition.out.size(); k++) {
-							if(definition.out.get(k)==node){
+							if(definition.out.get(k)==nandToNodeOut.get(i)){
 								definition.out.set(k, nandToNode.get(nandForest.out.get(i)));//it's and out node
 							}
 						}
-						for (Node parent :node.parents){
+						for (Node parent :nandToNodeOut.get(i).parents){
 							for (int k = 0; k < parent.parents.size(); k++) {
-								if(parent.parents.get(k)==node){
+								if(parent.parents.get(k)==nandToNodeOut.get(i)){
 									parent.parents.set(k, nandToNode.get(nandForest.out.get(i)));//it's a subnode
 								}
 							}
 						}
 					}
 				}
-				this.addNands(node,nandForest.out.get(i),definition,nandForest,nandToNode);
-				if(definition.out.isEmpty()&&node.outOfInstance!=null&&node.outOfInstance.definition!=null){//avoid applying definition to self, first def->instance second def->definition 
-//					if(!node.outOfInstance.definition.rootIn.contains(definition)){//FIXME:needed because not hash
-//						node.outOfInstance.definition.rootIn.add(definition);
-//					}
-				}
-				i++;
+				this.addNands(nandToNodeOut.get(i),nandForest.out.get(i),definition,nandForest,nandToNode);
 		}
 		return definition;
 	}
@@ -184,8 +172,8 @@ public class DefinitionDB implements java.io.Serializable{
 		}
 	}
 	public void toHighestLevel(Definition definition) {
-		//PRE: definition may be recrusive
-		//POST: apply defintions from definitionDB to transform the definition to the higher level possible
+		//PRE: definition may be recursive
+		//POST: apply definitions from definitionDB to transform the definition to the higher level possible
 		//Design choice: prioritize definition usage to intersection elimination, making less optimized resulting definition, but more practical
 		HashSet<Node> supernodeOuts= new HashSet<Node>();
 		//Use A* type algorithm to locate highest level definitions
@@ -199,7 +187,7 @@ public class DefinitionDB implements java.io.Serializable{
 		do{
 			appliedOnce=false;
 			instanceIndex=0;
-			while (instanceIndex<definition.instances.size()) {//one level up //while needed instead of for, since list can be modified on loop
+			while (instanceIndex<definition.instances.size()) {//one level up, while needed instead of for, since list can be modified on loop
 				instance=definition.instances.get(instanceIndex);
 				rootIndex=0;
 				boolean applied=false;
@@ -228,35 +216,4 @@ public class DefinitionDB implements java.io.Serializable{
 		}
 		return string;
 	}
-	public void write(java.io.ObjectOutputStream stream)
-            throws IOException {
-		HashMap<Definition,Integer> defMap = new HashMap<Definition,Integer>();
-		int definitionIndex=0;
-		stream.write(this.definitions.size());
-		for(String name : this.definitions.keySet()){//map all definitions
-			defMap.put(this.definitions.get(name),definitionIndex);
-			definitionIndex++;
-		}
-		for(String name : this.definitions.keySet()){//write mapped definitions
-				this.definitions.get(name).write(stream,defMap);
-				stream.writeObject(name);
-		}
-    }
-
-    public void read(java.io.ObjectInputStream stream)
-            throws IOException, ClassNotFoundException {
-    	HashMap<Integer,Definition> defMap = new HashMap<Integer,Definition>();
-    	int numDefinitions=0;
-		String name = null;
-		numDefinitions=stream.read();
-		for (int i = 0; i < numDefinitions; i++) {
-			Definition definition = new Definition(0,0,name);
-			defMap.put(i, definition);
-		}
-		for (int i = 0; i < numDefinitions; i++) {
-			defMap.get(i).read(stream,defMap);
-			name = (String)stream.readObject();
-			this.definitions.put(name,defMap.get(i));
-		}
-    }
 }
