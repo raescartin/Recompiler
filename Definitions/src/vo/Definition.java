@@ -207,16 +207,11 @@ public class Definition {
 		return string;
 	}
 	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> supernodeOuts) {
-		//PRE: this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
-		//if the replaced instances have a node from inOutNodes as a halfway node don't replace
-		//TODO: expand out of nodes
-		//TODO: remove from out of nodes
-		//TODO: replace only non outside referenced instances
-		//apply definition with instance as root(0) of appliedDefinition
+		//PRE: .this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
+		//POST:apply definition with instance as root of appliedDefinition
 		// and replaces existing instances with instance to an existing applied definition
-		//includes reverse references to verify instance can be safely erased in O(1)
-		//-each tree from out must have at least one node in common (else two separated definitions) FOR NOW?
-		//TODO:MAYBE: verify that all roots are expanded (if needed, +++cost)
+		//TODO: replace only non outside referenced instances (without intersections),if the replaced instances have any halfway node don't replace
+		//MAYBE: verify that all roots are expanded (if needed, +++cost)
 		Instance expandingInstance=instance;
 		Instance expandingAppliedInstance=null;
 		HashSet<Instance> toExpand = new HashSet<Instance>();//instances to expand
@@ -248,10 +243,6 @@ public class Definition {
 					
 				}
 				
-			}
-			if(appliedDefinition.instances.size()!=instanceMap.size()){//FIXME: needed?
-				System.out.println("Error applying, different number of instances. Parrallel path.");
-				return false;
 			}
 			ArrayList<Node> inArray = new ArrayList<Node>();
 			ArrayList<Node> outArray = new ArrayList<Node>();
@@ -1036,6 +1027,74 @@ public class Definition {
 				}
 			}
 		}
+		
+	}
+	public void locateUnchangedNodes(Definition tempDef,
+			ArrayList<Node> newRecursiveDefinitionIn,
+			ArrayList<Node> newRecursiveDefinitionOut) {
+		HashMap<Node,Node> definitionToTempDefNodes = new HashMap<Node,Node>();
+		this.locateUnchangedIns(tempDef,newRecursiveDefinitionIn,definitionToTempDefNodes);
+		this.locateUnchangedOuts(tempDef,newRecursiveDefinitionOut,definitionToTempDefNodes);
+	}
+	private void locateUnchangedIns(Definition tempDef,
+			ArrayList<Node> newRecursiveDefinitionIn,
+			HashMap<Node, Node> definitionToTempDefNodes) {
+		for(int i=0;i<this.in.size();i++){
+			this.mapUnchangedIns(this.in.get(i), tempDef.in.get(i),newRecursiveDefinitionIn,definitionToTempDefNodes);
+		}
+	}
+	private void mapUnchangedIns(Node node, Node tempNode,
+			ArrayList<Node> newRecursiveDefinitionIn,
+			HashMap<Node, Node> definitionToTempDefNodes) {
+		if(!definitionToTempDefNodes.containsKey(node)){
+			definitionToTempDefNodes.put(node,tempNode);
+		}
+		
+	}
+	private void locateUnchangedOuts(Definition tempDef,
+			ArrayList<Node> newRecursiveDefinitionOut,
+			HashMap<Node, Node> definitionToTempDefNodes) {
+		for(int i=0;i<this.out.size();i++){
+			this.mapUnchangedOuts(this.out.get(i), tempDef.out.get(i),newRecursiveDefinitionOut,definitionToTempDefNodes);
+		}
+		
+	}
+	private void mapUnchangedOuts(Node node, Node tempNode,
+			ArrayList<Node> newRecursiveDefinitionOut,
+			HashMap<Node, Node> definitionToTempDefNodes) {
+		if(!definitionToTempDefNodes.containsKey(node)){
+			definitionToTempDefNodes.put(node,tempNode);
+			if(node.parents.size()!=tempNode.parents.size()||(node.outOfInstance==null&&tempNode.outOfInstance!=null)||(node.outOfInstance!=null&&tempNode.outOfInstance==null)){
+				newRecursiveDefinitionOut.add(node);
+			}else{
+				for(int i=0;i<node.parents.size();i++){
+					this.mapUnchangedOuts(node.parents.get(i), tempNode.parents.get(i), newRecursiveDefinitionOut, definitionToTempDefNodes);
+				}
+				if(node.outOfInstance==null){
+					this.mapUnchangedOuts(node.outOfInstance.in.get(0), tempNode.outOfInstance.in.get(0), newRecursiveDefinitionOut, definitionToTempDefNodes);
+					this.mapUnchangedOuts(node.outOfInstance.in.get(1), tempNode.outOfInstance.in.get(1), newRecursiveDefinitionOut, definitionToTempDefNodes);
+				}
+			}
+		}
+		
+	}
+	public void extractNewRecursiveDefinition(
+			ArrayList<Node> newRecursiveDefinitionIn,
+			ArrayList<Node> newRecursiveDefinitionOut) {
+		// TODO Auto-generated method stub
+		
+	}
+	public void expandRecursiveInstances(Definition originalDefinition,
+			ArrayList<Instance> selfRecursiveInstances) {
+		ArrayList<Instance> instances = new ArrayList<Instance>();
+		instances.addAll(this.instances);
+		for(Instance instance : instances){
+			if(instance.definition==originalDefinition){//need to expand on previous definition
+				selfRecursiveInstances.add(instance);
+				this.expandSelfRecursiveInstance(instance);				
+			}
+		}
+		this.replaceDefinition(originalDefinition,this);//replace occurrences of originalDefinition to this, for recursion consistency
 		
 	}
 }

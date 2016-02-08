@@ -7,6 +7,7 @@ package vo;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import utils.FixedBitSet;
 
@@ -135,5 +136,24 @@ public class NandForest {//multiple nand trees
 	public NandNode setOut(NandNode nandNode) {
 		this.out.add(nandNode);
 		return nandNode;
+	}
+	public NandForest unchangedNodes(NandForest expandedNandForest) {
+		HashMap <NandNode,NandNode> thisToExpanded = new HashMap <NandNode,NandNode>();
+		HashMap <NandNode,HashSet<NandNode>> thisOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
+		HashMap <NandNode,HashSet<NandNode>> expandedOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
+		int minIn=Math.min(this.in.size(),expandedNandForest.in.size());
+		NandForest nandForest = new NandForest(minIn);//
+		this.mapOutOfNands(thisOutOfNands);
+		expandedNandForest.mapOutOfNands(expandedOutOfNands);
+		for(int i=0;i<minIn;i++){
+			thisToExpanded.put(this.in.get(i), expandedNandForest.in.get(i));
+		}
+		return nandForest;
+	}
+	private void mapOutOfNands(
+			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands) {
+		for (NandNode node : this.out) {
+			node.mapOutOfNandsByLevel(thisOutOfNands);
+		}
 	}
 }

@@ -19,6 +19,10 @@ import utils.AddedNodes;
 //	-load definitions from file
 //-doesn't support indirect recursion (non recursive definition with instances that call the definition)
 //because it doesn't make sense to define such a function (calling a definition not yet defined)
+//
+//TODO:
+//Metrics: bitwise nands used
+//
 //IMPLEMENTATION
 //- fix recursion optimization
 //- verify toBest (most critical and complex algorithm)
@@ -28,7 +32,6 @@ import utils.AddedNodes;
 //HERE BE DRAGONS (maybe not in Java from here)
 //////////////////////////////////////////////////////
 //-take into account synonyms
-//-optimize using intersections instead of brute force (merge already optimized definitions vs full nandtree of definition each time)
 public class DefinitionDB {
 	HashMap<String,Definition> definitions;
 	public DefinitionDB(Definition nand){
@@ -41,6 +44,9 @@ public class DefinitionDB {
 		//POST:optimize, then add definition to database
 		definition.clearRoot();
 		this.optimize(definition);
+		if(!definition.selfRecursiveInstances.isEmpty()){
+			this.optimizeRecursiveIntersection(definition);		
+		}
 		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
@@ -52,7 +58,7 @@ public class DefinitionDB {
 		return this.definitions.get(name);
 	}
 	private Definition optimize(Definition definition) {
-		//PRE: definition's instances are optimized (may be not exact because of .toHighestLevel() creating intersections)
+		//PRE: definition's instances are optimized 
 		//POST: definition is optimized, using only instances of nand definition and instances of previously optimized  recursive definitions
 		
 		//definition may be recursive
@@ -88,9 +94,7 @@ public class DefinitionDB {
 			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
-//			if(!definition.selfRecursiveInstances.isEmpty()){
-//				this.optimizeRecursiveIntersection(definition);		
-//			}
+			
 		}
 		return definition;
 	}
@@ -100,20 +104,55 @@ public class DefinitionDB {
 		//		transforms definition to a new optimized definition containing a new recursive definition  (if needed)
 		//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
 		//1 copy definition
-		//2 expand recursive instance in copy
+		//2 expand recursive instances in copy
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
-		Definition tempDef = definition.copy();
-		ArrayList<Instance> instances = new ArrayList<Instance>();
-		instances.addAll(tempDef.instances);
-		for(Instance instance : instances){
-			if(instance.definition==definition){
-				tempDef.expandSelfRecursiveInstance(instance);				
-			}
-		}
-		tempDef.replaceDefinition(definition,tempDef);
-		this.optimize(tempDef);
+		Definition newRecursiveDefinition = new Definition();
+		ArrayList<Node> newRecursiveDefinitionIn = new ArrayList<Node>();
+		ArrayList<Node> newRecursiveDefinitionOut = new ArrayList<Node>();
+		ArrayList<Node> nodes = new ArrayList<Node>();
 		
+		Definition definitionCopy = definition.copy();//freeze original for expansion
+		ArrayList<Instance> selfRecursiveInstances = new ArrayList<Instance>();
+		definitionCopy.expandRecursiveInstances(definition,selfRecursiveInstances);
+		Definition expandedDefinition = definitionCopy.copy();
+
+		AddedNodes expandedAddedNodes = new AddedNodes();
+		HashSet<Instance> expandedRemovedInstances = new HashSet<Instance>();
+		expandedDefinition.removeRecursion(expandedAddedNodes, expandedRemovedInstances);
+		ArrayList <Node> expandedNandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
+		ArrayList <Node> expandedNandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
+		expandedDefinition.toNandDefinitions();
+		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+		NandForest expandedNandForest = expandedDefinition.toNandForest(expandedNandToNodeIn,expandedNandToNodeOut);//non recursive definition to nandforest
+		
+		definitionCopy.selfRecursiveInstances.clear();
+		for(Instance selfRecursiveInstance : selfRecursiveInstances){
+			ArrayList<Node> selfRecursiveInstanceNodes = new ArrayList<Node>();
+			selfRecursiveInstanceNodes.addAll(selfRecursiveInstance.in);
+			selfRecursiveInstanceNodes.addAll(selfRecursiveInstance.out);
+			definitionCopy.add(definitionCopy, selfRecursiveInstanceNodes.toArray(new Node[selfRecursiveInstanceNodes.size()]));
+		}
+		
+		AddedNodes copyAddedNodes = new AddedNodes();
+		HashSet<Instance> copyRemovedInstances = new HashSet<Instance>();
+		definitionCopy.removeRecursion(copyAddedNodes, copyRemovedInstances);
+		ArrayList <Node> copyNandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
+		ArrayList <Node> copyNandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
+		definitionCopy.toNandDefinitions();
+		definitionCopy.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+		NandForest copyNandForest = definitionCopy.toNandForest(copyNandToNodeIn,copyNandToNodeOut);//non recursive definition to nandforest
+		NandForest baseNandForest = copyNandForest.unchangedNodes(expandedNandForest);
+		baseNandForest.optimize();//to remove possible unused nodes
+		ArrayList<Node> nandToNodeOut = null;
+		ArrayList<Node> nandToNodeIn = null;
+		this.fromNandForest(definition,baseNandForest,nandToNodeIn,nandToNodeOut);//definition using only instances of nand
+		definition.fusion();
+		
+		definition.extractNewRecursiveDefinition(newRecursiveDefinitionIn,newRecursiveDefinitionOut);	
+		nodes.addAll(newRecursiveDefinitionIn);
+		nodes.addAll(newRecursiveDefinitionOut);
+		definition.add(newRecursiveDefinition,nodes.toArray(new Node[nodes.size()]));
 	}
 	public Definition fromNandForest(Definition definition,NandForest nandForest, ArrayList<Node> nandToNodeIn,ArrayList<Node> nandToNodeOut){
 		//set existing Definition from NandForest without NandNode's repetition	
@@ -173,8 +212,8 @@ public class DefinitionDB {
 	}
 	public void toHighestLevel(Definition definition) {
 		//PRE: definition may be recursive
-		//POST: apply definitions from definitionDB to transform the definition to the higher level possible
-		//Design choice: prioritize definition usage to intersection elimination, making less optimized resulting definition, but more practical
+		//POST: apply definitions from definitionDB to transform the definition to the highest level possible
+		//TODO:prioritize intersection elimination, if more practical needed add one more stage
 		HashSet<Node> supernodeOuts= new HashSet<Node>();
 		//Use A* type algorithm to locate highest level definitions
 		//applying all definitions with same root

@@ -5,6 +5,8 @@
 package vo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.math.BigInteger;
 
 import utils.FixedBitSet;
@@ -41,6 +43,31 @@ public class NandNode{
 			string+=(this.id);
 		}
 		return string;
+	}
+	public void mapOutOfNandsByLevel(
+			HashMap<NandNode, HashSet<NandNode>> outOfNands) {
+		if(this.in1!=null){
+			HashSet<NandNode> nands=outOfNands.get(this.in1);
+			if(nands==null){
+				nands= new HashSet<NandNode>();
+				nands.add(this);
+				outOfNands.put(this.in1, nands);
+			}else{
+				nands.add(this);
+			}
+			in1.mapOutOfNandsByLevel(outOfNands);
+		}
+		if(this.in2!=null){
+			HashSet<NandNode> nands=outOfNands.get(this.in2);
+			if(nands==null){
+				nands= new HashSet<NandNode>();
+				nands.add(this);
+				outOfNands.put(this.in2, nands);
+			}else{
+				nands.add(this);
+			}
+			in2.mapOutOfNandsByLevel(outOfNands);
+		}
 	}
 }
 
