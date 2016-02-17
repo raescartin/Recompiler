@@ -139,6 +139,7 @@ public class NandForest {//multiple nand trees
 	}
 	public NandForest unchangedNodes(NandForest expandedNandForest) {
 		HashMap <NandNode,NandNode> thisToExpanded = new HashMap <NandNode,NandNode>();
+		HashMap <NandNode,NandNode> thisToNand = new HashMap <NandNode,NandNode>();
 		HashMap <NandNode,HashSet<NandNode>> thisOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
 		HashMap <NandNode,HashSet<NandNode>> expandedOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
 		int minIn=Math.min(this.in.size(),expandedNandForest.in.size());
@@ -146,9 +147,30 @@ public class NandForest {//multiple nand trees
 		this.mapOutOfNands(thisOutOfNands);
 		expandedNandForest.mapOutOfNands(expandedOutOfNands);
 		for(int i=0;i<minIn;i++){
-			thisToExpanded.put(this.in.get(i), expandedNandForest.in.get(i));
+			nandForest.unchangedNode(nandForest.in.get(i),this.in.get(i), expandedNandForest.in.get(i),this,expandedNandForest,thisToNand,thisToExpanded,thisOutOfNands,expandedOutOfNands);
 		}
 		return nandForest;
+	}
+	private void unchangedNode(NandNode nandNode, NandNode thisNode, NandNode expandedNode, 
+			NandForest nandForest,
+			NandForest expandedNandForest,
+			HashMap<NandNode, NandNode> thisToNand,
+			HashMap<NandNode, NandNode> thisToExpanded,
+			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands,
+			HashMap<NandNode, HashSet<NandNode>> expandedOutOfNands) {
+		//TODO: verify preceding nodes are defined
+		if(!thisToExpanded.containsKey(thisNode)){
+			thisToExpanded.put(thisNode, expandedNode);
+			thisToNand.put(thisNode,nandNode);
+			for(NandNode thisNodeOut:thisOutOfNands.get(thisNode)){
+				for(NandNode expandedNodeOut:expandedOutOfNands.get(expandedNode)){
+					if(thisToExpanded.get(thisNodeOut.in1)==expandedNodeOut.in1&&thisToExpanded.get(thisNodeOut.in2)==expandedNodeOut.in2){
+//						this.add(in1, in2);
+						this.unchangedNode(nandNode,thisNodeOut, expandedNodeOut, nandForest, expandedNandForest, thisToNand, thisToExpanded, thisOutOfNands, expandedOutOfNands);
+					}
+				}
+			}
+		}
 	}
 	private void mapOutOfNands(
 			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands) {

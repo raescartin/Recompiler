@@ -1,4 +1,5 @@
-﻿-sqrt
+﻿-always evaluate instances first, else nodes
+-sqrt
 -add arrays of nodes to definition
 -interseccion entre iteraciones de los bucles
 -todo: recursive intersection merge (if/rif)

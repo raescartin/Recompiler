@@ -253,8 +253,8 @@ public class Node {
 //		if(this.parents.size()==1){
 //			this.nandChildrenFission();
 //			if(this.outOfInstance!=null){
-//				this.outOfInstance.in.get(0).childrenFission();
-//				this.outOfInstance.in.get(1).childrenFission();
+//				this.outOfInstance.in.get(0).childrenFissionMapping();
+//				this.outOfInstance.in.get(1).childrenFissionMapping();
 //			}
 //		}
 		if(this.outOfInstance!=null){
@@ -677,5 +677,57 @@ public class Node {
 		}else{
 			return this;
 		}
+	}
+//	public void childrenFissionMapping(HashSet<Node> originalNodes) {
+//		if(this.outOfInstance!=null){
+//			this.outOfInstance.in.get(0).childrenFissionMapping();
+//			this.outOfInstance.in.get(1).childrenFissionMapping();
+//			if(!this.outOfInstance.in.get(0).children.isEmpty()&&this.outOfInstance.in.get(0).children.get(0).parents.size()==1 
+//					||!this.outOfInstance.in.get(1).children.isEmpty()&&this.outOfInstance.in.get(1).children.get(0).parents.size()==1
+//					||!this.outOfInstance.out.get(0).children.isEmpty()&&this.outOfInstance.out.get(0).children.get(0).parents.size()==1){
+//				Node parentLeft=this.outOfInstance.in.get(0);
+//				Node parentRight=this.outOfInstance.in.get(1);
+//				ArrayList<Node> leftArray = new ArrayList<Node>();
+//				ArrayList<Node> rightArray = new ArrayList<Node>();
+//				parentLeft.splitChildren(leftArray);
+//				parentRight.splitChildren(rightArray);
+//				this.outOfInstance.out.get(0).splitChildren();
+//				for(int i=0; i<3;i++){
+//					Node[] nodes={leftArray.get(i),rightArray.get(i),this.outOfInstance.out.get(0).children.get(i)};
+//					this.definition.add(this.outOfInstance.definition, nodes);
+////					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
+//				}
+//				this.definition.instances.remove(this.outOfInstance);
+//				this.outOfInstance.in.get(0).childrenFissionMapping();
+//				this.outOfInstance.in.get(1).childrenFissionMapping();
+//				this.outOfInstance=null;
+//			}
+//		}
+//		ArrayList<Node> parentNodes = new ArrayList<Node>();
+//		parentNodes.addAll(this.parents);
+//		for(Node parent:parentNodes){
+//			parent.childrenFissionMapping();
+//		}
+//		
+//	}
+//	public void parentsFissionMapping(HashSet<Node> originalNodes) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+	public void nodeMapFission(Definition definition,
+			HashSet<Node> originalNodes) {
+		for(Node parent:this.parents){
+			if(!originalNodes.contains(parent)){
+				originalNodes.add(parent);
+				parent.nodeMapFission(definition,originalNodes);
+			}
+		}
+		for(Node child:this.children){
+			if(!originalNodes.contains(child)){
+				originalNodes.add(child);
+				this.nodeMapFission(definition,originalNodes);
+			}
+		}
+		
 	}
 }

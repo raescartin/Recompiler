@@ -1084,17 +1084,63 @@ public class Definition {
 		// TODO Auto-generated method stub
 		
 	}
-	public void expandRecursiveInstances(Definition originalDefinition,
-			ArrayList<Instance> selfRecursiveInstances) {
+	public void expandRecursiveInstances(Definition originalDefinition) {
 		ArrayList<Instance> instances = new ArrayList<Instance>();
 		instances.addAll(this.instances);
 		for(Instance instance : instances){
 			if(instance.definition==originalDefinition){//need to expand on previous definition
-				selfRecursiveInstances.add(instance);
 				this.expandSelfRecursiveInstance(instance);				
 			}
 		}
 		this.replaceDefinition(originalDefinition,this);//replace occurrences of originalDefinition to this, for recursion consistency
 		
+	}
+	public void mapNodes(HashSet<Node> originalNodes) {
+		originalNodes.addAll(this.nodes);	
+	}
+	public NandForest toNandMapping(HashSet<Node> originalNodes,
+			HashSet<NandNode> originalNandNodes, ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut,AddedNodes addedNodes,HashSet<Instance> removedInstances) {
+		this.removeRecursion(addedNodes, removedInstances);
+//		this.toNandDefinitionsMapping();
+		this.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+		this.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+		NandForest nandForest = this.toNandForestMapping(nandToNodeIn,nandToNodeOut,originalNodes,originalNandNodes);//non recursive definition to nandforest
+		//nandForest.optimize();//to remove possible unused nodes fixme: this destroys map
+		return nandForest;
+	}
+	private NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
+			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
+			HashSet<NandNode> originalNandNodes) {
+			//PRE: this definition is not recursive and doesn't contain recursive definitions
+				// the nodes have been split to the minimum needed 
+				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
+				//more efficient thanks to HashMap's of unique nodes
+				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
+				NandForest nandForest = new NandForest(0);
+				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
+				HashSet <Node> inOutNodes = new HashSet <Node>();
+				///Need to map subnodes of ins and outs to conserve references!!!
+				this.mapIns(nodeToNand,nandForest,nandToNodeIn,inOutNodes);
+				this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
+				//IN and OUTS mapped and in nandForest
+				this.instances.clear();
+				this.nodes.retainAll(inOutNodes);
+				for(Node outNode:nandToNodeOut){
+					outNode.parents.clear();
+					outNode.outOfInstance=null;
+				}
+				for(Node node:originalNodes){
+					if(nodeToNand.containsKey(node)){
+						originalNandNodes.add(nodeToNand.get(node));
+					}
+				}
+				return nandForest;
+	}
+	private void mapFission(HashSet<Node> originalNodes) {
+		ArrayList <Node> nodes = new ArrayList<Node>();
+		nodes.addAll(originalNodes);
+		for(Node node:nodes){
+			node.nodeMapFission(this,originalNodes);
+		}
 	}
 }
