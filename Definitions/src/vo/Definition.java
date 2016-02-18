@@ -1098,17 +1098,7 @@ public class Definition {
 	public void mapNodes(HashSet<Node> originalNodes) {
 		originalNodes.addAll(this.nodes);	
 	}
-	public NandForest toNandMapping(HashSet<Node> originalNodes,
-			HashSet<NandNode> originalNandNodes, ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut,AddedNodes addedNodes,HashSet<Instance> removedInstances) {
-		this.removeRecursion(addedNodes, removedInstances);
-//		this.toNandDefinitionsMapping();
-		this.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-		this.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
-		NandForest nandForest = this.toNandForestMapping(nandToNodeIn,nandToNodeOut,originalNodes,originalNandNodes);//non recursive definition to nandforest
-		//nandForest.optimize();//to remove possible unused nodes fixme: this destroys map
-		return nandForest;
-	}
-	private NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
+	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
 			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
 			HashSet<NandNode> originalNandNodes) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
@@ -1136,7 +1126,7 @@ public class Definition {
 				}
 				return nandForest;
 	}
-	private void mapFission(HashSet<Node> originalNodes) {
+	void mapFission(HashSet<Node> originalNodes) {
 		ArrayList <Node> nodes = new ArrayList<Node>();
 		nodes.addAll(originalNodes);
 		for(Node node:nodes){
