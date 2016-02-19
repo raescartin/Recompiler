@@ -110,8 +110,8 @@ public class DefinitionDB {
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
 		Definition newRecursiveDefinition= new Definition();
-		ArrayList<NandNode> newRecursiveDefinitionNandIn = new ArrayList<NandNode>();
-		ArrayList<NandNode> newRecursiveDefinitionNandOut = new ArrayList<NandNode>();
+		HashSet<NandNode> newRecursiveDefinitionNandIn = new HashSet<NandNode>();
+		HashSet<NandNode> newRecursiveDefinitionNandOut = new HashSet<NandNode>();
 		NandForest newDefinitionNandForest = this.extractNewDefinition(definition,newRecursiveDefinition,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
 		this.extractNewRecursiveDefinition(newDefinitionNandForest,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
 		newRecursiveDefinitionNandIn.clear();
@@ -122,12 +122,12 @@ public class DefinitionDB {
 	}
 	private Definition extractNewRecursiveDefinition(
 			NandForest newDefinitionNandForest,
-			ArrayList<NandNode> newRecursiveDefinitionNandIn,
-			ArrayList<NandNode> newRecursiveDefinitionNandOut) {
+			HashSet<NandNode> newRecursiveDefinitionNandIn,
+			HashSet<NandNode> newRecursiveDefinitionNandOut) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	private NandForest extractNewDefinition(Definition definition,Definition newRecursiveDefinition, ArrayList<NandNode> newRecursiveDefinitionNandIn, ArrayList<NandNode> newRecursiveDefinitionNandOut) {
+	private NandForest extractNewDefinition(Definition definition,Definition newRecursiveDefinition, HashSet<NandNode> newRecursiveDefinitionNandIn, HashSet<NandNode> newRecursiveDefinitionNandOut) {
 		HashSet<Node> originalNodes = new HashSet<Node>();
 		HashSet<NandNode> originalNandNodes = new HashSet<NandNode>();
 		ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
@@ -168,8 +168,8 @@ public class DefinitionDB {
 	}
 	private NandForest extractNewDefinitionNandForest(
 			NandForest expandedDefinitionNandForest,
-			AddedNodes addedNodes, ArrayList<NandNode> newRecursiveDefinitionNandIn,
-			ArrayList<NandNode> newRecursiveDefinitionNandOut) {
+			AddedNodes addedNodes, HashSet<NandNode> newRecursiveDefinitionNandIn,
+			HashSet<NandNode> newRecursiveDefinitionNandOut) {
 		NandForest nandForest = new NandForest(0);
 		for(int i=0;i<(expandedDefinitionNandForest.in.size()-addedNodes.in);i++){
 			nandForest.in.add(expandedDefinitionNandForest.in.get(i));
@@ -187,24 +187,24 @@ public class DefinitionDB {
 		return nandForest;
 	}
 	private void extractNewRecursionNandIO(NandForest expandedNandTree,
-			HashSet<NandNode> originalNandNodes, ArrayList<NandNode> newIns,
-			ArrayList<NandNode> newOuts) {
+			HashSet<NandNode> originalNandNodes, HashSet<NandNode> newRecursiveDefinitionNandIn,
+			HashSet<NandNode> newRecursiveDefinitionNandOut) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
 		nandNodes.addAll(expandedNandTree.nodes.values());
 		for(NandNode nandNode:nandNodes){
 			if(!originalNandNodes.contains(nandNode)){
 				if(originalNandNodes.contains(nandNode.in1)){
-					newIns.add(nandNode.in1);
+					newRecursiveDefinitionNandIn.add(nandNode.in1);
 				}
 				if(originalNandNodes.contains(nandNode.in2)){
-					newIns.add(nandNode.in2);
+					newRecursiveDefinitionNandIn.add(nandNode.in2);
 				}
 			}else{
-				if(!originalNandNodes.contains(nandNode.in1)){
-					newOuts.add(nandNode.in1);
+				if((!originalNandNodes.contains(nandNode.in1))&&(nandNode.in1!=null)){
+					newRecursiveDefinitionNandOut.add(nandNode.in1);
 				}
-				if(!originalNandNodes.contains(nandNode.in2)){
-					newOuts.add(nandNode.in2);
+				if((!originalNandNodes.contains(nandNode.in2))&&(nandNode.in2!=null)){
+					newRecursiveDefinitionNandOut.add(nandNode.in2);
 				}
 			}
 		}
