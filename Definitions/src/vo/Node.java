@@ -730,4 +730,57 @@ public class Node {
 		}
 		
 	}
+	public void findInsMapping(HashSet<Node> inNodes,
+			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
+			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes,
+			int addedInNodes, HashSet<NandNode> originalDefinitionNandIn,
+			HashSet<NandNode> originalAddedDefinitionNandIn) {
+		if(inNodes.contains(this)){
+			if(this.definition.in.indexOf(this)<this.definition.in.size()-addedInNodes){
+				this.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, originalDefinitionNandIn);	
+			}else{
+				this.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, originalAddedDefinitionNandIn);	
+			}
+		}else{
+			for(Node parent:this.parents){
+				parent.findInsMapping(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes, addedInNodes, originalDefinitionNandIn, originalAddedDefinitionNandIn);	
+			}
+			if(this.outOfInstance!=null){
+				this.outOfInstance.in.get(0).findInsMapping(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes, addedInNodes, originalDefinitionNandIn, originalAddedDefinitionNandIn);
+				this.outOfInstance.in.get(1).findInsMapping(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes, addedInNodes, originalDefinitionNandIn, originalAddedDefinitionNandIn);
+			}
+		}
+	
+}
+	private void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn,
+			HashSet<Node> inOutNodes, HashSet<NandNode> nandIn) {
+		//Only maps nodes that are used in the definition		
+				inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
+				if(this.parents.size()==1){
+					inOutNodes.add(this.parents.get(0));
+					inOutNodes.add(this.parents.get(0).children.get(0));
+					inOutNodes.add(this.parents.get(0).children.get(1));
+					inOutNodes.add(this.parents.get(0).children.get(2));
+				}
+				int subnodes=0;
+				for(Node child:this.children){
+					if(child.parents.size()==1){//subnode  
+						subnodes++;
+						child.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, nandIn);	
+					}
+				}
+				if(subnodes==0){
+					NandNode nandNode;
+					if(nandToNodeIn.contains(this)){
+						nandNode=nodeToNand.get(this);
+					}else{
+						nandNode = nandForest.addIn();
+						nandToNodeIn.add(this);
+						nandIn.add(nandNode);
+					}
+					nodeToNand.put(this, nandNode);
+				}
+		
+	}
 }

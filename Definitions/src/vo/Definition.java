@@ -1100,7 +1100,7 @@ public class Definition {
 	}
 	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
 			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
-			HashSet<NandNode> originalNandNodes) {
+			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes, HashSet<NandNode> originalDefinitionNandIn, HashSet<NandNode> originalDefinitionNandOut, HashSet<NandNode> originalAddedDefinitionNandIn, HashSet<NandNode> originalAddedDefinitionNandOut) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
 				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -1110,8 +1110,8 @@ public class Definition {
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 				HashSet <Node> inOutNodes = new HashSet <Node>();
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeToNand,nandForest,nandToNodeIn,inOutNodes);
-				this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
+				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,inOutNodes,addedNodes.in,originalDefinitionNandIn,originalAddedDefinitionNandIn);
+				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,inOutNodes,addedNodes.out,originalDefinitionNandOut,originalAddedDefinitionNandOut);
 				//IN and OUTS mapped and in nandForest
 				this.instances.clear();
 				this.nodes.retainAll(inOutNodes);
@@ -1126,6 +1126,28 @@ public class Definition {
 				}
 				return nandForest;
 	}
+	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeOut,
+			HashSet<Node> inOutNodes, int out2,
+			HashSet<NandNode> originalDefinitionNandOut,
+			HashSet<NandNode> originalAddedDefinitionNandOut) {
+		// TODO Auto-generated method stub
+		
+	}
+	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn,
+			HashSet<Node> inOutNodes, int originalIn,
+			HashSet<NandNode> originalDefinitionNandIn,
+			HashSet<NandNode> originalAddedDefinitionNandIn) {
+			//map input nodes to nandNodes mapping original and added nodes (from removed definition)
+			HashSet<Node> inNodes = new HashSet<Node>();
+			inNodes.addAll(this.in);
+			for(Node outNode:this.out){
+				if(!inNodes.contains(outNode)){
+					outNode.findInsMapping(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes,originalIn,originalDefinitionNandIn,originalAddedDefinitionNandIn);
+				}
+			}	
+		}
 	void mapFission(HashSet<Node> originalNodes) {
 		ArrayList <Node> nodes = new ArrayList<Node>();
 		nodes.addAll(originalNodes);
