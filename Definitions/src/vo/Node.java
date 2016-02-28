@@ -783,4 +783,33 @@ public class Node {
 				}
 		
 	}
+	public void mapOutParentsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeOut,
+			HashSet<Node> inOutNodes,
+			HashSet<NandNode> nandOut) {
+		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
+		inOutNodes.add(this);
+		if(this.parents.size()==1){
+			inOutNodes.add(this.parents.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(0));
+			inOutNodes.add(this.parents.get(0).children.get(1));
+			inOutNodes.add(this.parents.get(0).children.get(2));
+		}
+		if(this.outOfInstance!=null){
+			NandNode nandNode;
+			if(nandToNodeOut.contains(this)){
+				nandNode = nodeToNand.get(this);
+			}else{
+				nandNode = nandForest.setOut(this.toNands(nodeToNand,nandForest));
+				nandToNodeOut.add(this);
+				nandOut.add(nandNode);
+			}
+			nandNodes.add(nandNode);
+		}else{
+			for(Node parent:this.parents){
+				parent.mapOutParentsMapping(nodeToNand, nandForest, nandToNodeOut, inOutNodes, nandOut);
+			}
+		}
+		
+	}
 }

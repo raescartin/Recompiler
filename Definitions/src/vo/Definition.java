@@ -136,11 +136,11 @@ public class Definition {
 			}
 		}	
 	}
-	void mapOuts(HashMap<Node, NandNode> nodeToNands,
+	void mapOuts(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nodeToNands,nandForest, nandToNodeOut,inOutNodes);
+			outNode.mapOutParents(nodeToNand,nandForest, nandToNodeOut,inOutNodes);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -1128,15 +1128,22 @@ public class Definition {
 	}
 	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut,
-			HashSet<Node> inOutNodes, int out2,
+			HashSet<Node> inOutNodes, int addedNodes,
 			HashSet<NandNode> originalDefinitionNandOut,
 			HashSet<NandNode> originalAddedDefinitionNandOut) {
-		// TODO Auto-generated method stub
+		//map output nodes to nandNodes
+				for(Node outNode:this.out){
+					if(this.out.indexOf(outNode)<this.out.size()-addedNodes){
+						outNode.mapOutParentsMapping(nodeToNand,nandForest, nandToNodeOut,inOutNodes,originalDefinitionNandOut);
+					}else{
+						outNode.mapOutParentsMapping(nodeToNand,nandForest, nandToNodeOut,inOutNodes,originalAddedDefinitionNandOut);
+					}
+				}	
 		
 	}
 	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeIn,
-			HashSet<Node> inOutNodes, int originalIn,
+			HashSet<Node> inOutNodes, int addedNodes,
 			HashSet<NandNode> originalDefinitionNandIn,
 			HashSet<NandNode> originalAddedDefinitionNandIn) {
 			//map input nodes to nandNodes mapping original and added nodes (from removed definition)
@@ -1144,7 +1151,7 @@ public class Definition {
 			inNodes.addAll(this.in);
 			for(Node outNode:this.out){
 				if(!inNodes.contains(outNode)){
-					outNode.findInsMapping(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes,originalIn,originalDefinitionNandIn,originalAddedDefinitionNandIn);
+					outNode.findInsMapping(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes,addedNodes,originalDefinitionNandIn,originalAddedDefinitionNandIn);
 				}
 			}	
 		}
