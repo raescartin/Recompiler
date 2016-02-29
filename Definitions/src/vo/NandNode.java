@@ -28,19 +28,23 @@ public class NandNode{
 	public String toString() {
 		//for subnodes and supernodes instead of fathers and children
 		String string = new String();
+		if(in1!=null)string+=("("+in1.id);
+		if(in2!=null)string+=(","+in2.id+")=");
 		string+=this.id;
 		return string;
 	}
 	public String printNode(ArrayList<NandNode> in){
 		String string = new String();
+
 		if(this.in1!=null&&this.in2!=null){
+//			string+=this.id; //used only to debug
 			string+=("(");
 			string+=this.in1.printNode(in);
 			string+=(") nand (");
 			string+=this.in2.printNode(in);
 			string+=(")");
 		}else{
-			string+=(this.id);
+			string+=this.id;
 		}
 		return string;
 	}

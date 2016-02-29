@@ -207,19 +207,16 @@ public class DefinitionDB {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
 		nandNodes.addAll(expandedNandTree.nodes.values());
 		for(NandNode nandNode:nandNodes){
-			if(!originalNandNodes.contains(nandNode)){
-				if(originalNandNodes.contains(nandNode.in1)){
-					newRecursiveDefinitionNandIn.add(nandNode.in1);
-				}
-				if(originalNandNodes.contains(nandNode.in2)){
-					newRecursiveDefinitionNandIn.add(nandNode.in2);
+			if(originalNandNodes.contains(nandNode)){
+				if(originalNandNodes.contains(nandNode)&&nandNode.in1!=null&&nandNode.in2!=null&&(!originalNandNodes.contains(nandNode.in1)||!originalNandNodes.contains(nandNode.in2))){
+					newRecursiveDefinitionNandOut.add(nandNode);
 				}
 			}else{
-				if((!originalNandNodes.contains(nandNode.in1))&&(nandNode.in1!=null)){
-					newRecursiveDefinitionNandOut.add(nandNode.in1);
+				if((nandNode.in1!=null)&&(originalNandNodes.contains(nandNode.in1))){
+					newRecursiveDefinitionNandIn.add(nandNode.in1);
 				}
-				if((!originalNandNodes.contains(nandNode.in2))&&(nandNode.in2!=null)){
-					newRecursiveDefinitionNandOut.add(nandNode.in2);
+				if((nandNode.in2!=null)&&(originalNandNodes.contains(nandNode.in2))){
+					newRecursiveDefinitionNandIn.add(nandNode.in2);
 				}
 			}
 		}
