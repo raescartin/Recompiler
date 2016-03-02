@@ -7,4 +7,9 @@ public class AddedNodes{
 		this.in=0;
 		this.out=0;
 	}
+	public String toString() {
+		String string = new String();
+		string+="{"+this.in+";"+this.out+"}";
+		return string;
+	}
 }

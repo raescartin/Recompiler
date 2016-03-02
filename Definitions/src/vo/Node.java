@@ -733,8 +733,8 @@ public class Node {
 	public void findInsMapping(HashSet<Node> inNodes,
 			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
 			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes,
-			int addedInNodes, HashSet<NandNode> originalDefinitionNandIn,
-			HashSet<NandNode> originalAddedDefinitionNandIn) {
+			int addedInNodes, ArrayList<NandNode> originalDefinitionNandIn,
+			ArrayList<NandNode> originalAddedDefinitionNandIn) {
 		if(inNodes.contains(this)){
 			if(this.definition.in.indexOf(this)<this.definition.in.size()-addedInNodes){
 				this.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, originalDefinitionNandIn);	
@@ -752,9 +752,9 @@ public class Node {
 		}
 	
 }
-	private void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand,
+	void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeIn,
-			HashSet<Node> inOutNodes, HashSet<NandNode> nandIn) {
+			HashSet<Node> inOutNodes, ArrayList<NandNode> originalDefinitionNandIn) {
 		//Only maps nodes that are used in the definition		
 				inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
 				if(this.parents.size()==1){
@@ -767,7 +767,7 @@ public class Node {
 				for(Node child:this.children){
 					if(child.parents.size()==1){//subnode  
 						subnodes++;
-						child.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, nandIn);	
+						child.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, inOutNodes, originalDefinitionNandIn);	
 					}
 				}
 				if(subnodes==0){
@@ -777,7 +777,7 @@ public class Node {
 					}else{
 						nandNode = nandForest.addIn();
 						nandToNodeIn.add(this);
-						nandIn.add(nandNode);
+						originalDefinitionNandIn.add(nandNode);
 					}
 					nodeToNand.put(this, nandNode);
 				}
@@ -786,7 +786,7 @@ public class Node {
 	public void mapOutParentsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut,
 			HashSet<Node> inOutNodes,
-			HashSet<NandNode> nandOut) {
+			ArrayList<NandNode> originalDefinitionNandOut) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
 		inOutNodes.add(this);
 		if(this.parents.size()==1){
@@ -802,12 +802,12 @@ public class Node {
 			}else{
 				nandNode = nandForest.setOut(this.toNands(nodeToNand,nandForest));
 				nandToNodeOut.add(this);
-				nandOut.add(nandNode);
+				originalDefinitionNandOut.add(nandNode);
 			}
 			nandNodes.add(nandNode);
 		}else{
 			for(Node parent:this.parents){
-				parent.mapOutParentsMapping(nodeToNand, nandForest, nandToNodeOut, inOutNodes, nandOut);
+				parent.mapOutParentsMapping(nodeToNand, nandForest, nandToNodeOut, inOutNodes, originalDefinitionNandOut);
 			}
 		}
 		
