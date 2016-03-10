@@ -1143,22 +1143,16 @@ public class Definition {
 		
 	}
 	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeIn,
-			HashSet<Node> inOutNodes, AddedNodes addedNodes,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes, AddedNodes addedNodes,
 			AddedNodes addedNandNodes) {
 			//map input nodes to nandNodes mapping original and added nodes (from removed definition)
 			HashSet<Node> inNodes = new HashSet<Node>();
 			inNodes.addAll(this.in);
-//			for(Node outNode:this.out){
-//				if(!inNodes.contains(outNode)){
-//					outNode.findInsMapping(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes,addedNodes,originalDefinitionNandIn,originalAddedDefinitionNandIn);
-//				}
-//			}	
 			for(Node inNode:this.in){
 				if(this.in.indexOf(inNode)==this.in.size()-addedNodes.in){
 					addedNandNodes.in=nandForest.in.size();
 				}
-				inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
+				inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inNodes);	
 			}
 		}
 	void mapFission(HashSet<Node> originalNodes) {
