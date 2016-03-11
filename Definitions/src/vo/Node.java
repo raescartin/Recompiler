@@ -250,13 +250,7 @@ public class Node {
 			}
 	}
 	public void childrenFission() {
-//		if(this.parents.size()==1){
-//			this.nandChildrenFission();
-//			if(this.outOfInstance!=null){
-//				this.outOfInstance.in.get(0).childrenFissionMapping();
-//				this.outOfInstance.in.get(1).childrenFissionMapping();
-//			}
-//		}
+		//if out of nand has subnodes, separate in multiple nands
 		if(this.outOfInstance!=null){
 			this.outOfInstance.in.get(0).childrenFission();
 			this.outOfInstance.in.get(1).childrenFission();
@@ -324,6 +318,9 @@ public class Node {
 				leftArray.get(2).add(newMid);
 			}
 			childArray.add(newMid);
+			for(Node node:this.parents.subList(1, this.parents.size()-1)){
+				node.add(newMid);
+			}
 			if(rightParent.parents.size()==1&&(rightParent.parents.get(0).children.indexOf(rightParent)==0||rightParent.parents.get(0).children.indexOf(rightParent)==2)){
 				//if node is not divisible
 				childArray.add(rightParent);
@@ -420,6 +417,7 @@ public class Node {
 					Node newNode = new Node();
 					Node[] nodes={in0.parents.get(i),in1.parents.get(i),newNode};
 					this.definition.add(this.outOfInstance.definition, nodes);
+//					this.parents.clear();
 					newNode.add(this);
 					newNode.nandParentFission();
 				}
@@ -824,6 +822,18 @@ public class Node {
 			for(Node parent:this.parents){
 				parent.updateDefinition(definition);
 			}
+		}
+	}
+	public void breakSubnodes() {
+		if(this.outOfInstance!=null){
+			if(this.parents.size()==1){
+				this.parents.clear();
+			}
+			this.outOfInstance.in.get(0).breakSubnodes();
+			this.outOfInstance.in.get(1).breakSubnodes();
+		}
+		for(Node parent:this.parents){
+			parent.breakSubnodes();
 		}
 	}
 }

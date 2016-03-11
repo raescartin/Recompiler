@@ -771,6 +771,10 @@ public class Definition {
 			outNode.childrenFission();
 		}
 		for(Node outNode:this.out){
+			outNode.breakSubnodes();
+		}
+		this.update();
+		for(Node outNode:this.out){
 			outNode.parentsFission();
 		}
 	}
