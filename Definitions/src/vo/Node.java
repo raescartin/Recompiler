@@ -812,4 +812,18 @@ public class Node {
 		}
 		
 	}
+	public void updateDefinition(Definition definition) {
+		if(!definition.nodes.contains(this)){
+			this.idForDefinition=definition.maxNode;//debugging only
+			definition.maxNode++;
+			this.definition=definition;
+			definition.nodes.add(this);
+			if(this.outOfInstance!=null){
+				this.outOfInstance.updateDefinition(definition);
+			}
+			for(Node parent:this.parents){
+				parent.updateDefinition(definition);
+			}
+		}
+	}
 }

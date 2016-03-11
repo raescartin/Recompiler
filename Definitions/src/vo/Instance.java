@@ -88,4 +88,18 @@ public class Instance implements java.io.Serializable{
 		string+=("] ");
 		return string;
 	}
+	public void updateDefinition(Definition definition) {
+		if(!definition.instances.contains(this)){
+			definition.instances.add(this);
+			if(this.definition==definition){
+				definition.selfRecursiveInstances.add(this);
+			}else if(!this.definition.selfRecursiveInstances.isEmpty()||!this.definition.instancesOfRecursiveDefinitions.isEmpty()){
+				definition.instancesOfRecursiveDefinitions.add(this);
+			}
+			for(Node inNode:this.in){
+				inNode.updateDefinition(definition);
+			}
+		}
+		
+	}
 }
