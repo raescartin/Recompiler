@@ -149,7 +149,7 @@ public class Node {
 			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
 			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
 			if(inNodes.contains(this)){
-				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
 			}else{
 				for(Node parent:this.parents){
 					parent.findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
@@ -161,20 +161,12 @@ public class Node {
 			}
 		
 	}
-	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {	
-		//Only maps nodes that are used in the definition		
-		inOutNodes.add(this);//keep track of nodes previous to the nodes mapped to NandForest in order to not erase them
-		if(this.parents.size()==1){
-			inOutNodes.add(this.parents.get(0));
-			inOutNodes.add(this.parents.get(0).children.get(0));
-			inOutNodes.add(this.parents.get(0).children.get(1));
-			inOutNodes.add(this.parents.get(0).children.get(2));
-		}
+	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn) {		
 		int subnodes=0;
 		for(Node child:this.children){
 			if(child.parents.size()==1){//subnode  
 				subnodes++;
-				child.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
+				child.mapInChildren(nodeToNand, nandForest, nandToNodeIn);	
 			}
 		}
 		if(subnodes==0){
@@ -189,27 +181,20 @@ public class Node {
 		}
 	}
 	public void mapOutParents(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
+			NandForest nandForest, ArrayList<Node> nandToNodeOut) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
-		inOutNodes.add(this);
-		if(this.parents.size()==1){
-			inOutNodes.add(this.parents.get(0));
-			inOutNodes.add(this.parents.get(0).children.get(0));
-			inOutNodes.add(this.parents.get(0).children.get(1));
-			inOutNodes.add(this.parents.get(0).children.get(2));
-		}
-		if(this.outOfInstance!=null){
-			NandNode nandNode;
-			if(nandToNodeOut.contains(this)){
-				nandNode = nodeToNand.get(this);
-			}else{
-				nandNode = nandForest.setOut(this.toNands(nodeToNand,nandForest));
-				nandToNodeOut.add(this);
-			}
+		NandNode nandNode;
+		if(nodeToNand.containsKey(this)){
+			nandNode = nandForest.setOut(nodeToNand.get(this));
+			nandToNodeOut.add(this);
+			nandNodes.add(nandNode);
+		}else if(this.outOfInstance!=null){
+			nandNode = nandForest.setOut(this.toNands(nodeToNand,nandForest));
+			nandToNodeOut.add(this);
 			nandNodes.add(nandNode);
 		}else{
 			for(Node parent:this.parents){
-				parent.mapOutParents(nodeToNand, nandForest, nandToNodeOut, inOutNodes);
+				parent.mapOutParents(nodeToNand, nandForest, nandToNodeOut);
 			}
 		}
 	}
@@ -676,42 +661,6 @@ public class Node {
 			return this;
 		}
 	}
-//	public void childrenFissionMapping(HashSet<Node> originalNodes) {
-//		if(this.outOfInstance!=null){
-//			this.outOfInstance.in.get(0).childrenFissionMapping();
-//			this.outOfInstance.in.get(1).childrenFissionMapping();
-//			if(!this.outOfInstance.in.get(0).children.isEmpty()&&this.outOfInstance.in.get(0).children.get(0).parents.size()==1 
-//					||!this.outOfInstance.in.get(1).children.isEmpty()&&this.outOfInstance.in.get(1).children.get(0).parents.size()==1
-//					||!this.outOfInstance.out.get(0).children.isEmpty()&&this.outOfInstance.out.get(0).children.get(0).parents.size()==1){
-//				Node parentLeft=this.outOfInstance.in.get(0);
-//				Node parentRight=this.outOfInstance.in.get(1);
-//				ArrayList<Node> leftArray = new ArrayList<Node>();
-//				ArrayList<Node> rightArray = new ArrayList<Node>();
-//				parentLeft.splitChildren(leftArray);
-//				parentRight.splitChildren(rightArray);
-//				this.outOfInstance.out.get(0).splitChildren();
-//				for(int i=0; i<3;i++){
-//					Node[] nodes={leftArray.get(i),rightArray.get(i),this.outOfInstance.out.get(0).children.get(i)};
-//					this.definition.add(this.outOfInstance.definition, nodes);
-////					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
-//				}
-//				this.definition.instances.remove(this.outOfInstance);
-//				this.outOfInstance.in.get(0).childrenFissionMapping();
-//				this.outOfInstance.in.get(1).childrenFissionMapping();
-//				this.outOfInstance=null;
-//			}
-//		}
-//		ArrayList<Node> parentNodes = new ArrayList<Node>();
-//		parentNodes.addAll(this.parents);
-//		for(Node parent:parentNodes){
-//			parent.childrenFissionMapping();
-//		}
-//		
-//	}
-//	public void parentsFissionMapping(HashSet<Node> originalNodes) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 	public void nodeMapFission(Definition definition,
 			HashSet<Node> originalNodes) {
 		for(Node parent:this.parents){

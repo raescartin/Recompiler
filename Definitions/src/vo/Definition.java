@@ -113,20 +113,12 @@ public class Definition {
 		//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 		NandForest nandForest = new NandForest(0);
 		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-		HashSet <Node> inOutNodes = new HashSet <Node>();
 		///Need to map subnodes of ins and outs to conserve references!!!
-		this.mapIns(nodeToNand,nandForest,nandToNodeIn,inOutNodes);
-		this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
-		//IN and OUTS mapped and in nandForest
-		this.instances.clear();
-		this.nodes.retainAll(inOutNodes);
-		for(Node outNode:nandToNodeOut){
-			outNode.parents.clear();
-			outNode.outOfInstance=null;
-		}
+		this.mapIns(nodeToNand,nandForest,nandToNodeIn);
+		this.mapOuts(nodeToNand,nandForest,nandToNodeOut);
 		return nandForest;
 	}
-	void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+	void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn) {
 		//map input nodes to nandNodes
 		HashSet<Node> inNodes = new HashSet<Node>();
 		inNodes.addAll(this.in);
@@ -136,14 +128,14 @@ public class Definition {
 //			}
 //		}	
 		for(Node inNode:this.in){
-			inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+			inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
 		}
 	}
 	void mapOuts(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashSet<Node> inOutNodes) {
+			NandForest nandForest, ArrayList<Node> nandToNodeOut) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nodeToNand,nandForest, nandToNodeOut,inOutNodes);
+			outNode.mapOutParents(nodeToNand,nandForest, nandToNodeOut);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -1117,15 +1109,9 @@ public class Definition {
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 				HashSet <Node> inOutNodes = new HashSet <Node>();
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeToNand,nandForest,nandToNodeIn,inOutNodes);
-				this.mapOuts(nodeToNand,nandForest,nandToNodeOut,inOutNodes);
+				this.mapIns(nodeToNand,nandForest,nandToNodeIn);
+				this.mapOuts(nodeToNand,nandForest,nandToNodeOut);
 				//IN and OUTS mapped and in nandForest
-				this.instances.clear();
-				this.nodes.retainAll(inOutNodes);
-				for(Node outNode:nandToNodeOut){
-					outNode.parents.clear();
-					outNode.outOfInstance=null;
-				}
 				for(Node node:originalNodes){
 					if(nodeToNand.containsKey(node)){
 						originalNandNodes.add(nodeToNand.get(node));
@@ -1153,5 +1139,12 @@ public class Definition {
 		for(Node inNode:this.in){
 			this.add(inNode);
 		}
+	}
+	public void clearInstances() {
+		this.instances.clear();
+		for(Node node:this.nodes){
+			node.outOfInstance=null;
+		}
+		
 	}
 }
