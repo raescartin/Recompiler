@@ -145,22 +145,22 @@ public class Node {
 			}
 		}
 	}
-	public void findIns(HashSet<Node> inNodes,
-			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
-			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
-			if(inNodes.contains(this)){
-				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
-			}else{
-				for(Node parent:this.parents){
-					parent.findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
-				}
-				if(this.outOfInstance!=null){
-					this.outOfInstance.in.get(0).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
-					this.outOfInstance.in.get(1).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
-				}
-			}
-		
-	}
+//	public void findIns(HashSet<Node> inNodes,
+//			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
+//			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
+//			if(inNodes.contains(this)){
+//				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
+//			}else{
+//				for(Node parent:this.parents){
+//					parent.findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
+//				}
+//				if(this.outOfInstance!=null){
+//					this.outOfInstance.in.get(0).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+//					this.outOfInstance.in.get(1).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
+//				}
+//			}
+//		
+//	}
 	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn) {		
 		int subnodes=0;
 		for(Node child:this.children){

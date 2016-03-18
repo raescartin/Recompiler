@@ -122,11 +122,6 @@ public class Definition {
 		//map input nodes to nandNodes
 		HashSet<Node> inNodes = new HashSet<Node>();
 		inNodes.addAll(this.in);
-//		for(Node outNode:this.out){
-//			if(!inNodes.contains(outNode)){
-//				outNode.findIns(inNodes,nodeToNand,nandForest, nandToNodeIn,inOutNodes);
-//			}
-//		}	
 		for(Node inNode:this.in){
 			inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
 		}
@@ -876,47 +871,49 @@ public class Definition {
 	public Definition copy() {
 		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
 		HashMap<Instance,Instance> instanceToCopy = new HashMap<Instance,Instance>();
-		Definition copyDef = new Definition(this.in.size(),this.out.size(),this.name+"Copy");
+		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			this.copyNode(this.in.get(i), copyDef.in.get(i), nodeToCopy, instanceToCopy,copyDef);
+			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
+			copyDef.in.add(inNode);
+			copyDef.add(inNode);
 		}
 		for(int i=0;i<this.out.size();i++){
-			this.copyNode(this.out.get(i),copyDef.out.get(i),nodeToCopy,instanceToCopy,copyDef);
+			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef);
+			copyDef.out.add(outNode);
+			copyDef.add(outNode);
 		}
 		return copyDef;
 	}
-	private void copyNode(Node node, Node copyNode,
+	private Node copyNode(Node node,
 			HashMap<Node, Node> nodeToCopy,
 			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+		Node copyNode;
 		if(!nodeToCopy.containsKey(node)){
+			copyNode=new Node();
 			nodeToCopy.put(node, copyNode);
-			if(!node.children.isEmpty()){
-				if(node.children.get(0).parents.size()==1){
-					for(int i=0;i<node.children.size();i++){
-						if(!nodeToCopy.containsKey(node.children.get(i))){
-							Node copyChildren = new Node();
-							copyNode.add(copyChildren);
-							this.copyNode(node.children.get(i),copyChildren, nodeToCopy, instanceToCopy, copyDef);
-						}else{
-							copyNode.add(nodeToCopy.get(node.children.get(i)));
-						}
-					}
-				}
-			}
 			if(!node.parents.isEmpty()){
 				if(node.parents.size()==1){
-					for(int i=0;i<node.parents.size();i++){
-						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = new Node();
-							this.copyNode(node.parents.get(i),copyParent, nodeToCopy, instanceToCopy, copyDef);
+						Node parent=node.parents.get(0);
+						Node copyParent;
+						if(!nodeToCopy.containsKey(parent)){
+							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef);
+						}else{
+							copyParent = nodeToCopy.get(parent);
 						}
-					}
+						for(int i=0;i<parent.children.size();i++){
+							if(!nodeToCopy.containsKey(parent.children.get(i))){
+								Node copyChildren = new Node();
+								copyParent.add(copyChildren);
+								nodeToCopy.put(parent.children.get(i),copyChildren);
+							}else{
+								copyParent.add(nodeToCopy.get(parent.children.get(i)));
+							}
+						}
 				}else{
 					for(int i=0;i<node.parents.size();i++){
 						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = new Node();
+							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
 							copyParent.add(copyNode);
-							this.copyNode(node.parents.get(i),copyParent, nodeToCopy, instanceToCopy, copyDef);
 						}else{
 							nodeToCopy.get(node.parents.get(i)).add(copyNode);
 						}
@@ -928,7 +925,10 @@ public class Definition {
 					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
 				}
 			}
+		}else{
+			copyNode=nodeToCopy.get(node);
 		}
+		return copyNode;
 	}
 	private void copyInstance(Instance instance,
 			HashMap<Node, Node> nodeToCopy,
@@ -939,18 +939,14 @@ public class Definition {
 			if(nodeToCopy.containsKey(instance.in.get(i))){
 				nodes.add(nodeToCopy.get(instance.in.get(i)));
 			}else{
-				Node copyIn = new Node();
-				nodes.add(copyIn);
-				this.copyNode(instance.in.get(i),copyIn, nodeToCopy, instanceToCopy, copyDef);
+				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef));
 			}
 		}
 		for(int i=0;i<instance.out.size();i++){
 			if(nodeToCopy.containsKey(instance.out.get(i))){
 				nodes.add(nodeToCopy.get(instance.out.get(i)));
 			}else{
-				Node copyOut = new Node();
-				nodes.add(copyOut);
-				this.copyNode(instance.out.get(i),copyOut, nodeToCopy, instanceToCopy, copyDef);
+				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef));
 			}
 		}
 //		if(instance.definition!=this){
@@ -1099,7 +1095,7 @@ public class Definition {
 	}
 	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
 			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
-			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes) {
+			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes, HashSet<NandNode> recursionInNandNodes, HashSet<NandNode> recursionOutNandNodes) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
 				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -1107,10 +1103,9 @@ public class Definition {
 				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 				NandForest nandForest = new NandForest(0);
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-				HashSet <Node> inOutNodes = new HashSet <Node>();
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapIns(nodeToNand,nandForest,nandToNodeIn);
-				this.mapOuts(nodeToNand,nandForest,nandToNodeOut);
+				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes);
+				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes);
 				//IN and OUTS mapped and in nandForest
 				for(Node node:originalNodes){
 					if(nodeToNand.containsKey(node)){
@@ -1118,6 +1113,30 @@ public class Definition {
 					}
 				}
 				return nandForest;
+	}
+	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeOut, int out,
+			HashSet<NandNode> recursionInNandNodes) {
+		int nandOut = 0;
+		for(int i=0;i<this.out.size();i++){
+			if(i==this.out.size()-out){
+				nandOut=nandForest.out.size();
+			}
+			this.out.get(i).mapOutParents(nodeToNand,nandForest, nandToNodeOut);
+		}
+		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
+	}
+	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
+			HashSet<NandNode> recursionOutNandNodes) {
+		int nandIn = 0;
+		for(int i=0;i<this.in.size();i++){
+			if(i==this.in.size()-in){
+				nandIn=nandForest.in.size();
+			}
+			this.in.get(i).mapInChildren(nodeToNand, nandForest, nandToNodeIn);
+		}
+		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
 	}
 	void mapFission(HashSet<Node> originalNodes) {
 		ArrayList <Node> nodes = new ArrayList<Node>();
