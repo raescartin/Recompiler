@@ -955,12 +955,11 @@ public class Definition {
 //			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
 //		}
 	}
-	public void expandSelfRecursiveInstance(Instance instance) {
+	public void expandInstance(Instance instance) {
 		this.removeInstance(instance);
-		this.expandSelfRecursiveInstanceInstances(instance);
+		this.expandInstanceInstances(instance);
 	}
 	void removeInstance(Instance instance) {
-		//TODO: maybe need to modify rootIn
 		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
 			instance.out.get(i).outOfInstance=null;
 		}
@@ -968,7 +967,7 @@ public class Definition {
 		this.instancesOfRecursiveDefinitions.remove(instance);
 		this.selfRecursiveInstances.remove(instance);
 	}
-	void expandSelfRecursiveInstanceInstances(Instance instance) {
+	void expandInstanceInstances(Instance instance) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
@@ -1079,16 +1078,14 @@ public class Definition {
 		// TODO Auto-generated method stub
 		
 	}
-	public void expandRecursiveInstances(Definition originalDefinition) {
+	public void expandInstances(Definition definition) {
 		ArrayList<Instance> instances = new ArrayList<Instance>();
 		instances.addAll(this.instances);
 		for(Instance instance : instances){
-			if(instance.definition==originalDefinition){//need to expand on previous definition
-				this.expandSelfRecursiveInstance(instance);				
+			if(instance.definition==definition){//need to expand on previous definition
+				this.expandInstance(instance);				
 			}
 		}
-		this.replaceDefinition(originalDefinition,this);//replace occurrences of originalDefinition to this, for recursion consistency
-		
 	}
 	public void mapNodes(HashSet<Node> originalNodes) {
 		originalNodes.addAll(this.nodes);	

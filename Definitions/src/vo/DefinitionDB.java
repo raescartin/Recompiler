@@ -111,18 +111,36 @@ public class DefinitionDB {
 		Definition expandedDefinition = definition.copy();//freeze original for expansion
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut = new ArrayList <Node>(); 
-		this.getRecursiveIO(definition,expandedDefinition, recursiveIn,recursiveOut);
+		this.getRecursiveIO(definition,expandedDefinition, expandedDefinition, recursiveIn,recursiveOut);
 		Definition newRecursiveDefinition=this.extractNewRecursiveDefinition(expandedDefinition,recursiveIn,recursiveOut);
 		if(!newRecursiveDefinition.instancesOfRecursiveDefinitions.isEmpty()){
 			this.applyNewRecursiveDefinition(newRecursiveDefinition,expandedDefinition,recursiveIn,recursiveOut);
-			Definition expandedRecursiveDefinition = newRecursiveDefinition.copy();//freeze original for expansion
-			ArrayList <Node> recursionRecursiveIn = new ArrayList <Node>(); 
-			ArrayList <Node> recursionRecursiveOut = new ArrayList <Node>(); 
-			this.getRecursiveIO(newRecursiveDefinition,expandedRecursiveDefinition,recursionRecursiveIn,recursionRecursiveOut);
-			this.applyNewRecursiveDefinition(expandedRecursiveDefinition, expandedRecursiveDefinition,recursionRecursiveIn,recursionRecursiveOut);
-			this.applyNewRecursiveDefinition(expandedRecursiveDefinition, expandedDefinition, recursiveIn, recursiveOut);
+			recursiveIn.clear();
+			recursiveOut.clear();
+			newRecursiveDefinition.replaceDefinition(expandedDefinition, definition);
+			HashSet<Node> originalNodes = new HashSet<Node>();
+			HashSet<NandNode> originalNandNodes = new HashSet<NandNode>();
+			ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
+			ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
+			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			AddedNodes addedNodes = new AddedNodes();
+			newRecursiveDefinition.mapNodes(originalNodes);
+//			newRecursiveDefinition.replaceDefinition(definition,expandedDefinition);//replace occurrences of originalDefinition to this, for recursion consistency
+			//to nand
+			newRecursiveDefinition.removeRecursion(addedNodes, removedInstances);
+			newRecursiveDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+			newRecursiveDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+			HashSet<NandNode> recursionInNandNodes = new HashSet<NandNode>();
+			HashSet<NandNode> recursionOutNandNodes = new HashSet<NandNode>();
+			NandForest newRecursiveDefinitionNandForest = newRecursiveDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,originalNodes,originalNandNodes,addedNodes,recursionInNandNodes,recursionOutNandNodes);//non recursive definition to nandforest
+			HashSet<NandNode> newRecursiveDefinitionNandInHash = new HashSet<NandNode>();
+			HashSet<NandNode> newRecursiveDefinitionNandOutHash = new HashSet<NandNode>();
+			this.extractNewRecursionNandIO(newRecursiveDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash);
+			this.addRecursionNodesToNandIO(originalNandNodes,recursionInNandNodes,recursionOutNandNodes,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash);
+			this.fromNandForestMapping(newRecursiveDefinition, newRecursiveDefinitionNandForest, nandToNodeIn, nandToNodeOut,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash,recursiveIn,recursiveOut);
+			newRecursiveDefinition.recoverRecursion(addedNodes, removedInstances);
+			this.applyNewRecursiveDefinition(newRecursiveDefinition,newRecursiveDefinition,recursiveIn,recursiveOut);
 		}
-		expandedDefinition.replaceDefinition(expandedDefinition, definition);
 		definition.in=expandedDefinition.in;
 		definition.out=expandedDefinition.out;
 		definition.update();
@@ -150,7 +168,7 @@ public class DefinitionDB {
 		newRecursiveDefinition.update();
 		return newRecursiveDefinition;
 	}
-	private void getRecursiveIO(Definition definition,Definition expandedDefinition,
+	private void getRecursiveIO(Definition definition,Definition expandingDefinition,Definition expandedDefinition,
 				ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut) {
 			HashSet<Node> originalNodes = new HashSet<Node>();
 			HashSet<NandNode> originalNandNodes = new HashSet<NandNode>();
@@ -158,22 +176,23 @@ public class DefinitionDB {
 			ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
 			AddedNodes addedNodes = new AddedNodes();
-			expandedDefinition.mapNodes(originalNodes);
-			expandedDefinition.expandRecursiveInstances(definition);
+			expandingDefinition.mapNodes(originalNodes);
+			expandingDefinition.expandInstances(definition);
+			expandingDefinition.replaceDefinition(definition,expandedDefinition);//replace occurrences of originalDefinition to this, for recursion consistency
 			//to nand
-			expandedDefinition.removeRecursion(addedNodes, removedInstances);
-			expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-			expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+			expandingDefinition.removeRecursion(addedNodes, removedInstances);
+			expandingDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+			expandingDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 			HashSet<NandNode> recursionInNandNodes = new HashSet<NandNode>();
 			HashSet<NandNode> recursionOutNandNodes = new HashSet<NandNode>();
-			NandForest expandedDefinitionNandForest = expandedDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,originalNodes,originalNandNodes,addedNodes,recursionInNandNodes,recursionOutNandNodes);//non recursive definition to nandforest
+			NandForest expandingDefinitionNandForest = expandingDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,originalNodes,originalNandNodes,addedNodes,recursionInNandNodes,recursionOutNandNodes);//non recursive definition to nandforest
 			HashSet<NandNode> newRecursiveDefinitionNandInHash = new HashSet<NandNode>();
 			HashSet<NandNode> newRecursiveDefinitionNandOutHash = new HashSet<NandNode>();
-			this.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash);
+			this.extractNewRecursionNandIO(expandingDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash);
 
 			this.addRecursionNodesToNandIO(originalNandNodes,recursionInNandNodes,recursionOutNandNodes,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash);
-			this.fromNandForestMapping(expandedDefinition, expandedDefinitionNandForest, nandToNodeIn, nandToNodeOut,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash,recursiveIn,recursiveOut);
-			expandedDefinition.recoverRecursion(addedNodes, removedInstances);
+			this.fromNandForestMapping(expandingDefinition, expandingDefinitionNandForest, nandToNodeIn, nandToNodeOut,newRecursiveDefinitionNandInHash,newRecursiveDefinitionNandOutHash,recursiveIn,recursiveOut);
+			expandingDefinition.recoverRecursion(addedNodes, removedInstances);
 	}
 
 	private void addRecursionNodesToNandIO(
