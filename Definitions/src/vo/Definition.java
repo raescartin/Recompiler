@@ -1092,7 +1092,7 @@ public class Definition {
 	}
 	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
 			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
-			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes, HashSet<NandNode> recursionInNandNodes, HashSet<NandNode> recursionOutNandNodes) {
+			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
 				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -1113,7 +1113,7 @@ public class Definition {
 	}
 	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, int out,
-			HashSet<NandNode> recursionInNandNodes) {
+			ArrayList<NandNode> recursionInNandNodes) {
 		int nandOut = 0;
 		for(int i=0;i<this.out.size();i++){
 			if(i==this.out.size()-out){
@@ -1121,11 +1121,14 @@ public class Definition {
 			}
 			this.out.get(i).mapOutParents(nodeToNand,nandForest, nandToNodeOut);
 		}
-		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
+		ArrayList<NandNode> addedIn = new ArrayList<NandNode>();
+		addedIn.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
+		addedIn.removeAll(recursionInNandNodes);//remove duplicates
+		recursionInNandNodes.addAll(addedIn);
 	}
 	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
-			HashSet<NandNode> recursionOutNandNodes) {
+			ArrayList<NandNode> recursionOutNandNodes) {
 		int nandIn = 0;
 		for(int i=0;i<this.in.size();i++){
 			if(i==this.in.size()-in){
@@ -1133,7 +1136,10 @@ public class Definition {
 			}
 			this.in.get(i).mapInChildren(nodeToNand, nandForest, nandToNodeIn);
 		}
-		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
+		ArrayList<NandNode> addedOut = new ArrayList<NandNode>();
+		addedOut.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
+		addedOut.removeAll(recursionOutNandNodes);//remove duplicates
+		recursionOutNandNodes.addAll(addedOut);
 	}
 	void mapFission(HashSet<Node> originalNodes) {
 		ArrayList <Node> nodes = new ArrayList<Node>();

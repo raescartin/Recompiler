@@ -73,5 +73,38 @@ public class NandNode{
 			in2.mapOutOfNandsByLevel(outOfNands);
 		}
 	}
+	public void extractNewRecursionNandIO(
+			NandForest expandedDefinitionNandForest,
+			HashSet<NandNode> originalNandNodes,
+			ArrayList<NandNode> newRecursiveDefinitionNandIn,
+			ArrayList<NandNode> newRecursiveDefinitionNandOut) {
+		if(originalNandNodes.contains(this)){
+			if(this.in1!=null&&!originalNandNodes.contains(this.in1)||this.in2!=null&&!originalNandNodes.contains(this.in2)){
+				if(!newRecursiveDefinitionNandOut.contains(this)){
+					newRecursiveDefinitionNandOut.add(this);
+				}
+				if(this.in1!=null){
+					this.in1.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
+				}
+				if(this.in2!=null){
+					this.in2.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
+				}
+			}
+		}else{
+			if((this.in1!=null)&&(originalNandNodes.contains(this.in1))){
+				if(!newRecursiveDefinitionNandIn.contains(this)){
+					newRecursiveDefinitionNandIn.add(this.in1);
+				}
+				this.in1.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
+			}
+			if((this.in2!=null)&&(originalNandNodes.contains(this.in2))){
+				if(!newRecursiveDefinitionNandIn.contains(this)){
+					newRecursiveDefinitionNandIn.add(this.in2);
+				}
+				this.in2.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
+			}
+		}
+		
+	}
 }
 
