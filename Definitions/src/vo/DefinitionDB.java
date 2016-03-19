@@ -194,7 +194,7 @@ public class DefinitionDB {
 			expandingDefinition.recoverRecursion(addedNodes, removedInstances);
 	}
 
-	private void addRecursionNodesToNandIO(//FIXME not hash
+	private void addRecursionNodesToNandIO(
 			HashSet<NandNode> originalNandNodes,
 			ArrayList<NandNode> recursionInNandNodes,
 			ArrayList<NandNode> recursionOutNandNodes,
@@ -202,12 +202,16 @@ public class DefinitionDB {
 			ArrayList<NandNode> newRecursiveDefinitionNandOut) {
 		for(NandNode nandNode:recursionInNandNodes){
 			if(originalNandNodes.contains(nandNode)){
-				newRecursiveDefinitionNandIn.add(nandNode);
+				if(!newRecursiveDefinitionNandIn.contains(nandNode)){
+					newRecursiveDefinitionNandIn.add(nandNode);
+				}
 			}
 		}
 		for(NandNode nandNode:recursionOutNandNodes){
 			if(originalNandNodes.contains(nandNode)){
-				newRecursiveDefinitionNandOut.add(nandNode);
+				if(!newRecursiveDefinitionNandOut.contains(nandNode)){
+					newRecursiveDefinitionNandOut.add(nandNode);
+				}
 			}
 		}
 		

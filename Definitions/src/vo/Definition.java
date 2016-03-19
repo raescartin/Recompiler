@@ -1121,10 +1121,7 @@ public class Definition {
 			}
 			this.out.get(i).mapOutParents(nodeToNand,nandForest, nandToNodeOut);
 		}
-		ArrayList<NandNode> addedIn = new ArrayList<NandNode>();
-		addedIn.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
-		addedIn.removeAll(recursionInNandNodes);//remove duplicates
-		recursionInNandNodes.addAll(addedIn);
+		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
 	}
 	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
@@ -1136,10 +1133,7 @@ public class Definition {
 			}
 			this.in.get(i).mapInChildren(nodeToNand, nandForest, nandToNodeIn);
 		}
-		ArrayList<NandNode> addedOut = new ArrayList<NandNode>();
-		addedOut.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
-		addedOut.removeAll(recursionOutNandNodes);//remove duplicates
-		recursionOutNandNodes.addAll(addedOut);
+		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
 	}
 	void mapFission(HashSet<Node> originalNodes) {
 		ArrayList <Node> nodes = new ArrayList<Node>();
