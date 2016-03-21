@@ -116,6 +116,7 @@ public class Definition {
 		///Need to map subnodes of ins and outs to conserve references!!!
 		this.mapIns(nodeToNand,nandForest,nandToNodeIn);
 		this.mapOuts(nodeToNand,nandForest,nandToNodeOut);
+		nandForest.optimize();
 		return nandForest;
 	}
 	void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn) {
@@ -1091,24 +1092,19 @@ public class Definition {
 		originalNodes.addAll(this.nodes);	
 	}
 	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
-			ArrayList<Node> nandToNodeOut, HashSet<Node> originalNodes,
-			HashSet<NandNode> originalNandNodes, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes) {
+			ArrayList<Node> nandToNodeOut, HashMap<Node, NandNode> nodeToNand, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
 				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
 				//more efficient thanks to HashMap's of unique nodes
 				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 				NandForest nandForest = new NandForest(0);
-				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
+				
 				///Need to map subnodes of ins and outs to conserve references!!!
 				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes);
 				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes);
 				//IN and OUTS mapped and in nandForest
-				for(Node node:originalNodes){
-					if(nodeToNand.containsKey(node)){
-						originalNandNodes.add(nodeToNand.get(node));
-					}
-				}
+				//can't optimize nandForest here since Maps will lose references
 				return nandForest;
 	}
 	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
