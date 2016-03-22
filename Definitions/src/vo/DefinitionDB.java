@@ -153,6 +153,7 @@ public class DefinitionDB {
 			}
 			newRecursiveDefinition.recoverRecursion(addedNodes, removedInstances);
 			this.applyNewRecursiveDefinition(newRecursiveDefinition,newRecursiveDefinition,recursiveIn2,recursiveOut2);
+			newRecursiveDefinition.update();
 		}
 		definition.in=expandedDefinition.in;
 		definition.out=expandedDefinition.out;
@@ -222,6 +223,7 @@ public class DefinitionDB {
 				newOriginalNodes.add(nandToNode.get(nandNode));
 			}
 			expandingDefinition.recoverRecursion(addedNodes, removedInstances);
+			expandingDefinition.update();//can update since it doesn't break references (to hashsets)
 	}
 
 	private void addRecursionNodesToNandIO(

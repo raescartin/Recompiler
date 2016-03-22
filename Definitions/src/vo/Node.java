@@ -672,8 +672,8 @@ public class Node {
 		for(Node child:this.children){
 			if(!originalNodes.contains(child)){
 				originalNodes.add(child);
-				this.nodeMapFission(definition,originalNodes);
 			}
+			child.nodeMapFission(definition,originalNodes);
 		}
 		
 	}
