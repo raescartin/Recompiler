@@ -30,7 +30,7 @@ import utils.FixedBitSet;
 //Each NandForest has a variable number of "in" and "out" nodes
 //each NandForest is formed by a variable number of trees of nands
 //each out node is a root node of a nand tree
-//nand trees may (and should) have nodes in common (for efficiency sake, avoiding repetition)
+//internal nand trees may (and should) have nodes in common (for efficiency sake, avoiding repetition)
 //each tree of nands is composed by nand nodes
 //each nand node (parent) points to two child nand nodes
 
@@ -40,7 +40,7 @@ public class NandForest {//multiple nand trees
 	public HashMap<BigInteger,NandNode>  nodes = new HashMap<BigInteger,NandNode>();//used to keep record of UNIQUE nodes
 	public NandForest(int numberOfInputs) {
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
-			this.in.add(new NandNode(BigInteger.valueOf(i+1)));//must add 1 so all id's are ordered consistently 
+			this.in.add(new NandNode(BigInteger.valueOf(i+256)));//must add a constant so all id's are ordered consistently, max number of ins is the constant value 
 			this.nodes.put(this.in.get(i).id, this.in.get(i));
 		}
 	}
@@ -124,7 +124,7 @@ public class NandForest {//multiple nand trees
 		return nandNodes;
 	}
 	public NandNode addIn() {
-		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+1));
+		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+256));
 		this.in.add(nandNode);
 		this.nodes.put(nandNode.id,nandNode);
 		return nandNode;

@@ -1,4 +1,5 @@
-﻿-always evaluate instances first, else nodes
+﻿-fix unique node id in nandForest:1=11 and 39=11 but 39 should be 39=(1,1)=11 that's the problem!
+-always evaluate instances first, else nodes
 -sqrt
 -add arrays of nodes to definition
 -interseccion entre iteraciones de los bucles
@@ -25,13 +26,11 @@ DONE
 -change subnodes and supernodes to parents and children
 -nodeFission
 -nodeFussion
-FIX rootIn: 2 posibilites: 
-1- change rootIn to "used in"
-2- fix rootIn by traversing parents of root node
+-fixed rootIn by traversing parents of root node
 	i) remove rootIn of instanced root definition
 	ii) trasnform
 	iii) set rootIn of instance root to definition
--fix toBest to work with subnodes
+-fixed toBest to work with subnodes
 -get mul to work
 	mul(a,b;c) d=0 add(a,d,d) b times c=d
 	recursive mul:

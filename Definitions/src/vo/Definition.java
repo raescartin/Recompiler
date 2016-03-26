@@ -872,14 +872,16 @@ public class Definition {
 	public Definition copy() {
 		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
 		HashMap<Instance,Instance> instanceToCopy = new HashMap<Instance,Instance>();
+		HashSet<Node> inNodes = new HashSet<Node>();
+		inNodes.addAll(this.in);
 		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
+			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef,inNodes);
 			copyDef.in.add(inNode);
 			copyDef.add(inNode);
 		}
 		for(int i=0;i<this.out.size();i++){
-			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef);
+			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef, inNodes);
 			copyDef.out.add(outNode);
 			copyDef.add(outNode);
 		}
@@ -887,7 +889,7 @@ public class Definition {
 	}
 	private Node copyNode(Node node,
 			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef, HashSet<Node> inNodes) {
 		Node copyNode;
 		if(!nodeToCopy.containsKey(node)){
 			copyNode=new Node();
@@ -896,8 +898,9 @@ public class Definition {
 				if(node.parents.size()==1){
 						Node parent=node.parents.get(0);
 						Node copyParent;
+						if(inNodes.contains(node)) inNodes.add(parent);
 						if(!nodeToCopy.containsKey(parent)){
-							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef);
+							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef, inNodes);
 						}else{
 							copyParent = nodeToCopy.get(parent);
 						}
@@ -912,8 +915,9 @@ public class Definition {
 						}
 				}else{
 					for(int i=0;i<node.parents.size();i++){
+						if(inNodes.contains(node)) inNodes.add(node.parents.get(i));
 						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
+							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes);
 							copyParent.add(copyNode);
 						}else{
 							nodeToCopy.get(node.parents.get(i)).add(copyNode);
@@ -921,9 +925,9 @@ public class Definition {
 					}
 				}
 			}
-			if(node.outOfInstance!=null){
+			if(!inNodes.contains(node)&&node.outOfInstance!=null){
 				if(!instanceToCopy.containsKey(node.outOfInstance)){
-					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
+					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef,inNodes);
 				}
 			}
 		}else{
@@ -933,21 +937,21 @@ public class Definition {
 	}
 	private void copyInstance(Instance instance,
 			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef, HashSet<Node> inNodes) {
 		ArrayList<Node> nodes = new ArrayList<Node>();
 		
 		for(int i=0;i<instance.in.size();i++){
 			if(nodeToCopy.containsKey(instance.in.get(i))){
 				nodes.add(nodeToCopy.get(instance.in.get(i)));
 			}else{
-				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef));
+				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes));
 			}
 		}
 		for(int i=0;i<instance.out.size();i++){
 			if(nodeToCopy.containsKey(instance.out.get(i))){
 				nodes.add(nodeToCopy.get(instance.out.get(i)));
 			}else{
-				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef));
+				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes));
 			}
 		}
 //		if(instance.definition!=this){
