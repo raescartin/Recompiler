@@ -746,9 +746,9 @@ public class Definition {
 	}
 
 	public void nodeFission() {
-		for(Node outNode:this.out){
-			outNode.flattenParents();
-		}
+//		for(Node outNode:this.out){
+//			outNode.flattenParents();
+//		}
 //		for(Node outNode:this.out){
 //			outNode.removeRedundantSubnodes();
 //		}
@@ -876,20 +876,19 @@ public class Definition {
 		inNodes.addAll(this.in);
 		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef,inNodes);
+			Node inNode = this.copyInNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
 			copyDef.in.add(inNode);
 			copyDef.add(inNode);
 		}
 		for(int i=0;i<this.out.size();i++){
-			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef, inNodes);
+			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef);
 			copyDef.out.add(outNode);
 			copyDef.add(outNode);
 		}
 		return copyDef;
 	}
-	private Node copyNode(Node node,
-			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef, HashSet<Node> inNodes) {
+	private Node copyInNode(Node node, HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
 		Node copyNode;
 		if(!nodeToCopy.containsKey(node)){
 			copyNode=new Node();
@@ -898,9 +897,8 @@ public class Definition {
 				if(node.parents.size()==1){
 						Node parent=node.parents.get(0);
 						Node copyParent;
-						if(inNodes.contains(node)) inNodes.add(parent);
 						if(!nodeToCopy.containsKey(parent)){
-							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef, inNodes);
+							copyParent = this.copyInNode(parent,nodeToCopy, instanceToCopy, copyDef);
 						}else{
 							copyParent = nodeToCopy.get(parent);
 						}
@@ -915,9 +913,8 @@ public class Definition {
 						}
 				}else{
 					for(int i=0;i<node.parents.size();i++){
-						if(inNodes.contains(node)) inNodes.add(node.parents.get(i));
 						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes);
+							Node copyParent = this.copyInNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
 							copyParent.add(copyNode);
 						}else{
 							nodeToCopy.get(node.parents.get(i)).add(copyNode);
@@ -925,10 +922,49 @@ public class Definition {
 					}
 				}
 			}
-			if(!inNodes.contains(node)&&node.outOfInstance!=null){
-				if(!instanceToCopy.containsKey(node.outOfInstance)){
-					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef,inNodes);
+		}else{
+			copyNode=nodeToCopy.get(node);
+		}
+		return copyNode;
+	}
+	private Node copyNode(Node node,
+			HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+		Node copyNode;
+		if(!nodeToCopy.containsKey(node)){
+			copyNode=new Node();
+			nodeToCopy.put(node, copyNode);
+			if(!node.parents.isEmpty()){
+				if(node.parents.size()==1){
+						Node parent=node.parents.get(0);
+						Node copyParent;
+						if(!nodeToCopy.containsKey(parent)){
+							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef);
+						}else{
+							copyParent = nodeToCopy.get(parent);
+						}
+						for(int i=0;i<parent.children.size();i++){
+							if(!nodeToCopy.containsKey(parent.children.get(i))){
+								Node copyChildren = new Node();
+								copyParent.add(copyChildren);
+								nodeToCopy.put(parent.children.get(i),copyChildren);
+							}else{
+								copyParent.add(nodeToCopy.get(parent.children.get(i)));
+							}
+						}
+				}else{
+					for(int i=0;i<node.parents.size();i++){
+						if(!nodeToCopy.containsKey(node.parents.get(i))){
+							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
+							copyParent.add(copyNode);
+						}else{
+							nodeToCopy.get(node.parents.get(i)).add(copyNode);
+						}
+					}
 				}
+			}
+			if(node.outOfInstance!=null){
+					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
 			}
 		}else{
 			copyNode=nodeToCopy.get(node);
@@ -937,25 +973,28 @@ public class Definition {
 	}
 	private void copyInstance(Instance instance,
 			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef, HashSet<Node> inNodes) {
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
 		ArrayList<Node> nodes = new ArrayList<Node>();
 		
 		for(int i=0;i<instance.in.size();i++){
 			if(nodeToCopy.containsKey(instance.in.get(i))){
 				nodes.add(nodeToCopy.get(instance.in.get(i)));
 			}else{
-				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes));
+				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef));
 			}
 		}
 		for(int i=0;i<instance.out.size();i++){
 			if(nodeToCopy.containsKey(instance.out.get(i))){
 				nodes.add(nodeToCopy.get(instance.out.get(i)));
 			}else{
-				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef, inNodes));
+				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef));
 			}
 		}
 //		if(instance.definition!=this){
+
+		if(!instanceToCopy.containsKey(instance)){
 			instanceToCopy.put(instance,copyDef.add(instance.definition,nodes.toArray(new Node[nodes.size()])));
+		}
 //		}else{
 //			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
 //		}
@@ -1149,11 +1188,11 @@ public class Definition {
 		this.instances.clear();
 		this.instancesOfRecursiveDefinitions.clear();
 		this.selfRecursiveInstances.clear();
+		for(Node inNode:this.in){
+			inNode.mapIns(this);
+		}
 		for(Node outNode:this.out){
 			outNode.updateDefinition(this);
-		}
-		for(Node inNode:this.in){
-			this.add(inNode);
 		}
 	}
 	public void clearInstances() {
@@ -1162,5 +1201,10 @@ public class Definition {
 			node.outOfInstance=null;
 		}
 		
+	}
+	public void flattenParents() {
+		for(Node outNode:this.out){
+			outNode.flattenParents();
+		}
 	}
 }

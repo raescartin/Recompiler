@@ -81,6 +81,7 @@ public class DefinitionDB {
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 				definition.toNandDefinitions();
+				definition.flattenParents();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
@@ -136,7 +137,7 @@ public class DefinitionDB {
 				recursiveOut1.add(node);
 			}
 		}
-		Definition newRecursiveDefinition=this.extractNewRecursiveDefinition(expandedDefinition,recursiveIn,recursiveOut);
+		Definition newRecursiveDefinition=this.extractNewRecursiveDefinition(expandedDefinition,recursiveIn1,recursiveOut1,recursiveIn2,recursiveOut2);
 //		if(!newRecursiveDefinition.instancesOfRecursiveDefinitions.isEmpty()){
 //			this.applyNewRecursiveDefinition(newRecursiveDefinition,expandedDefinition,recursiveIn,recursiveOut);
 //			newRecursiveDefinition.replaceDefinition(expandedDefinition, definition);
@@ -179,6 +180,7 @@ public class DefinitionDB {
 //			this.applyNewRecursiveDefinition(newRecursiveDefinition,newRecursiveDefinition,recursiveIn2,recursiveOut2);
 //			newRecursiveDefinition.update();
 //		}
+//		this.put(newRecursiveDefinition.name, newRecursiveDefinition);
 		definition.in=expandedDefinition.in;
 		definition.out=expandedDefinition.out;
 		definition.update();
@@ -198,12 +200,22 @@ public class DefinitionDB {
 			expandedDefinition.update();
 	}
 	private Definition extractNewRecursiveDefinition(Definition expandedDefinition,
-			ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut) {
-		Definition tempRecursiveDefinition= new Definition(recursiveIn.size(),recursiveOut.size(),expandedDefinition.name+"Recur");
-		tempRecursiveDefinition.in=recursiveIn;
-		tempRecursiveDefinition.out=recursiveOut;
+			ArrayList<Node> recursiveIn1, ArrayList<Node> recursiveOut1, ArrayList<Node> recursiveIn2, ArrayList<Node> recursiveOut2) {
+		Definition tempRecursiveDefinition= new Definition(recursiveIn1.size(),recursiveOut1.size(),expandedDefinition.name+"Recur");
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		nodes.addAll(recursiveIn2);
+		nodes.addAll(recursiveOut2);
+		for(Node outNode:recursiveOut2){
+			outNode.parents.clear();
+			outNode.outOfInstance=null;
+		}
+		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		expandedDefinition.update();
+		tempRecursiveDefinition.in=recursiveIn1;
+		tempRecursiveDefinition.out=recursiveOut1;
 		Definition newRecursiveDefinition=tempRecursiveDefinition.copy();
-		newRecursiveDefinition.update();
+		newRecursiveDefinition.replaceDefinition(tempRecursiveDefinition, newRecursiveDefinition);
+		expandedDefinition.replaceDefinition(tempRecursiveDefinition, newRecursiveDefinition);
 		return newRecursiveDefinition;
 	}
 	private void getRecursiveIO(Definition definition,Definition expandingDefinition,Definition expandedDefinition,
@@ -256,13 +268,13 @@ public class DefinitionDB {
 			ArrayList<NandNode> recursionOutNandNodes,
 			ArrayList<NandNode> newRecursiveDefinitionNandIn,
 			ArrayList<NandNode> newRecursiveDefinitionNandOut) {
-		for(NandNode nandNode:recursionInNandNodes){
-			if(originalNandNodes.contains(nandNode)){
-				if(!newRecursiveDefinitionNandIn.contains(nandNode)){
-					newRecursiveDefinitionNandIn.add(nandNode);
-				}
-			}
-		}
+//		for(NandNode nandNode:recursionInNandNodes){
+//			if(originalNandNodes.contains(nandNode)){
+//				if(!newRecursiveDefinitionNandIn.contains(nandNode)){
+//					newRecursiveDefinitionNandIn.add(nandNode);
+//				}
+//			}
+//		}
 		for(NandNode nandNode:recursionOutNandNodes){
 			if(originalNandNodes.contains(nandNode)){
 				if(!newRecursiveDefinitionNandOut.contains(nandNode)){
