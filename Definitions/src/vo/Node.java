@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Queue;
 
 import utils.FixedBitSet;
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
@@ -27,13 +28,17 @@ public class Node {
 		this.children = new ArrayList<Node>();
 	}
 	public Node add(Node node) {//add subnode to supernode		
-		node.parents.add(this);
-		this.children.add(node);
-		if(this.definition!=null){
-			this.definition.add(node);
-		}
-		if(node.definition!=null){
-			node.definition.add(this);
+		if(!node.children.isEmpty()&&this.parents.size()==1&&(this.parents.get(0).children.get(0)==this||this.parents.get(0).children.get(this.parents.get(0).children.size()-1)==this)){
+			System.out.print("Node can't be divided");
+		}else{
+			node.parents.add(this);
+			this.children.add(node);
+			if(this.definition!=null){
+				this.definition.add(node);
+			}
+			if(node.definition!=null){
+				node.definition.add(this);
+			}
 		}
 		return node;
 	}
@@ -145,22 +150,6 @@ public class Node {
 			}
 		}
 	}
-//	public void findIns(HashSet<Node> inNodes,
-//			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
-//			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes) {
-//			if(inNodes.contains(this)){
-//				this.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
-//			}else{
-//				for(Node parent:this.parents){
-//					parent.findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);	
-//				}
-//				if(this.outOfInstance!=null){
-//					this.outOfInstance.in.get(0).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
-//					this.outOfInstance.in.get(1).findIns(inNodes, nodeToNand, nandForest, nandToNodeIn, inOutNodes);
-//				}
-//			}
-//		
-//	}
 	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn) {		
 		int subnodes=0;
 		for(Node child:this.children){
@@ -252,7 +241,6 @@ public class Node {
 				for(int i=0; i<3;i++){
 					Node[] nodes={leftArray.get(i),rightArray.get(i),this.outOfInstance.out.get(0).children.get(i)};
 					this.definition.add(this.outOfInstance.definition, nodes);
-//					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
 				}
 				this.definition.instances.remove(this.outOfInstance);
 				this.outOfInstance.in.get(0).childrenFission();
@@ -266,27 +254,6 @@ public class Node {
 			parent.childrenFission();
 		}
 	}
-//	private void nandChildrenFission() {
-//			if(this.parents.get(0).parents.size()==1){
-//				this.parents.get(0).nandChildrenFission();
-//			}
-//			if(this.parents.get(0).outOfInstance!=null){
-//				Node parentLeft=this.parents.get(0).outOfInstance.in.get(0);
-//				Node parentRight=this.parents.get(0).outOfInstance.in.get(1);
-//				ArrayList<Node> leftArray = new ArrayList<Node>();
-//				ArrayList<Node> rightArray = new ArrayList<Node>();
-//				parentLeft.splitChildren(leftArray);
-//				parentRight.splitChildren(rightArray);
-//				Node out=this.parents.get(0);
-//				for(int i=0; i<3;i++){
-//					Node[] nodes={leftArray.get(i),rightArray.get(i),out.children.get(i)};
-//					this.definition.add(out.outOfInstance.definition, nodes);
-////					out.children.get(i).parents.clear();//can't delete without losing the subnode meaning for ins of other instances
-//				}
-//				this.definition.instances.remove(out.outOfInstance);
-//				out.outOfInstance=null;
-//			}
-//	}
 	void splitChildren(ArrayList<Node> childArray) {
 		if(this.parents.size()>1){
 			Node leftParent=this.parents.get(0);
@@ -795,5 +762,52 @@ public class Node {
 				parent.mapIns(definition);
 			}
 		}
+	}
+	public void eval(HashMap<Node, FixedBitSet> valueMap,
+			Queue<Node> nodesToExpand, Queue<Instance> instancesToExpand) {
+		if(!valueMap.containsKey(this)){//Non evaluated node
+			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
+				if(this.parents.size()==1){
+					if(valueMap.containsKey(this.parents.get(0))){
+						
+					}else{
+
+					}
+				}else{
+					boolean allExpanded=true;
+					for (Node parent : this.parents) {
+						if(!valueMap.containsKey(parent)){
+							nodesToExpand.add(parent);
+							allExpanded=false;
+						}
+					}
+					if(allExpanded){
+						
+					}else{
+						nodesToExpand.add(this);
+					}
+				}
+			}else{
+				if(this.outOfInstance!=null){
+					if(this.outOfInstance.definition.name=="nand"){
+						//lazy evaluation?
+						if(valueMap.containsKey(this.outOfInstance.in.get(0))&&valueMap.containsKey(this.outOfInstance.in.get(1))){
+							valueMap.put(this.outOfInstance.out.get(0), valueMap.get(this.outOfInstance.in.get(0)).nand(valueMap.get(this.outOfInstance.in.get(1))));
+						}else{
+							nodesToExpand.add(this.outOfInstance.in.get(0));
+							nodesToExpand.add(this.outOfInstance.in.get(1));
+							nodesToExpand.add(this.outOfInstance.out.get(0));
+						}
+						
+					}else{
+						for (Node nodeIn : this.outOfInstance.in) {
+							nodesToExpand.add(nodeIn);
+						}
+						instancesToExpand.add(this.outOfInstance);
+					}
+				}
+			}
+		}
+		
 	}
 }

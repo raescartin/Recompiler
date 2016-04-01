@@ -7,8 +7,8 @@ package vo;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
+import utils.Constants;
 import utils.FixedBitSet;
 
 //DESCRIPTION
@@ -16,6 +16,8 @@ import utils.FixedBitSet;
 //-The trees may (and should) have nodes in common
 //-implicit "parallel" nand (structure isn't exactly an array of arrays, more diffuse ordering)
 //-node can't be his own parent/child NO RECURSIVITY(A NAND FOREST IS NOT TURING COMPLETE, ONLY A SEQUENCE OF OPERATIONS)
+//IMPLEMENTATION
+//constant MAX_NANDFOREST_INS is the maximum number of NandForest inputs so theres no duplicate id's for NandNodes
 //////////////////////////////////////////////////////
 //HERE BE DRAGONS (maybe not in Java from here)
 //////////////////////////////////////////////////////
@@ -40,7 +42,7 @@ public class NandForest {//multiple nand trees
 	public HashMap<BigInteger,NandNode>  nodes = new HashMap<BigInteger,NandNode>();//used to keep record of UNIQUE nodes
 	public NandForest(int numberOfInputs) {
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
-			this.in.add(new NandNode(BigInteger.valueOf(i+256)));//must add a constant so all id's are ordered consistently, max number of ins is the constant value 
+			this.in.add(new NandNode(BigInteger.valueOf(i+Constants.MAX_NANDFOREST_INS)));//must add a constant so all id's are ordered consistently, max number of ins is the constant value 
 			this.nodes.put(this.in.get(i).id, this.in.get(i));
 		}
 	}
@@ -124,7 +126,7 @@ public class NandForest {//multiple nand trees
 		return nandNodes;
 	}
 	public NandNode addIn() {
-		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+256));
+		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+Constants.MAX_NANDFOREST_INS));
 		this.in.add(nandNode);
 		this.nodes.put(nandNode.id,nandNode);
 		return nandNode;
@@ -137,45 +139,45 @@ public class NandForest {//multiple nand trees
 		this.out.add(nandNode);
 		return nandNode;
 	}
-	public NandForest unchangedNodes(NandForest expandedNandForest) {
-		HashMap <NandNode,NandNode> thisToExpanded = new HashMap <NandNode,NandNode>();
-		HashMap <NandNode,NandNode> thisToNand = new HashMap <NandNode,NandNode>();
-		HashMap <NandNode,HashSet<NandNode>> thisOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
-		HashMap <NandNode,HashSet<NandNode>> expandedOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
-		int minIn=Math.min(this.in.size(),expandedNandForest.in.size());
-		NandForest nandForest = new NandForest(minIn);//
-		this.mapOutOfNands(thisOutOfNands);
-		expandedNandForest.mapOutOfNands(expandedOutOfNands);
-		for(int i=0;i<minIn;i++){
-			nandForest.unchangedNode(nandForest.in.get(i),this.in.get(i), expandedNandForest.in.get(i),this,expandedNandForest,thisToNand,thisToExpanded,thisOutOfNands,expandedOutOfNands);
-		}
-		return nandForest;
-	}
-	private void unchangedNode(NandNode nandNode, NandNode thisNode, NandNode expandedNode, 
-			NandForest nandForest,
-			NandForest expandedNandForest,
-			HashMap<NandNode, NandNode> thisToNand,
-			HashMap<NandNode, NandNode> thisToExpanded,
-			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands,
-			HashMap<NandNode, HashSet<NandNode>> expandedOutOfNands) {
-		//TODO: verify preceding nodes are defined
-		if(!thisToExpanded.containsKey(thisNode)){
-			thisToExpanded.put(thisNode, expandedNode);
-			thisToNand.put(thisNode,nandNode);
-			for(NandNode thisNodeOut:thisOutOfNands.get(thisNode)){
-				for(NandNode expandedNodeOut:expandedOutOfNands.get(expandedNode)){
-					if(thisToExpanded.get(thisNodeOut.in1)==expandedNodeOut.in1&&thisToExpanded.get(thisNodeOut.in2)==expandedNodeOut.in2){
-//						this.add(in1, in2);
-						this.unchangedNode(nandNode,thisNodeOut, expandedNodeOut, nandForest, expandedNandForest, thisToNand, thisToExpanded, thisOutOfNands, expandedOutOfNands);
-					}
-				}
-			}
-		}
-	}
-	private void mapOutOfNands(
-			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands) {
-		for (NandNode node : this.out) {
-			node.mapOutOfNandsByLevel(thisOutOfNands);
-		}
-	}
+//	public NandForest unchangedNodes(NandForest expandedNandForest) {
+//		HashMap <NandNode,NandNode> thisToExpanded = new HashMap <NandNode,NandNode>();
+//		HashMap <NandNode,NandNode> thisToNand = new HashMap <NandNode,NandNode>();
+//		HashMap <NandNode,HashSet<NandNode>> thisOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
+//		HashMap <NandNode,HashSet<NandNode>> expandedOutOfNands = new HashMap <NandNode,HashSet<NandNode>>();
+//		int minIn=Math.min(this.in.size(),expandedNandForest.in.size());
+//		NandForest nandForest = new NandForest(minIn);//
+//		this.mapOutOfNands(thisOutOfNands);
+//		expandedNandForest.mapOutOfNands(expandedOutOfNands);
+//		for(int i=0;i<minIn;i++){
+//			nandForest.unchangedNode(nandForest.in.get(i),this.in.get(i), expandedNandForest.in.get(i),this,expandedNandForest,thisToNand,thisToExpanded,thisOutOfNands,expandedOutOfNands);
+//		}
+//		return nandForest;
+//	}
+//	private void unchangedNode(NandNode nandNode, NandNode thisNode, NandNode expandedNode, 
+//			NandForest nandForest,
+//			NandForest expandedNandForest,
+//			HashMap<NandNode, NandNode> thisToNand,
+//			HashMap<NandNode, NandNode> thisToExpanded,
+//			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands,
+//			HashMap<NandNode, HashSet<NandNode>> expandedOutOfNands) {
+//		//TODO: verify preceding nodes are defined
+//		if(!thisToExpanded.containsKey(thisNode)){
+//			thisToExpanded.put(thisNode, expandedNode);
+//			thisToNand.put(thisNode,nandNode);
+//			for(NandNode thisNodeOut:thisOutOfNands.get(thisNode)){
+//				for(NandNode expandedNodeOut:expandedOutOfNands.get(expandedNode)){
+//					if(thisToExpanded.get(thisNodeOut.in1)==expandedNodeOut.in1&&thisToExpanded.get(thisNodeOut.in2)==expandedNodeOut.in2){
+////						this.add(in1, in2);
+//						this.unchangedNode(nandNode,thisNodeOut, expandedNodeOut, nandForest, expandedNandForest, thisToNand, thisToExpanded, thisOutOfNands, expandedOutOfNands);
+//					}
+//				}
+//			}
+//		}
+//	}
+//	private void mapOutOfNands(
+//			HashMap<NandNode, HashSet<NandNode>> thisOutOfNands) {
+//		for (NandNode node : this.out) {
+//			node.mapOutOfNandsByLevel(thisOutOfNands);
+//		}
+//	}
 }

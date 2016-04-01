@@ -7,6 +7,8 @@ package vo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import utils.FixedBitSet;
 
@@ -99,6 +101,17 @@ public class Instance implements java.io.Serializable{
 			for(Node inNode:this.in){
 				inNode.updateDefinition(definition);
 			}
+		}
+		
+	}
+	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+		HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
+		for(int i=0;i<this.in.size();i++){
+			newValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+		}
+		this.definition.eval(newValueMap);
+		for(int i=0;i<this.out.size();i++){
+			valueMap.put(this.out.get(i), newValueMap.get(this.definition.out.get(i)));
 		}
 		
 	}

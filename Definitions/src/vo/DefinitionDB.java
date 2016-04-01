@@ -185,20 +185,6 @@ public class DefinitionDB {
 		definition.out=expandedDefinition.out;
 		definition.update();
 	}
-	private void applyNewRecursiveDefinition(Definition newRecursiveDefinition,
-			Definition expandedDefinition, ArrayList<Node> recursiveIn,
-			ArrayList<Node> recursiveOut) {
-		//only if the extracted definition is recursive
-			for(Node outNode:recursiveOut){
-				outNode.parents.clear();
-				outNode.outOfInstance=null;
-			}
-			ArrayList<Node> nodes = new ArrayList<Node>();
-			nodes.addAll(recursiveIn);
-			nodes.addAll(recursiveOut);
-			expandedDefinition.add(newRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
-			expandedDefinition.update();
-	}
 	private Definition extractNewRecursiveDefinition(Definition expandedDefinition,
 			ArrayList<Node> recursiveIn1, ArrayList<Node> recursiveOut1, ArrayList<Node> recursiveIn2, ArrayList<Node> recursiveOut2) {
 		Definition tempRecursiveDefinition= new Definition(recursiveIn1.size(),recursiveOut1.size(),expandedDefinition.name+"Recur");
@@ -216,6 +202,15 @@ public class DefinitionDB {
 		Definition newRecursiveDefinition=tempRecursiveDefinition.copy();
 		newRecursiveDefinition.replaceDefinition(tempRecursiveDefinition, newRecursiveDefinition);
 		expandedDefinition.replaceDefinition(tempRecursiveDefinition, newRecursiveDefinition);
+		nodes.clear();
+		nodes.addAll(recursiveIn1);
+		nodes.addAll(recursiveOut1);
+		for(Node outNode:recursiveOut1){
+			outNode.parents.clear();
+			outNode.outOfInstance=null;
+		}
+		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		expandedDefinition.update();
 		return newRecursiveDefinition;
 	}
 	private void getRecursiveIO(Definition definition,Definition expandingDefinition,Definition expandedDefinition,

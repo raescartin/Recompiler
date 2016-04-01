@@ -1,4 +1,4 @@
-﻿-fix unique node id in nandForest:1=11 and 39=11 but 39 should be 39=(1,1)=11 that's the problem!
+﻿-nandFission shoudn't remove any node
 -always evaluate instances first, else nodes
 -sqrt
 -add arrays of nodes to definition
