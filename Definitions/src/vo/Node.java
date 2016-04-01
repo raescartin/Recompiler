@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Queue;
+import java.util.Stack;
 
 import utils.FixedBitSet;
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
@@ -86,70 +87,70 @@ public class Node {
 		}
 		return string;
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {//FIXME
-		if(!valueMap.containsKey(this)){//Non evaluated node
-			if(!this.parents.isEmpty()){
-				for (Node parent : this.parents) {
-					parent.eval(valueMap, recursiveInstances, instancesToExpand);
-				}
-				if(this.parents.size()==1){
-					if(valueMap.containsKey(this.parents.get(0))){
-						if(valueMap.get(this.parents.get(0)).length()==0){
-							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-						}else if(valueMap.get(this.parents.get(0)).length()==1){
-							if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
-								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
-								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-							}else{
-								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
-							}
-						}else{
-							for(int i=0;i<this.parents.get(0).children.size();i++){
-								if(i<this.parents.get(0).children.size()/2){
-									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
-								}else if(valueMap.get(this.parents.get(0)).length()==2){
-									valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-									valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
-							    }else if(i>(this.parents.get(0).children.size())/2){
-							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
-							    }else if(i==this.parents.get(0).children.size()/2){
-							    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
-							    }
-							}
-						}
-					}
-				}else{
-					FixedBitSet fixedBitSet = new FixedBitSet();
-					boolean parents=false;
-					for(Node parent:this.parents){
-						if(valueMap.containsKey(parent)){
-							fixedBitSet.concat(valueMap.get(parent));
-							parents=true;
-						}
-					}
-					if(parents)valueMap.put(this, fixedBitSet);
-				}
-			}else{
-				if(this.outOfInstance!=null){
-					if(this.definition==this.outOfInstance.definition){//recursive
-						if(instancesToExpand.contains(this.outOfInstance)){
-							recursiveInstances.remove(this.outOfInstance);
-							this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);							
-						}else{
-							recursiveInstances.add(this.outOfInstance);
-						}
-					}else{
-						this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);
-					}
-				}
-			}
-		}
-	}
+//	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand, Stack<Instance> instancesToExpand) {//FIXME
+//		if(!valueMap.containsKey(this)){//Non evaluated node
+//			if(!this.parents.isEmpty()){
+//				for (Node parent : this.parents) {
+//					parent.eval(valueMap, nodesToExpand, instancesToExpand);
+//				}
+//				if(this.parents.size()==1){
+//					if(valueMap.containsKey(this.parents.get(0))){
+//						if(valueMap.get(this.parents.get(0)).length()==0){
+//							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+//							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+//							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+//						}else if(valueMap.get(this.parents.get(0)).length()==1){
+//							if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
+//								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
+//								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+//								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+//							}else{
+//								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+//								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+//								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
+//							}
+//						}else{
+//							for(int i=0;i<this.parents.get(0).children.size();i++){
+//								if(i<this.parents.get(0).children.size()/2){
+//									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
+//								}else if(valueMap.get(this.parents.get(0)).length()==2){
+//									valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+//									valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
+//							    }else if(i>(this.parents.get(0).children.size())/2){
+//							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
+//							    }else if(i==this.parents.get(0).children.size()/2){
+//							    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
+//							    }
+//							}
+//						}
+//					}
+//				}else{
+//					FixedBitSet fixedBitSet = new FixedBitSet();
+//					boolean parents=false;
+//					for(Node parent:this.parents){
+//						if(valueMap.containsKey(parent)){
+//							fixedBitSet.concat(valueMap.get(parent));
+//							parents=true;
+//						}
+//					}
+//					if(parents)valueMap.put(this, fixedBitSet);
+//				}
+//			}else{
+//				if(this.outOfInstance!=null){
+//					if(this.definition==this.outOfInstance.definition){//recursive
+//						if(instancesToExpand.contains(this.outOfInstance)){
+//							nodesToExpand.remove(this.outOfInstance);
+//							this.outOfInstance.eval(valueMap, nodesToExpand, instancesToExpand);							
+//						}else{
+//							nodesToExpand.add(this.outOfInstance);
+//						}
+//					}else{
+//						this.outOfInstance.eval(valueMap, nodesToExpand, instancesToExpand);
+//					}
+//				}
+//			}
+//		}
+//	}
 	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn) {		
 		int subnodes=0;
 		for(Node child:this.children){
@@ -764,25 +765,56 @@ public class Node {
 		}
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap,
-			Queue<Node> nodesToExpand, Queue<Instance> instancesToExpand) {
+			Queue<Node> nodesToExpand, Stack<Instance> instancesToExpand) {
 		if(!valueMap.containsKey(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
 					if(valueMap.containsKey(this.parents.get(0))){
-						
+						if(valueMap.get(this.parents.get(0)).length()==0){
+							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+						}else if(valueMap.get(this.parents.get(0)).length()==1){
+							if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
+								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
+								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+							}else{
+								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
+							}
+						}else{
+							for(int i=0;i<this.parents.get(0).children.size();i++){
+								if(i<this.parents.get(0).children.size()/2){
+									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
+								}else if(valueMap.get(this.parents.get(0)).length()==2){
+									valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+									valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
+							    }else if(i>(this.parents.get(0).children.size())/2){
+							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
+							    }else if(i==this.parents.get(0).children.size()/2){
+							    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
+							    }
+							}
+						}
 					}else{
-
+						nodesToExpand.add(this.parents.get(0));
+						nodesToExpand.add(this);
 					}
 				}else{
+					FixedBitSet fixedBitSet = new FixedBitSet();
 					boolean allExpanded=true;
 					for (Node parent : this.parents) {
-						if(!valueMap.containsKey(parent)){
+						if(valueMap.containsKey(parent)){
+							fixedBitSet.concat(valueMap.get(parent));
+						}else{
 							nodesToExpand.add(parent);
 							allExpanded=false;
 						}
 					}
 					if(allExpanded){
-						
+						valueMap.put(this, fixedBitSet);
 					}else{
 						nodesToExpand.add(this);
 					}

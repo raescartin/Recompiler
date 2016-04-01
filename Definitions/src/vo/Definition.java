@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Stack;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
@@ -1203,7 +1204,7 @@ public class Definition {
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap) {
 		Queue<Node> nodesToExpand = new LinkedList<Node>();
-		Queue<Instance> instancesToExpand = new LinkedList<Instance>();
+		Stack<Instance> instancesToExpand = new Stack<Instance>();
 		for(Node node:this.out){
 			nodesToExpand.add(node);
 		}
@@ -1215,7 +1216,7 @@ public class Definition {
 			}
 			if(!allOuts){
 				if(nodesToExpand.isEmpty()){
-					instancesToExpand.poll().eval(valueMap);//second priority queue: instances
+					instancesToExpand.pop().eval(valueMap);//second priority queue: instances
 				}else{
 					nodesToExpand.poll().eval(valueMap,nodesToExpand,instancesToExpand);
 				}

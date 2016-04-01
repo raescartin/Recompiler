@@ -26,36 +26,36 @@ public class Instance implements java.io.Serializable{
 		out = new ArrayList<Node>();
 	}
 	//METHODS
-	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {
-			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
-			boolean empties = false;
-			boolean ins = false;
-			for (int i = 0; i < this.in.size(); i++) {
-				this.in.get(i).eval(valueMap, recursiveInstances, instancesToExpand);
-				if(valueMap.containsKey(this.in.get(i))){
-					ins=true;
-					tempValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
-					if(valueMap.get(this.in.get(i)).length()==0){
-						empties=true;
-					}
-				}
-			}
-			//recursive and all inputs or not recursive and some ins
-			if((!this.definition.selfRecursiveInstances.isEmpty()&&!empties)||(this.definition.selfRecursiveInstances.isEmpty()&&ins)){
-				this.definition.eval(tempValueMap);//eval
-				for (int i = 0; i < this.out.size(); i++) {
-					if(tempValueMap.containsKey(this.definition.out.get(i))){
-						valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
-					}
-				}
-			}else{
-				if(!this.definition.selfRecursiveInstances.isEmpty()){
-					for (Node outNode: this.out) {
-						valueMap.put(outNode, new FixedBitSet());
-					}
-				}
-			}
-	}
+//	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {
+//			HashMap<Node, FixedBitSet> tempValueMap = new HashMap<Node, FixedBitSet>();
+//			boolean empties = false;
+//			boolean ins = false;
+//			for (int i = 0; i < this.in.size(); i++) {
+//				this.in.get(i).eval(valueMap, recursiveInstances, instancesToExpand);
+//				if(valueMap.containsKey(this.in.get(i))){
+//					ins=true;
+//					tempValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+//					if(valueMap.get(this.in.get(i)).length()==0){
+//						empties=true;
+//					}
+//				}
+//			}
+//			//recursive and all inputs or not recursive and some ins
+//			if((!this.definition.selfRecursiveInstances.isEmpty()&&!empties)||(this.definition.selfRecursiveInstances.isEmpty()&&ins)){
+//				this.definition.eval(tempValueMap);//eval
+//				for (int i = 0; i < this.out.size(); i++) {
+//					if(tempValueMap.containsKey(this.definition.out.get(i))){
+//						valueMap.put(this.out.get(i),tempValueMap.get(this.definition.out.get(i)));
+//					}
+//				}
+//			}else{
+//				if(!this.definition.selfRecursiveInstances.isEmpty()){
+//					for (Node outNode: this.out) {
+//						valueMap.put(outNode, new FixedBitSet());
+//					}
+//				}
+//			}
+//	}
 	public String toString(){
 		String string = new String();
 		string+=(this.definition.name+" [");
