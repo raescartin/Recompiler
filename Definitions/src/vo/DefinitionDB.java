@@ -45,7 +45,7 @@ public class DefinitionDB {
 		definition.clearRoot();
 		this.optimize(definition);
 		if(!definition.selfRecursiveInstances.isEmpty()){
-			this.optimizeRecursiveIntersection(definition);		
+//			this.optimizeRecursiveIntersection(definition);		
 		}
 		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
 		definition.getRoot();

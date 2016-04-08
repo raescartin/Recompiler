@@ -87,11 +87,11 @@ public class Node {
 		}
 		return string;
 	}
-//	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand, Stack<Instance> instancesToExpand) {//FIXME
+//	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {//FIXME
 //		if(!valueMap.containsKey(this)){//Non evaluated node
 //			if(!this.parents.isEmpty()){
 //				for (Node parent : this.parents) {
-//					parent.eval(valueMap, nodesToExpand, instancesToExpand);
+//					parent.eval(valueMap, recursiveInstances, instancesToExpand);
 //				}
 //				if(this.parents.size()==1){
 //					if(valueMap.containsKey(this.parents.get(0))){
@@ -99,23 +99,24 @@ public class Node {
 //							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
 //							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
 //							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-//						}else if(valueMap.get(this.parents.get(0)).length()==1){
-//							if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
+//						}else if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
+//							if(!this.parents.get(0).children.get(2).children.isEmpty()&&!this.parents.get(0).children.get(1).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
 //								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
 //								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
 //								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
 //							}else{
 //								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
 //								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
+//								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Default left recursion TODO: check if there's a better way
 //							}
+//						}else if(valueMap.get(this.parents.get(0)).length()==2){
+//							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
+//							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+//							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
 //						}else{
 //							for(int i=0;i<this.parents.get(0).children.size();i++){
 //								if(i<this.parents.get(0).children.size()/2){
 //									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
-//								}else if(valueMap.get(this.parents.get(0)).length()==2){
-//									valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//									valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
 //							    }else if(i>(this.parents.get(0).children.size())/2){
 //							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
 //							    }else if(i==this.parents.get(0).children.size()/2){
@@ -139,13 +140,13 @@ public class Node {
 //				if(this.outOfInstance!=null){
 //					if(this.definition==this.outOfInstance.definition){//recursive
 //						if(instancesToExpand.contains(this.outOfInstance)){
-//							nodesToExpand.remove(this.outOfInstance);
-//							this.outOfInstance.eval(valueMap, nodesToExpand, instancesToExpand);							
+//							recursiveInstances.remove(this.outOfInstance);
+//							this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);							
 //						}else{
-//							nodesToExpand.add(this.outOfInstance);
+//							recursiveInstances.add(this.outOfInstance);
 //						}
 //					}else{
-//						this.outOfInstance.eval(valueMap, nodesToExpand, instancesToExpand);
+//						this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);
 //					}
 //				}
 //			}
@@ -764,8 +765,7 @@ public class Node {
 			}
 		}
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap,
-			Queue<Node> nodesToExpand, Stack<Instance> instancesToExpand) {
+	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand) {
 		if(!valueMap.containsKey(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
@@ -774,16 +774,20 @@ public class Node {
 							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
 							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
 							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-						}else if(valueMap.get(this.parents.get(0)).length()==1){
-							if(!this.parents.get(0).children.get(2).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
+						}else if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
+							if(!this.parents.get(0).children.get(2).children.isEmpty()&&!this.parents.get(0).children.get(1).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
 								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
 								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
 								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
 							}else{
 								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
 								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Always left recursion TODO: check if there's a better way
+								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Default left recursion TODO: check if there's a better way
 							}
+						}else if(valueMap.get(this.parents.get(0)).length()==2){
+							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
+							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
 						}else{
 							for(int i=0;i<this.parents.get(0).children.size();i++){
 								if(i<this.parents.get(0).children.size()/2){
@@ -821,21 +825,17 @@ public class Node {
 				}
 			}else{
 				if(this.outOfInstance!=null){
-					if(this.outOfInstance.definition.name=="nand"){
-						//lazy evaluation?
-						if(valueMap.containsKey(this.outOfInstance.in.get(0))&&valueMap.containsKey(this.outOfInstance.in.get(1))){
-							valueMap.put(this.outOfInstance.out.get(0), valueMap.get(this.outOfInstance.in.get(0)).nand(valueMap.get(this.outOfInstance.in.get(1))));
-						}else{
-							nodesToExpand.add(this.outOfInstance.in.get(0));
-							nodesToExpand.add(this.outOfInstance.in.get(1));
-							nodesToExpand.add(this.outOfInstance.out.get(0));
-						}
-						
-					}else{
-						for (Node nodeIn : this.outOfInstance.in) {
+					boolean allExpanded=true;
+					for (Node nodeIn : this.outOfInstance.in) {
+						if(!valueMap.containsKey(nodeIn)){
 							nodesToExpand.add(nodeIn);
+							allExpanded=false;
 						}
-						instancesToExpand.add(this.outOfInstance);
+					}
+					if(allExpanded){
+						this.outOfInstance.eval(valueMap);
+					}else{
+						nodesToExpand.add(this);
 					}
 				}
 			}

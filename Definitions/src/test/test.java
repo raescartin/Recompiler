@@ -34,8 +34,8 @@ class test {
     	nand.printEval(A,B);
         //Declare DATABASE
         DefinitionDB  definitionDB = new DefinitionDB(nand);
-        nand.printEval(A,B);
-        System.out.print(definitionDB.toString());
+//        nand.printEval(A,B);
+//        System.out.print(definitionDB.toString());
         
         //NOT definition//
     	Definition not = new Definition(1,1,"not");

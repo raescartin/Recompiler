@@ -322,89 +322,72 @@ public class Definition {
 		return true;
 	}
 	public void printEval(String ... strings){
-		//eval out nodes using BFS
-		HashMap<Node, FixedBitSet> valueMap = new HashMap<Node, FixedBitSet>() ;
-		for(int i=0;i<this.in.size();i++){
-			valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
-		}
-		this.eval(valueMap);
 		ArrayList<String> ins = new ArrayList<String>();
 		ArrayList<String> outs = new ArrayList<String>();
-		for(int i=0;i<this.in.size();i++){
-			ins.add(valueMap.get(this.in.get(i)).toString());
-		}
-		for(int i=0;i<this.out.size();i++){
-			outs.add(valueMap.get(this.out.get(i)).toString());
+		if(this.name=="nand"){
+				ins.add(strings[0]);
+				ins.add(strings[1]);
+				outs.add(FixedBitSet.fromString(strings[0]).nand(FixedBitSet.fromString(strings[1])).toString());
+		}else{
+			//eval out nodes using BFS
+			HashMap<Node, FixedBitSet> valueMap = new HashMap<Node, FixedBitSet>() ;
+			for(int i=0;i<this.in.size();i++){
+				valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
+			}
+			this.eval(valueMap);
+
+			for(int i=0;i<this.in.size();i++){
+				ins.add(valueMap.get(this.in.get(i)).toString());
+			}
+			for(int i=0;i<this.out.size();i++){
+				outs.add(valueMap.get(this.out.get(i)).toString());
+			}
 		}
 		System.out.print(ins);
 		System.out.print(this.name);
 		System.out.println(outs);
 		
 	}
-//	public void eval(HashMap<Node, FixedBitSet> valueMap){
-//		//eval first non-recursive instances, second self recursion
-//		if(this.name=="if"&&valueMap.containsKey(this.in.get(0))){//FIXME: this is a fix, better way?
-//			if(valueMap.get(this.in.get(0)).length()==0){
-//				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)));
-//			}else if(valueMap.get(this.in.get(0)).cardinality()==0){
-//				if(valueMap.containsKey(this.in.get(2))){
-//					valueMap.put(this.out.get(0),valueMap.get(this.in.get(2)));
-//				}
-//			}else{
-//				if(valueMap.containsKey(this.in.get(1))){
-//					valueMap.put(this.out.get(0),valueMap.get(this.in.get(1)));
-//				}
-//			}
-//			
-//		}else if(this.in.size()==2&&this.out.size()==1&&valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0&&valueMap.containsKey(this.in.get(1))){
-//				valueMap. put(this.out.get(0),valueMap.get(this.in.get(1)));
-//		}else if(this.in.size()==2&&this.out.size()==1&&valueMap.containsKey(this.in.get(1))&&valueMap.get(this.in.get(1)).length()==0&&valueMap.containsKey(this.in.get(0))){
-//				valueMap. put(this.out.get(0),valueMap.get(this.in.get(0)));
-//		}else if(this.name=="nand"){//NAND //TODO: fix nand checking
-//			//NAND (always 2 ins 1 out)
-//			if(valueMap.containsKey(this.in.get(1))//FIXME: If the non-evaluated node ends being empty, the result couldn't be precalculated
-//				&&valueMap.get(this.in.get(1)).length()!=0&&valueMap.get(this.in.get(1)).cardinality()==0){//one input not mapped
-//					ArrayList<String> ones = new ArrayList<String>();
-//					for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
-//						ones.add("1");
-//					}
-//					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
-//			}else if(valueMap.containsKey(this.in.get(0))
-//				&&valueMap.get(this.in.get(0)).length()!=0&&valueMap.get(this.in.get(0)).cardinality()==0){//one input not mapped
-//					ArrayList<String> ones = new ArrayList<String>();
-//					for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
-//						ones.add("1");
-//					}
-//					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
-//			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
-//				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
-//			}
-////					System.out.println(FixedBitSet.toString(this.out.get(0).value));
-//		}else{
-//			HashSet<Instance> recursiveInstances = new HashSet<Instance>();
-//			HashSet<Instance> instancesToExpand = new HashSet<Instance>();
-//			boolean outs;
-//			boolean nullins=false;
-//			do{
-//				outs=true;
-//				for(Node nodeOut: this.out){
-//					nodeOut.eval(valueMap,recursiveInstances,instancesToExpand);
-//					if(!valueMap.containsKey(nodeOut)){
-//						outs=false;
-//					}
-//				}
-//				instancesToExpand.addAll(recursiveInstances);
-//				recursiveInstances.clear();
-//				for (int i = 0; i < this.in.size(); i++) {
-//					if(!valueMap.containsKey(this.in.get(i))){
-//						nullins=true;
-//					}
-//				}
-//			}while(!outs&&!instancesToExpand.isEmpty()&&!nullins);
-//			
-//		}
-//		
-//	}
+	public void eval(HashMap<Node, FixedBitSet> valueMap){
+		if(this.name=="nand"){//NAND //TODO: fix nand checking
+			//NAND (always 2 ins 1 out)
+			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
+				&&valueMap.get(this.in.get(1)).length()!=0&&valueMap.get(this.in.get(1)).cardinality()==0){//one input not mapped
+					ArrayList<String> ones = new ArrayList<String>();
+					for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
+						ones.add("1");
+					}
+					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+			}else if(valueMap.containsKey(this.in.get(0))//LAZY EVALUATION
+				&&valueMap.get(this.in.get(0)).length()!=0&&valueMap.get(this.in.get(0)).cardinality()==0){//one input not mapped
+					ArrayList<String> ones = new ArrayList<String>();
+					for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
+						ones.add("1");
+					}
+					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
+				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+			}
+		}else{
+			//eval instances using BFS
+			Queue<Node> nodesToExpand = new LinkedList<Node>();
+			for(Node node:this.out){
+				nodesToExpand.add(node);
+			}
+			boolean allOuts=false;
+			while(!allOuts){//evaluation ends, when all outs are evaluated
+				allOuts=true;
+				for(Node outNode:this.out){
+					allOuts&=valueMap.containsKey(outNode);
+				}
+				if(!allOuts){
+					if(nodesToExpand.isEmpty()){
+						nodesToExpand.poll().eval(valueMap,nodesToExpand);
+					}
+				}
+			}
+		}
+	}
 	public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
 		for(Instance instance : this.selfRecursiveInstances){
 			//remove all recursive instances, to make the definition not self recursive
@@ -1202,25 +1185,25 @@ public class Definition {
 			outNode.flattenParents();
 		}
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap) {
-		Queue<Node> nodesToExpand = new LinkedList<Node>();
-		Stack<Instance> instancesToExpand = new Stack<Instance>();
-		for(Node node:this.out){
-			nodesToExpand.add(node);
-		}
-		boolean allOuts=false;
-		while(!allOuts){//evaluation ends, when all outs are evaluated
-			allOuts=true;
-			for(Node outNode:this.out){
-				allOuts&=valueMap.containsKey(outNode);
-			}
-			if(!allOuts){
-				if(nodesToExpand.isEmpty()){
-					instancesToExpand.pop().eval(valueMap);//second priority queue: instances
-				}else{
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,instancesToExpand);
-				}
-			}
-		}
-	}
+//	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+//		Queue<Node> nodesToExpand = new LinkedList<Node>();
+//		Queue<Instance> instancesToExpand = new LinkedList<Instance>();
+//		for(Node node:this.out){
+//			nodesToExpand.add(node);
+//		}
+//		boolean allOuts=false;
+//		while(!allOuts){//evaluation ends, when all outs are evaluated
+//			allOuts=true;
+//			for(Node outNode:this.out){
+//				allOuts&=valueMap.containsKey(outNode);
+//			}
+//			if(!allOuts){
+//				if(nodesToExpand.isEmpty()){
+//					instancesToExpand.pop().eval(valueMap);//second priority queue: instances
+//				}else{
+//					nodesToExpand.poll().eval(valueMap,nodesToExpand,instancesToExpand);
+//				}
+//			}
+//		}
+//	}
 }
