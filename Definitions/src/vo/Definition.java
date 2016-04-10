@@ -324,17 +324,19 @@ public class Definition {
 	public void printEval(String ... strings){
 		ArrayList<String> ins = new ArrayList<String>();
 		ArrayList<String> outs = new ArrayList<String>();
-		if(this.name=="nand"){
-				ins.add(strings[0]);
-				ins.add(strings[1]);
-				outs.add(FixedBitSet.fromString(strings[0]).nand(FixedBitSet.fromString(strings[1])).toString());
-		}else{
+//		if(this.name=="nand"){
+//				ins.add(strings[0]);
+//				ins.add(strings[1]);
+//				outs.add(FixedBitSet.fromString(strings[0]).nand(FixedBitSet.fromString(strings[1])).toString());
+//		}else{
 			//eval out nodes using BFS
 			HashMap<Node, FixedBitSet> valueMap = new HashMap<Node, FixedBitSet>() ;
+			HashSet<Node> emptyNodes = new HashSet<Node>();
+			HashSet<Node> fatherDefinitionEmptyNodes = new HashSet<Node>();
 			for(int i=0;i<this.in.size();i++){
 				valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
 			}
-			this.eval(valueMap);
+			this.eval(valueMap, emptyNodes,fatherDefinitionEmptyNodes);
 
 			for(int i=0;i<this.in.size();i++){
 				ins.add(valueMap.get(this.in.get(i)).toString());
@@ -342,13 +344,13 @@ public class Definition {
 			for(int i=0;i<this.out.size();i++){
 				outs.add(valueMap.get(this.out.get(i)).toString());
 			}
-		}
+//		}
 		System.out.print(ins);
 		System.out.print(this.name);
 		System.out.println(outs);
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap){
+	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Node> emptyNodes, HashSet<Node> fatherDefinitionEmptyNodes){
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
 			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
@@ -367,6 +369,13 @@ public class Definition {
 					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
 			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+			}else{
+				if(emptyNodes.contains(this.in.get(0))||emptyNodes.contains(this.in.get(1))){
+					emptyNodes.add(this.out.get(0));
+				}
+				if(fatherDefinitionEmptyNodes.contains(this.in.get(0))||fatherDefinitionEmptyNodes.contains(this.in.get(1))){
+					fatherDefinitionEmptyNodes.add(this.out.get(0));
+				}
 			}
 		}else{
 			//eval instances using BFS
@@ -378,12 +387,10 @@ public class Definition {
 			while(!allOuts){//evaluation ends, when all outs are evaluated
 				allOuts=true;
 				for(Node outNode:this.out){
-					allOuts&=valueMap.containsKey(outNode);
+					allOuts&=valueMap.containsKey(outNode)||emptyNodes.contains(outNode);
 				}
 				if(!allOuts){
-					if(nodesToExpand.isEmpty()){
-						nodesToExpand.poll().eval(valueMap,nodesToExpand);
-					}
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodes,fatherDefinitionEmptyNodes);
 				}
 			}
 		}

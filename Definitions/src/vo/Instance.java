@@ -104,14 +104,27 @@ public class Instance implements java.io.Serializable{
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Node> emptyNodes) {
 		HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
+		HashSet<Node> newEmptyNodes = new HashSet<Node>();
+		HashSet<Node> fatherDefinitionEmptyNodes = new HashSet<Node>();
 		for(int i=0;i<this.in.size();i++){
-			newValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+			if(valueMap.containsKey(this.in.get(i))){
+				newValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+			}else{
+				newEmptyNodes.add(this.definition.in.get(i));
+			}
+			if(emptyNodes.contains(this.in.get(i))){
+				fatherDefinitionEmptyNodes.add(this.definition.in.get(i));
+			}
 		}
-		this.definition.eval(newValueMap);
+		this.definition.eval(newValueMap,newEmptyNodes,fatherDefinitionEmptyNodes);
 		for(int i=0;i<this.out.size();i++){
-			valueMap.put(this.out.get(i), newValueMap.get(this.definition.out.get(i)));
+			if(newValueMap.containsKey(this.definition.out.get(i))){
+				valueMap.put(this.out.get(i), newValueMap.get(this.definition.out.get(i)));
+			}else if(fatherDefinitionEmptyNodes.contains(this.definition.out.get(i))){
+				emptyNodes.add(this.out.get(i));
+			}
 		}
 		
 	}

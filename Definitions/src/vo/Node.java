@@ -765,7 +765,7 @@ public class Node {
 			}
 		}
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand) {
+	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand, HashSet<Node> emptyNodes, HashSet<Node> fatherDefinitionEmptyNodes) {
 		if(!valueMap.containsKey(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
@@ -803,12 +803,25 @@ public class Node {
 							}
 						}
 					}else{
-						nodesToExpand.add(this.parents.get(0));
-						nodesToExpand.add(this);
+						if(emptyNodes.contains(this.parents.get(0))){
+							emptyNodes.add(this.parents.get(0).children.get(0));
+							emptyNodes.add(this.parents.get(0).children.get(1));
+							emptyNodes.add(this.parents.get(0).children.get(2));
+						}else{
+							nodesToExpand.add(this.parents.get(0));
+							nodesToExpand.add(this);
+						}
+						if(fatherDefinitionEmptyNodes.contains(this.parents.get(0))){
+							fatherDefinitionEmptyNodes.add(this.parents.get(0).children.get(0));
+							fatherDefinitionEmptyNodes.add(this.parents.get(0).children.get(1));
+							fatherDefinitionEmptyNodes.add(this.parents.get(0).children.get(2));
+						}
 					}
 				}else{
 					FixedBitSet fixedBitSet = new FixedBitSet();
 					boolean allExpanded=true;
+					boolean allEmpty=true;
+					boolean allParentEmpty=true;
 					for (Node parent : this.parents) {
 						if(valueMap.containsKey(parent)){
 							fixedBitSet.concat(valueMap.get(parent));
@@ -816,27 +829,49 @@ public class Node {
 							nodesToExpand.add(parent);
 							allExpanded=false;
 						}
+						if(!emptyNodes.contains(parent)){
+							allEmpty=false;
+						}
+						if(!fatherDefinitionEmptyNodes.contains(parent)){
+							allParentEmpty=false;
+						}
 					}
 					if(allExpanded){
 						valueMap.put(this, fixedBitSet);
 					}else{
-						nodesToExpand.add(this);
+						if(allEmpty){
+							emptyNodes.add(this);
+						}else{
+							nodesToExpand.add(this);
+						}
+						if(allParentEmpty){
+							fatherDefinitionEmptyNodes.add(this);
+						}
 					}
 				}
 			}else{
 				if(this.outOfInstance!=null){
-					boolean allExpanded=true;
+//					boolean someExpanded=false;
+//					boolean unknownIn=false;
 					for (Node nodeIn : this.outOfInstance.in) {
 						if(!valueMap.containsKey(nodeIn)){
-							nodesToExpand.add(nodeIn);
-							allExpanded=false;
+//							if(this.definition.in.contains(nodeIn)){
+//								unknownIn=true;
+//							}else{
+							if(!emptyNodes.contains(nodeIn)){
+								nodesToExpand.add(nodeIn);
+							}
+//							}
+//						}else{
+//							someExpanded=true;
 						}
 					}
-					if(allExpanded){
-						this.outOfInstance.eval(valueMap);
-					}else{
-						nodesToExpand.add(this);
-					}
+//					if(someExpanded){
+						this.outOfInstance.eval(valueMap,emptyNodes);
+//					}
+//					if(!unknownIn){
+//						nodesToExpand.add(this);
+//					}
 				}
 			}
 		}
