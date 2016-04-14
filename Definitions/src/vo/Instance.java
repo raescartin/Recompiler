@@ -104,38 +104,44 @@ public class Instance implements java.io.Serializable{
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition) {
-		HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
-		ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();
-		for(int i=0;i<emptyNodesByDefinition.size();i++){
-			newEmptyNodesByDefinition.add(new HashSet<Node>());
-		}
-		HashSet<Node> newEmptyNodes = new HashSet<Node>();
-		for(int i=0;i<this.in.size();i++){
-			if(valueMap.containsKey(this.in.get(i))){
-				newValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
-			}else{
-				newEmptyNodes.add(this.definition.in.get(i));
-				for(int j=0;j<newEmptyNodesByDefinition.size();j++){
-					if(emptyNodesByDefinition.get(j).contains(this.in.get(i))){
-						newEmptyNodesByDefinition.get(j).add(this.definition.in.get(i));
-					}
-				}
-			}
-		}
-		newEmptyNodesByDefinition.add(newEmptyNodes);
-		this.definition.eval(newValueMap,newEmptyNodesByDefinition);
-		newEmptyNodesByDefinition.remove(newEmptyNodesByDefinition.size()-1);
-		for(int i=0;i<this.out.size();i++){
-			if(newValueMap.containsKey(this.definition.out.get(i))){
-				valueMap.put(this.out.get(i), newValueMap.get(this.definition.out.get(i)));
-			}
-			for(int j=0;j<newEmptyNodesByDefinition.size();j++){
-				if(newEmptyNodesByDefinition.get(j).contains(this.definition.out.get(i))){
-					emptyNodesByDefinition.get(j).add(this.out.get(i));
-				}
-			}
-		}
-		
-	}
+//	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth) {
+//		HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
+//		ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();
+//		for(int i=0;i<emptyNodesByDefinition.size();i++){
+//			newEmptyNodesByDefinition.add(new HashSet<Node>());
+//		}
+//		HashSet<Node> newEmptyNodes = new HashSet<Node>();
+//		for(int i=0;i<this.in.size();i++){
+//			if(valueMap.containsKey(this.in.get(i))){
+//				newValueMap.put(this.definition.in.get(i), valueMap.get(this.in.get(i)));
+//			}else{
+//				newEmptyNodes.add(this.definition.in.get(i));
+//				for(int j=0;j<newEmptyNodesByDefinition.size();j++){
+//					if(emptyNodesByDefinition.get(j).contains(this.in.get(i))){
+//						newEmptyNodesByDefinition.get(j).add(this.definition.in.get(i));
+//					}
+//				}
+//			}
+//		}
+//		newEmptyNodesByDefinition.add(newEmptyNodes);
+//		if(depth>0){
+//			this.definition.eval(newValueMap,newEmptyNodesByDefinition,depth-1);
+//		}else{
+//			for(int i=0;i<this.out.size();i++){
+//				newEmptyNodes.add(this.definition.out.get(i));
+//			}
+//		}
+//		newEmptyNodesByDefinition.remove(newEmptyNodesByDefinition.size()-1);
+//		for(int i=0;i<this.out.size();i++){
+//			if(newValueMap.containsKey(this.definition.out.get(i))){
+//				valueMap.put(this.out.get(i), newValueMap.get(this.definition.out.get(i)));
+//			}
+//			for(int j=0;j<newEmptyNodesByDefinition.size();j++){
+//				if(newEmptyNodesByDefinition.get(j).contains(this.definition.out.get(i))){
+//					emptyNodesByDefinition.get(j).add(this.out.get(i));
+//				}
+//			}
+//		}
+//		
+//	}
 }

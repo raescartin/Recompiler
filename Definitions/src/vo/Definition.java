@@ -337,7 +337,7 @@ public class Definition {
 			for(int i=0;i<this.in.size();i++){
 				valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
 			}
-			this.eval(valueMap, emptyNodesByDefinition);
+			this.coreEval(valueMap, emptyNodesByDefinition);
 
 			for(int i=0;i<this.in.size();i++){
 				ins.add(valueMap.get(this.in.get(i)).toString());
@@ -351,7 +351,9 @@ public class Definition {
 		System.out.println(outs);
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition){
+	private void coreEval(HashMap<Node, FixedBitSet> valueMap,
+			ArrayList<HashSet<Node>> emptyNodesByDefinition) {
+		int depth=0;
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
 			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
@@ -380,19 +382,77 @@ public class Definition {
 		}else{
 			//eval instances using BFS
 			Queue<Node> nodesToExpand = new LinkedList<Node>();
-			for(Node node:this.out){
-				nodesToExpand.add(node);
+			boolean allOuts=true;
+			for(Node outNode:this.out){
+				allOuts&=valueMap.containsKey(outNode)||emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(outNode);
 			}
-			boolean allOuts=false;
 			while(!allOuts){//evaluation ends, when all outs are evaluated
+				for(Node nodeOut:this.out){
+					nodesToExpand.add(nodeOut);
+//					nodeOut.eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth);
+				}
+				while(!nodesToExpand.isEmpty()&&!allOuts){
+//				while(!this.out.contains(nodesToExpand.peek())){
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth);
+				}
+				nodesToExpand.clear();
+				depth++;
 				allOuts=true;
+				emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).clear();
 				for(Node outNode:this.out){
 					allOuts&=valueMap.containsKey(outNode)||emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(outNode);
 				}
-				if(!allOuts){
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition);
+			}
+		}
+		
+	}
+	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth){
+		if(this.name=="nand"){//NAND //TODO: fix nand checking
+			//NAND (always 2 ins 1 out)
+			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
+				&&valueMap.get(this.in.get(1)).length()!=0&&valueMap.get(this.in.get(1)).cardinality()==0){//one input not mapped
+					ArrayList<String> ones = new ArrayList<String>();
+					for(int i=0;i<valueMap.get(this.in.get(1)).length();i++){
+						ones.add("1");
+					}
+					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+			}else if(valueMap.containsKey(this.in.get(0))//LAZY EVALUATION
+				&&valueMap.get(this.in.get(0)).length()!=0&&valueMap.get(this.in.get(0)).cardinality()==0){//one input not mapped
+					ArrayList<String> ones = new ArrayList<String>();
+					for(int i=0;i<valueMap.get(this.in.get(0)).length();i++){
+						ones.add("1");
+					}
+					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
+				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+			}else{
+				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
+					if(emptyNodes.contains(this.in.get(0))||emptyNodes.contains(this.in.get(1))){
+						emptyNodes.add(this.out.get(0));
+					}
 				}
 			}
+		}else{
+			//eval instances using BFS
+			Queue<Node> nodesToExpand = new LinkedList<Node>();
+			boolean allOuts=false;
+//			for(Node outNode:this.out){
+//				allOuts&=valueMap.containsKey(outNode)||emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(outNode);
+//			}
+//			if(!allOuts){
+				for(Node node:this.out){
+					nodesToExpand.add(node);
+//					node.eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth);
+				}
+				while(!nodesToExpand.isEmpty()&&!allOuts){
+//				while(!this.out.contains(nodesToExpand.peek())){
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth);
+					allOuts=true;
+					for(Node outNode:this.out){
+						allOuts&=valueMap.containsKey(outNode)||emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(outNode);
+					}
+				}
+//			}
 		}
 	}
 	public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
