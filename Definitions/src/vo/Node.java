@@ -766,7 +766,6 @@ public class Node {
 		}
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand,  ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth, HashSet<Node> expandedNodes) {
-		expandedNodes.add(this);
 		if(!valueMap.containsKey(this)&&!emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
@@ -892,8 +891,9 @@ public class Node {
 //							}
 						}
 						
-						if(!expandedNodes.containsAll(this.definition.nodes)){//if not all nodes expanded
+						if(!expandedNodes.contains(this)){//if not all nodes expanded
 							nodesToExpand.add(this);//FIXME: condition
+							expandedNodes.add(this);
 						}
 					}else{
 						for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
