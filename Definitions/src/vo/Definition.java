@@ -376,8 +376,9 @@ public class Definition {
 				for(Node nodeOut:this.out){
 					nodesToExpand.add(nodeOut);
 				}
+				HashSet <Node> expandedNodes = new HashSet <Node>();
 				while(!nodesToExpand.isEmpty()&&!allOuts){
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth);
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth, expandedNodes);
 					allOuts=true;
 					for(Node outNode:this.out){
 						allOuts&=valueMap.containsKey(outNode)||emptyNodes.contains(outNode);
@@ -424,6 +425,7 @@ public class Definition {
 			for(Node node:this.out){
 				nodesToExpand.add(node);
 			}
+			HashSet <Node> expandedNodes = new HashSet <Node>();
 			while(!nodesToExpand.isEmpty()&&!allOuts){
 				ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();//FIXME: need for temp array emptyNodesByDefinition or only one emptyNodes?
 				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
@@ -431,7 +433,7 @@ public class Definition {
 					newEmptyNodes.addAll(emptyNodes);
 					newEmptyNodesByDefinition.add(newEmptyNodes);
 				}
-				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth);
+				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, expandedNodes);
 				allOuts=true;
 				for(Node outNode:this.out){
 					allOuts&=valueMap.containsKey(outNode)||newEmptyNodesByDefinition.get(newEmptyNodesByDefinition.size()-1).contains(outNode);//TODO: check 
