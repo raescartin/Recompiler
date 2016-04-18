@@ -765,8 +765,7 @@ public class Node {
 			}
 		}
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand,  ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth, HashSet<Node> expandedNodes) {
-		expandedNodes.add(this);
+	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand,  ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition) {
 		if(!valueMap.containsKey(this)&&!emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(this)){//Non evaluated node
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
@@ -820,11 +819,20 @@ public class Node {
 							}
 						}
 					}
+					for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
+						if(fullExpandedNodes.contains(this.parents.get(0))){
+							fullExpandedNodes.add(this.parents.get(0).children.get(0));
+							fullExpandedNodes.add(this.parents.get(0).children.get(1));
+							fullExpandedNodes.add(this.parents.get(0).children.get(2));
+						}
+					}
 				}else{
 					FixedBitSet fixedBitSet = new FixedBitSet();
 					boolean allExpanded=true;
-					ArrayList<Boolean> empty = new ArrayList<Boolean>(Arrays.asList(new Boolean[emptyNodesByDefinition.size()]));
-					Collections.fill(empty, Boolean.FALSE);
+					ArrayList<Boolean> allFullExpanded=new ArrayList<Boolean>(Arrays.asList(new Boolean[fullExpandedNodesByDefinition.size()]));
+					Collections.fill(allFullExpanded, Boolean.TRUE);
+//					ArrayList<Boolean> empty = new ArrayList<Boolean>(Arrays.asList(new Boolean[emptyNodesByDefinition.size()]));
+//					Collections.fill(empty, Boolean.FALSE);
 					for (Node parent : this.parents) {
 						if(valueMap.containsKey(parent)){
 							fixedBitSet.concat(valueMap.get(parent));
@@ -841,6 +849,11 @@ public class Node {
 								emptyNodesByDefinition.get(i).add(this);
 							}
 						}
+						for(int i=0;i<fullExpandedNodesByDefinition.size();i++){
+							if(!fullExpandedNodesByDefinition.get(i).contains(parent)){
+								allFullExpanded.set(i, false);
+							}
+						}
 						
 					}
 					if(allExpanded){
@@ -848,21 +861,41 @@ public class Node {
 					}else{
 						nodesToExpand.add(this);
 					}
+					for(int i=0;i<allFullExpanded.size();i++){
+						if(allFullExpanded.get(i)){
+							fullExpandedNodesByDefinition.get(i).add(this);
+						}
+					}
 				}
 			}else{
 				if(this.outOfInstance!=null){
-					for (Node nodeIn : this.outOfInstance.in) {
-						if(!valueMap.containsKey(nodeIn)){
-							if(!emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(nodeIn)){
-								nodesToExpand.add(nodeIn);
+					if(depth>0){
+//						boolean allFullExpanded=true;
+//						for(Node nodeIn:this.outOfInstance.in){
+//							if(!fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(nodeIn)){
+//								allFullExpanded=false;
+//							}
+//						}
+//						if(allFullExpanded){
+//							for(Node nodeOut:this.outOfInstance.out){
+//								fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(nodeOut);
+//							}
+//						}
+						for (Node nodeIn : this.outOfInstance.in) {
+							if(!valueMap.containsKey(nodeIn)){
+								if(!emptyNodesByDefinition.get(emptyNodesByDefinition.size()-1).contains(nodeIn)){
+									nodesToExpand.add(nodeIn);
+								}
 							}
 						}
-					}				
-					if(depth>0){
 						HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
 						ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();
 						for(int i=0;i<emptyNodesByDefinition.size()+1;i++){
 							newEmptyNodesByDefinition.add(new HashSet<Node>());
+						}
+						ArrayList<HashSet<Node>> newFullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
+						for(int i=0;i<fullExpandedNodesByDefinition.size()+1;i++){
+							newFullExpandedNodesByDefinition.add(new HashSet<Node>());
 						}
 						for(int i=0;i<this.outOfInstance.in.size();i++){
 							if(valueMap.containsKey(this.outOfInstance.in.get(i))){
@@ -875,9 +908,14 @@ public class Node {
 									newEmptyNodesByDefinition.get(j).add(this.outOfInstance.definition.in.get(i));
 								}
 							}
+							for(int j=0;j<fullExpandedNodesByDefinition.size();j++){//copy forward
+								if(fullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.in.get(i))){
+									newFullExpandedNodesByDefinition.get(j).add(this.outOfInstance.definition.in.get(i));
+								}
+							}
 						}
-						this.outOfInstance.definition.eval(newValueMap,newEmptyNodesByDefinition,depth-1);			
-//						HashSet<Node> newEmptyNodes = new HashSet<Node>() ;
+						newFullExpandedNodesByDefinition.get(newFullExpandedNodesByDefinition.size()-1).addAll(this.outOfInstance.definition.in);
+						this.outOfInstance.definition.eval(newValueMap,newEmptyNodesByDefinition,depth-1,newFullExpandedNodesByDefinition);			
 						for(int i=0;i<this.outOfInstance.out.size();i++){
 							if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
 								valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
@@ -887,15 +925,22 @@ public class Node {
 									emptyNodesByDefinition.get(j).add(this.outOfInstance.out.get(i));
 								}
 							}
-//							if(newEmptyNodesByDefinition.get(newEmptyNodesByDefinition.size()-1).contains(this.outOfInstance.definition.out.get(i))){
-//								newEmptyNodes .add(this.outOfInstance.out.get(i));
-//							}
+							for(int j=0;j<fullExpandedNodesByDefinition.size();j++){
+								if(newFullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.definition.out.get(i))){
+									fullExpandedNodesByDefinition.get(j).add(this.outOfInstance.out.get(i));
+								}
+							}
 						}
 						
-						if(!expandedNodes.containsAll(this.definition.in)){//if not all input nodes expanded
-							nodesToExpand.add(this);//FIXME: condition?
+						if(!fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(this)){//only if node not fully expanded
+							nodesToExpand.add(this);
 						}
 					}else{
+						for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
+							for(Node nodeOut:this.outOfInstance.out){
+								fullExpandedNodes.add(nodeOut);
+							}
+						}
 						for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
 							for(int i=0;i<this.outOfInstance.out.size();i++){
 								emptyNodes.add(this.outOfInstance.out.get(i));

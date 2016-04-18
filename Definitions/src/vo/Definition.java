@@ -373,12 +373,15 @@ public class Definition {
 				ArrayList<HashSet<Node>> emptyNodesByDefinition = new ArrayList<HashSet<Node>>();
 				HashSet<Node> emptyNodes = new HashSet<Node>();
 				emptyNodesByDefinition.add(emptyNodes);
+				ArrayList<HashSet<Node>> fullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
+				HashSet<Node> fullExpandedNodes = new HashSet<Node>();
+				fullExpandedNodes.addAll(this.in);
+				fullExpandedNodesByDefinition.add(fullExpandedNodes);
 				for(Node nodeOut:this.out){
 					nodesToExpand.add(nodeOut);
 				}
-				HashSet <Node> expandedNodes = new HashSet <Node>();
 				while(!nodesToExpand.isEmpty()&&!allOuts){
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth, expandedNodes);
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
 					allOuts=true;
 					for(Node outNode:this.out){
 						allOuts&=valueMap.containsKey(outNode)||emptyNodes.contains(outNode);
@@ -393,7 +396,7 @@ public class Definition {
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth){
+	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition){
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
 			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
@@ -403,6 +406,7 @@ public class Definition {
 						ones.add("1");
 					}
 					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+					fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
 			}else if(valueMap.containsKey(this.in.get(0))//LAZY EVALUATION
 				&&valueMap.get(this.in.get(0)).length()!=0&&valueMap.get(this.in.get(0)).cardinality()==0){//one input not mapped
 					ArrayList<String> ones = new ArrayList<String>();
@@ -410,12 +414,19 @@ public class Definition {
 						ones.add("1");
 					}
 					valueMap.put(this.out.get(0), FixedBitSet.fromString(String.join(", ", ones)));
+					fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
 			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
+				fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
 			}
 			for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
 				if(emptyNodes.contains(this.in.get(0))||emptyNodes.contains(this.in.get(1))){
 					emptyNodes.add(this.out.get(0));
+				}
+			}
+			for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
+				if(fullExpandedNodes.contains(this.in.get(0))&&fullExpandedNodes.contains(this.in.get(1))){
+					fullExpandedNodes.add(this.out.get(0));
 				}
 			}
 		}else{
@@ -425,7 +436,6 @@ public class Definition {
 			for(Node node:this.out){
 				nodesToExpand.add(node);
 			}
-			HashSet <Node> expandedNodes = new HashSet <Node>();
 			while(!nodesToExpand.isEmpty()&&!allOuts){
 				ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();//FIXME: need for temp array emptyNodesByDefinition or only one emptyNodes?
 				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
@@ -433,7 +443,7 @@ public class Definition {
 					newEmptyNodes.addAll(emptyNodes);
 					newEmptyNodesByDefinition.add(newEmptyNodes);
 				}
-				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, expandedNodes);
+				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
 				allOuts=true;
 				for(Node outNode:this.out){
 					allOuts&=valueMap.containsKey(outNode)||newEmptyNodesByDefinition.get(newEmptyNodesByDefinition.size()-1).contains(outNode);//TODO: check 
@@ -444,6 +454,7 @@ public class Definition {
 					}
 				}
 			}
+			
 			
 		}
 	}
