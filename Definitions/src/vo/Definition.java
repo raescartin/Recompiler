@@ -448,7 +448,7 @@ public class Definition {
 				for(Node outNode:this.out){
 					allOuts&=valueMap.containsKey(outNode)||newEmptyNodesByDefinition.get(newEmptyNodesByDefinition.size()-1).contains(outNode);//TODO: check 
 				}
-				if(allOuts){
+				if(allOuts){//resets emptyNodes too much (completely)
 					for(int i=0;i<emptyNodesByDefinition.size();i++){//copyBack
 						emptyNodesByDefinition.get(i).addAll(newEmptyNodesByDefinition.get(i));
 					}
