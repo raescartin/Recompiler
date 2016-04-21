@@ -370,9 +370,9 @@ public class Definition {
 			int depth=0;
 			while(!allOuts){//evaluation ends, when all outs are evaluated
 				Queue<Node> nodesToExpand = new LinkedList<Node>();//Queue for BFS
-				ArrayList<HashSet<Node>> emptyNodesByDefinition = new ArrayList<HashSet<Node>>();
+				ArrayList<HashSet<Node>> unknownNodesByDefinition = new ArrayList<HashSet<Node>>();
 				HashSet<Node> emptyNodes = new HashSet<Node>();
-				emptyNodesByDefinition.add(emptyNodes);
+				unknownNodesByDefinition.add(emptyNodes);
 				ArrayList<HashSet<Node>> fullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
 				HashSet<Node> fullExpandedNodes = new HashSet<Node>();
 				fullExpandedNodes.addAll(this.in);
@@ -381,7 +381,7 @@ public class Definition {
 					nodesToExpand.add(nodeOut);
 				}
 				while(!nodesToExpand.isEmpty()&&!allOuts){
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,emptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
 					allOuts=true;
 					for(Node outNode:this.out){
 						allOuts&=valueMap.containsKey(outNode)||emptyNodes.contains(outNode);
@@ -396,7 +396,7 @@ public class Definition {
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition){
+	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> unknownNodesByDefinition, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition){
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
 			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
@@ -419,7 +419,7 @@ public class Definition {
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 				fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
 			}
-			for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
+			for(HashSet<Node> emptyNodes:unknownNodesByDefinition){
 				if(emptyNodes.contains(this.in.get(0))||emptyNodes.contains(this.in.get(1))){
 					emptyNodes.add(this.out.get(0));
 				}
@@ -437,22 +437,24 @@ public class Definition {
 				nodesToExpand.add(node);
 			}
 			while(!nodesToExpand.isEmpty()&&!allOuts){
-				ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();//FIXME: need for temp array emptyNodesByDefinition or only one emptyNodes?
-				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
-					HashSet<Node> newEmptyNodes = new HashSet<Node>();
-					newEmptyNodes.addAll(emptyNodes);
-					newEmptyNodesByDefinition.add(newEmptyNodes);
-				}
-				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
+//				ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();//FIXME: need for temp array emptyNodesByDefinition or only one emptyNodes?
+//				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
+//					HashSet<Node> newEmptyNodes = new HashSet<Node>();
+//					newEmptyNodes.addAll(emptyNodes);
+//					newEmptyNodesByDefinition.add(newEmptyNodes);
+//				}
+//				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
+				nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
 				allOuts=true;
 				for(Node outNode:this.out){
-					allOuts&=valueMap.containsKey(outNode)||newEmptyNodesByDefinition.get(newEmptyNodesByDefinition.size()-1).contains(outNode);//TODO: check 
+					allOuts&=valueMap.containsKey(outNode)||unknownNodesByDefinition.get(unknownNodesByDefinition.size()-1).contains(outNode);
 				}
-				if(allOuts){//resets emptyNodes too much (completely)
-					for(int i=0;i<emptyNodesByDefinition.size();i++){//copyBack
-						emptyNodesByDefinition.get(i).addAll(newEmptyNodesByDefinition.get(i));
-					}
-				}
+//				if(allOuts){//resets emptyNodes too much (completely)
+//					for(int i=0;i<emptyNodesByDefinition.size();i++){//copyBack
+//						emptyNodesByDefinition.get(i).addAll(newEmptyNodesByDefinition.get(i));
+//					}
+//				}
+				
 			}
 			
 			
