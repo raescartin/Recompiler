@@ -384,7 +384,7 @@ public class Definition {
 					nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
 					allOuts=true;
 					for(Node outNode:this.out){
-						allOuts&=valueMap.containsKey(outNode)||emptyNodes.contains(outNode);
+						allOuts&=fullExpandedNodes.contains(outNode);
 					}
 				}
 				allOuts=true;
@@ -447,7 +447,7 @@ public class Definition {
 				nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
 				allOuts=true;
 				for(Node outNode:this.out){
-					allOuts&=valueMap.containsKey(outNode)||unknownNodesByDefinition.get(unknownNodesByDefinition.size()-1).contains(outNode);
+					allOuts&=fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(outNode);
 				}
 //				if(allOuts){//resets emptyNodes too much (completely)
 //					for(int i=0;i<emptyNodesByDefinition.size();i++){//copyBack
