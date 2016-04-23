@@ -375,7 +375,7 @@ public class Definition {
 				unknownNodesByDefinition.add(emptyNodes);
 				ArrayList<HashSet<Node>> fullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
 				HashSet<Node> fullExpandedNodes = new HashSet<Node>();
-				fullExpandedNodes.addAll(this.in);
+				fullExpandedNodes.addAll(valueMap.keySet());
 				fullExpandedNodesByDefinition.add(fullExpandedNodes);
 				for(Node nodeOut:this.out){
 					nodesToExpand.add(nodeOut);

@@ -936,6 +936,10 @@ public class Node {
 								nodesToExpand.add(this);
 							}
 						}else{
+							for (Node nodeIn : this.outOfInstance.in) {
+								nodesToExpand.add(nodeIn);
+							}
+							nodesToExpand.add(this);
 							for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
 								if(fullExpandedNodes.containsAll(this.outOfInstance.in)){
 									fullExpandedNodes.addAll(this.outOfInstance.out);
@@ -945,11 +949,11 @@ public class Node {
 //								fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(nodeOut);
 //							}
 							for(HashSet<Node> unknownNodes:unknownNodesByDefinition){
-								for(Node inNode:this.outOfInstance.in){
-									if(unknownNodes.contains(inNode)){
+//								for(Node inNode:this.outOfInstance.in){
+//									if(unknownNodes.contains(inNode)){
 										unknownNodes.addAll(this.outOfInstance.out);
-									}
-								}
+//									}
+//								}
 							}
 //							for(Node nodeOut:this.outOfInstance.out){
 //								unknownNodesByDefinition.get(unknownNodesByDefinition.size()-1).add(nodeOut);
