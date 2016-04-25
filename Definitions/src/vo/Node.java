@@ -87,71 +87,6 @@ public class Node {
 		}
 		return string;
 	}
-//	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {//FIXME
-//		if(!valueMap.containsKey(this)){//Non evaluated node
-//			if(!this.parents.isEmpty()){
-//				for (Node parent : this.parents) {
-//					parent.eval(valueMap, recursiveInstances, instancesToExpand);
-//				}
-//				if(this.parents.size()==1){
-//					if(valueMap.containsKey(this.parents.get(0))){
-//						if(valueMap.get(this.parents.get(0)).length()==0){
-//							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-//							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-//						}else if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
-//							if(!this.parents.get(0).children.get(2).children.isEmpty()&&!this.parents.get(0).children.get(1).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
-//								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
-//								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-//							}else{
-//								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-//								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Default left recursion TODO: check if there's a better way
-//							}
-//						}else if(valueMap.get(this.parents.get(0)).length()==2){
-//							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
-//							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-//							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
-//						}else{
-//							for(int i=0;i<this.parents.get(0).children.size();i++){
-//								if(i<this.parents.get(0).children.size()/2){
-//									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
-//							    }else if(i>(this.parents.get(0).children.size())/2){
-//							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
-//							    }else if(i==this.parents.get(0).children.size()/2){
-//							    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
-//							    }
-//							}
-//						}
-//					}
-//				}else{
-//					FixedBitSet fixedBitSet = new FixedBitSet();
-//					boolean parents=false;
-//					for(Node parent:this.parents){
-//						if(valueMap.containsKey(parent)){
-//							fixedBitSet.concat(valueMap.get(parent));
-//							parents=true;
-//						}
-//					}
-//					if(parents)valueMap.put(this, fixedBitSet);
-//				}
-//			}else{
-//				if(this.outOfInstance!=null){
-//					if(this.definition==this.outOfInstance.definition){//recursive
-//						if(instancesToExpand.contains(this.outOfInstance)){
-//							recursiveInstances.remove(this.outOfInstance);
-//							this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);							
-//						}else{
-//							recursiveInstances.add(this.outOfInstance);
-//						}
-//					}else{
-//						this.outOfInstance.eval(valueMap, recursiveInstances, instancesToExpand);
-//					}
-//				}
-//			}
-//		}
-//	}
 	public void mapInChildren(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn) {		
 		int subnodes=0;
 		for(Node child:this.children){
@@ -765,12 +700,17 @@ public class Node {
 			}
 		}
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, Queue<Node> nodesToExpand, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition) {
-		if(!fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(this)){//Non fully evaluated node
+	public void eval(HashMap<Node, FixedBitSet> valueMap, int depth) {
+		if(!valueMap.containsKey(this)){
 			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
 				if(this.parents.size()==1){
+					this.parents.get(0).eval(valueMap, depth);
 					if(valueMap.containsKey(this.parents.get(0))){
-						if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
+						if(valueMap.get(this.parents.get(0)).length()==0){
+							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
+							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
+						}else if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
 							if(!this.parents.get(0).children.get(2).children.isEmpty()&&!this.parents.get(0).children.get(1).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
 								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
 								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
@@ -798,213 +738,50 @@ public class Node {
 							    }
 							}
 						}
-					}else{
-						nodesToExpand.add(this.parents.get(0));
-						nodesToExpand.add(this);
-					}
-					for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-						if(fullExpandedNodes.contains(this.parents.get(0))){
-							fullExpandedNodes.add(this.parents.get(0).children.get(0));
-							fullExpandedNodes.add(this.parents.get(0).children.get(1));
-							fullExpandedNodes.add(this.parents.get(0).children.get(2));
-						}
 					}
 				}else{//node with multiple parents
 					FixedBitSet fixedBitSet = new FixedBitSet();
 					boolean allExpanded=true;
-					ArrayList<Boolean> allFullExpanded=new ArrayList<Boolean>(Arrays.asList(new Boolean[fullExpandedNodesByDefinition.size()]));
-					Collections.fill(allFullExpanded, Boolean.TRUE);
 					for (Node parent : this.parents) {
+						parent.eval(valueMap, depth);
 						if(valueMap.containsKey(parent)){
 							fixedBitSet.concat(valueMap.get(parent));
 						}else{
 							allExpanded=false;
-							nodesToExpand.add(parent);
-						}
-						for(int i=0;i<fullExpandedNodesByDefinition.size();i++){
-							if(!fullExpandedNodesByDefinition.get(i).contains(parent)){
-								allFullExpanded.set(i, false);
-							}
 						}
 					}
 					if(allExpanded){
 						valueMap.put(this, fixedBitSet);
-					}else{
-						nodesToExpand.add(this);
-					}
-					for(int i=0;i<allFullExpanded.size();i++){
-						if(allFullExpanded.get(i)){
-							fullExpandedNodesByDefinition.get(i).add(this);
-						}
 					}
 				}
 			}else{
 				if(this.outOfInstance!=null){
 					boolean emptyIn=false;
 					for (Node nodeIn : this.outOfInstance.in) {
-						nodesToExpand.add(nodeIn);
+						nodeIn.eval(valueMap, depth);
 						if(valueMap.containsKey(nodeIn)){
 							if(valueMap.get(nodeIn).length()==0){
 								emptyIn=true;
 							}
 						}
 					}
-					nodesToExpand.add(this);
 					if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()&&emptyIn){//recursive instance with empty ins
 						for (Node nodeOut : this.outOfInstance.out) {
 							valueMap.put(nodeOut, new FixedBitSet());
-							for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-								fullExpandedNodes.add(nodeOut);
-							}
 						}
 					}else{
-						if(depth>0){
+						if(emptyIn||depth>0){
 							HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
-							ArrayList<HashSet<Node>> newFullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
-							for(int i=0;i<fullExpandedNodesByDefinition.size()+1;i++){
-								newFullExpandedNodesByDefinition.add(new HashSet<Node>());
-							}
 							for(int i=0;i<this.outOfInstance.in.size();i++){//copy forward
 								if(valueMap.containsKey(this.outOfInstance.in.get(i))){
 									newValueMap.put(this.outOfInstance.definition.in.get(i), valueMap.get(this.outOfInstance.in.get(i)));
 								}
-								for(int j=0;j<fullExpandedNodesByDefinition.size();j++){
-									if(fullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.in.get(i))){
-										newFullExpandedNodesByDefinition.get(j).add(this.outOfInstance.definition.in.get(i));
-									}
-								}
 							}
-							newFullExpandedNodesByDefinition.get(newFullExpandedNodesByDefinition.size()-1).addAll(this.outOfInstance.definition.in);
-							this.outOfInstance.definition.eval(newValueMap,depth-1,newFullExpandedNodesByDefinition);			
+							this.outOfInstance.definition.eval(newValueMap,depth-1);			
 							for(int i=0;i<this.outOfInstance.out.size();i++){//copy back
 								if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
 									valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
 								} 
-								for(int j=0;j<fullExpandedNodesByDefinition.size();j++){
-									if(newFullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.definition.out.get(i))){
-										fullExpandedNodesByDefinition.get(j).add(this.outOfInstance.out.get(i));
-									}
-								}
-							}
-						}else{
-							for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-								if(fullExpandedNodes.containsAll(this.outOfInstance.in)){
-									fullExpandedNodes.addAll(this.outOfInstance.out);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		
-	}
-	public void evalEmptyNodes(HashMap<Node, FixedBitSet> valueMap,
-			Queue<Node> nodesToExpand, int depth,
-			ArrayList<HashSet<Node>> fullExpandedNodesByDefinition) {
-		if(!fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(this)){//Non fully evaluated node
-			if(!this.parents.isEmpty()){//deal with subnodes and supernodes
-				if(this.parents.size()==1){
-					if(valueMap.containsKey(this.parents.get(0))){
-						if(valueMap.get(this.parents.get(0)).length()==0){
-							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-						}
-					}else{
-							nodesToExpand.add(this.parents.get(0));
-							nodesToExpand.add(this);
-					}
-					for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-						if(fullExpandedNodes.contains(this.parents.get(0))){
-							fullExpandedNodes.add(this.parents.get(0).children.get(0));
-							fullExpandedNodes.add(this.parents.get(0).children.get(1));
-							fullExpandedNodes.add(this.parents.get(0).children.get(2));
-						}
-					}
-				}else{//node with multiple parents
-					FixedBitSet fixedBitSet = new FixedBitSet();
-					boolean allExpanded=true;
-					ArrayList<Boolean> allFullExpanded=new ArrayList<Boolean>(Arrays.asList(new Boolean[fullExpandedNodesByDefinition.size()]));
-					Collections.fill(allFullExpanded, Boolean.TRUE);
-					for (Node parent : this.parents) {
-						if(valueMap.containsKey(parent)){
-							fixedBitSet.concat(valueMap.get(parent));
-						}else{
-							allExpanded=false;
-							nodesToExpand.add(parent);
-						}
-						for(int i=0;i<fullExpandedNodesByDefinition.size();i++){
-							if(!fullExpandedNodesByDefinition.get(i).contains(parent)){
-								allFullExpanded.set(i, false);
-							}
-						}
-					}
-					if(allExpanded){
-						valueMap.put(this, fixedBitSet);
-					}else{
-						nodesToExpand.add(this);
-					}
-					for(int i=0;i<allFullExpanded.size();i++){
-						if(allFullExpanded.get(i)){
-							fullExpandedNodesByDefinition.get(i).add(this);
-						}
-					}
-				}
-			}else{
-				if(this.outOfInstance!=null){
-					boolean emptyIn=false;
-					for (Node nodeIn : this.outOfInstance.in) {
-						nodesToExpand.add(nodeIn);
-						if(valueMap.containsKey(nodeIn)){
-							if(valueMap.get(nodeIn).length()==0){
-								emptyIn=true;
-							}
-						}
-					}
-					nodesToExpand.add(this);
-					if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()&&emptyIn){//recursive instance with empty ins
-						for (Node nodeOut : this.outOfInstance.out) {
-							valueMap.put(nodeOut, new FixedBitSet());
-							for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-								fullExpandedNodes.add(nodeOut);
-							}
-						}
-					}else{
-						if(depth>0){
-							HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
-							ArrayList<HashSet<Node>> newFullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
-							for(int i=0;i<fullExpandedNodesByDefinition.size()+1;i++){
-								newFullExpandedNodesByDefinition.add(new HashSet<Node>());
-							}
-							for(int i=0;i<this.outOfInstance.in.size();i++){//copy forward
-								if(valueMap.containsKey(this.outOfInstance.in.get(i))){
-									newValueMap.put(this.outOfInstance.definition.in.get(i), valueMap.get(this.outOfInstance.in.get(i)));
-								}
-								for(int j=0;j<fullExpandedNodesByDefinition.size();j++){
-									if(fullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.in.get(i))){
-										newFullExpandedNodesByDefinition.get(j).add(this.outOfInstance.definition.in.get(i));
-									}
-								}
-							}
-							newFullExpandedNodesByDefinition.get(newFullExpandedNodesByDefinition.size()-1).addAll(this.outOfInstance.definition.in);
-							this.outOfInstance.definition.expandEmptyNodes(newValueMap,depth-1,newFullExpandedNodesByDefinition);			
-							for(int i=0;i<this.outOfInstance.out.size();i++){//copy back
-								if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
-									valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
-								} 
-								for(int j=0;j<fullExpandedNodesByDefinition.size();j++){
-									if(newFullExpandedNodesByDefinition.get(j).contains(this.outOfInstance.definition.out.get(i))){
-										fullExpandedNodesByDefinition.get(j).add(this.outOfInstance.out.get(i));
-									}
-								}
-							}
-							
-						}else{
-							for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
-								if(fullExpandedNodes.containsAll(this.outOfInstance.in)){
-									fullExpandedNodes.addAll(this.outOfInstance.out);
-								}
 							}
 						}
 					}
