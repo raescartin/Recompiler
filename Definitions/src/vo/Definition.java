@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Stack;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
@@ -328,6 +327,9 @@ public class Definition {
 		HashMap<Node, FixedBitSet> valueMap = new HashMap<Node, FixedBitSet>() ;
 		for(int i=0;i<this.in.size();i++){
 			valueMap.put(this.in.get(i), FixedBitSet.fromString(strings[i]));
+			if(!this.in.get(i).parents.isEmpty()){//fix for in nodes as lone child
+				valueMap.put(this.in.get(i).parents.get(0), FixedBitSet.fromString(strings[i]));
+			}
 		}
 		this.coreEval(valueMap);
 		for(int i=0;i<this.in.size();i++){
@@ -370,9 +372,9 @@ public class Definition {
 			int depth=0;
 			while(!allOuts){//evaluation ends, when all outs are evaluated
 				Queue<Node> nodesToExpand = new LinkedList<Node>();//Queue for BFS
-				ArrayList<HashSet<Node>> unknownNodesByDefinition = new ArrayList<HashSet<Node>>();
-				HashSet<Node> emptyNodes = new HashSet<Node>();
-				unknownNodesByDefinition.add(emptyNodes);
+//				ArrayList<HashSet<Node>> unknownNodesByDefinition = new ArrayList<HashSet<Node>>();
+//				HashSet<Node> emptyNodes = new HashSet<Node>();
+//				unknownNodesByDefinition.add(emptyNodes);
 				ArrayList<HashSet<Node>> fullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
 				HashSet<Node> fullExpandedNodes = new HashSet<Node>();
 				fullExpandedNodes.addAll(valueMap.keySet());
@@ -381,7 +383,7 @@ public class Definition {
 					nodesToExpand.add(nodeOut);
 				}
 				while(!nodesToExpand.isEmpty()&&!allOuts){
-					nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
+					nodesToExpand.poll().eval(valueMap,nodesToExpand,depth, fullExpandedNodesByDefinition);
 					allOuts=true;
 					for(Node outNode:this.out){
 						allOuts&=fullExpandedNodes.contains(outNode);
@@ -396,7 +398,20 @@ public class Definition {
 		}
 		
 	}
-	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> unknownNodesByDefinition, int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition){
+	public void eval(HashMap<Node, FixedBitSet> valueMap,int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition){
+		ArrayList<HashSet<Node>> tempFullExpandedNodesByDefinition = new ArrayList<HashSet<Node>>();
+		for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
+			HashSet<Node> tempFullExpandedNodes = new HashSet<Node>();
+			tempFullExpandedNodes.addAll(fullExpandedNodes);
+			tempFullExpandedNodesByDefinition.add(tempFullExpandedNodes);
+		}
+//		this.expandEmptyNodes(valueMap,depth,tempFullExpandedNodesByDefinition);		//TODO: expand empty "" nodes first FIXME
+		fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).addAll(valueMap.keySet());
+		this.expandFullNodes(valueMap,depth,fullExpandedNodesByDefinition);
+		
+	}
+	private void expandFullNodes(HashMap<Node, FixedBitSet> valueMap,
+			int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition) {
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
 			if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
@@ -419,11 +434,6 @@ public class Definition {
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 				fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
 			}
-			for(HashSet<Node> emptyNodes:unknownNodesByDefinition){
-				if(emptyNodes.contains(this.in.get(0))||emptyNodes.contains(this.in.get(1))){
-					emptyNodes.add(this.out.get(0));
-				}
-			}
 			for(HashSet<Node> fullExpandedNodes:fullExpandedNodesByDefinition){
 				if(fullExpandedNodes.contains(this.in.get(0))&&fullExpandedNodes.contains(this.in.get(1))){
 					fullExpandedNodes.add(this.out.get(0));
@@ -432,32 +442,39 @@ public class Definition {
 		}else{
 			//eval out nodes using BFS
 			Queue<Node> nodesToExpand = new LinkedList<Node>();//Queue for BFS
-			boolean allOuts=false;
 			for(Node node:this.out){
 				nodesToExpand.add(node);
 			}
-			while(!nodesToExpand.isEmpty()&&!allOuts){
-//				ArrayList<HashSet<Node>> newEmptyNodesByDefinition = new ArrayList<HashSet<Node>>();//FIXME: need for temp array emptyNodesByDefinition or only one emptyNodes?
-//				for(HashSet<Node> emptyNodes:emptyNodesByDefinition){
-//					HashSet<Node> newEmptyNodes = new HashSet<Node>();
-//					newEmptyNodes.addAll(emptyNodes);
-//					newEmptyNodesByDefinition.add(newEmptyNodes);
-//				}
-//				nodesToExpand.poll().eval(valueMap,nodesToExpand,newEmptyNodesByDefinition,depth, fullExpandedNodesByDefinition);
-				nodesToExpand.poll().eval(valueMap,nodesToExpand,unknownNodesByDefinition,depth, fullExpandedNodesByDefinition);
-				allOuts=true;
-				for(Node outNode:this.out){
-					allOuts&=fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).contains(outNode);
-				}
-//				if(allOuts){//resets emptyNodes too much (completely)
-//					for(int i=0;i<emptyNodesByDefinition.size();i++){//copyBack
-//						emptyNodesByDefinition.get(i).addAll(newEmptyNodesByDefinition.get(i));
-//					}
-//				}
-				
+			while(!nodesToExpand.isEmpty()){
+				nodesToExpand.poll().eval(valueMap,nodesToExpand,depth, fullExpandedNodesByDefinition);
 			}
-			
-			
+		}
+		
+	}
+	void expandEmptyNodes(HashMap<Node, FixedBitSet> valueMap,
+			int depth, ArrayList<HashSet<Node>> fullExpandedNodesByDefinition) {
+		if(this.name=="nand"){//NAND //TODO: fix nand checking
+			//NAND (always 2 ins 1 out)
+			if(valueMap.containsKey(this.in.get(1))&&valueMap.get(this.in.get(1)).length()==0){//if one in is empty, out is the other
+				if(valueMap.containsKey(this.in.get(0))){
+					valueMap.put(this.out.get(0), valueMap.get(this.in.get(0)));
+					fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
+				}
+			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0){//if one in is empty, out is the other
+				if(valueMap.containsKey(this.in.get(1))){
+					valueMap.put(this.out.get(1), valueMap.get(this.in.get(1)));
+					fullExpandedNodesByDefinition.get(fullExpandedNodesByDefinition.size()-1).add(this.out.get(0));
+				}
+			}
+		}else{
+			//eval out nodes using BFS
+			Queue<Node> nodesToExpand = new LinkedList<Node>();//Queue for BFS
+			for(Node node:this.out){
+				nodesToExpand.add(node);
+			}
+			while(!nodesToExpand.isEmpty()){
+				nodesToExpand.poll().evalEmptyNodes(valueMap,nodesToExpand,depth, fullExpandedNodesByDefinition);
+			}
 		}
 	}
 	public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {

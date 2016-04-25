@@ -228,7 +228,7 @@ class test {
     	Node decN = dec.in.get(0).add(new Node());
     	Node decNnot = new Node();
     	dec.add(not, decN,decNnot);
-    	Node decR= new Node();
+    	Node decR= new Node(); 
     	dec0.add(decR);
     	decRest.add(decR);
     	Node decRout= new Node();
@@ -242,7 +242,7 @@ class test {
     	System.out.print(dec.toString());
     	dec.printEval(A);
     	definitionDB.put("dec",dec);
-//    	dec.printEval(A);//FIXME: intersection with recursion not optimized
+//    	dec.printEval(A);//FIXME: intersection with recursion not optimized TODO: fix optimization
     	System.out.print(definitionDB.toString());
     	
     	//CMP definition////definition to test if two values are equal, returns a bit
@@ -272,8 +272,8 @@ class test {
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
-//    	cmp.printEval(A,A);
-//    	cmp.printEval(A,B);
+    	cmp.printEval(A,A);
+    	cmp.printEval(A,B);
     	System.out.print(definitionDB.toString());
     	
     	//EQ0 definition////definition to test if a value is zero
@@ -284,11 +284,11 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(eq0.toString());
-//    	eq0.printEval(A);
-//    	eq0.printEval(B);
+    	eq0.printEval(A);
+    	eq0.printEval(B);
     	definitionDB.put("eq0",eq0);
-//    	eq0.printEval(A);
-//    	eq0.printEval(B);
+    	eq0.printEval(A);
+    	eq0.printEval(B);
     	System.out.print(definitionDB.toString());
     	
 //    	//forDef definition////for loop definition
@@ -315,9 +315,9 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(mul.toString());
-//    	mul.printEval(B,B);
+    	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
-//    	mul.printEval(B,B);
+    	mul.printEval(B,B);
     	System.out.print(definitionDB.toString());
     	
 //    	//SQRT definition//
