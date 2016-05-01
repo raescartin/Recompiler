@@ -76,10 +76,8 @@ public class FixedBitSet extends BitSet{
 				}
 				j++;
 			}
-	    	return fbs;
-    	}else{
-    		return null;
     	}
+	    return fbs;
 		//return (FixedBitSet) super.get(i, j);
 	}
 //    public void setLength(int fixedLength){

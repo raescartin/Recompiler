@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
@@ -389,7 +387,7 @@ public class Definition {
 				}
 			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0){//if one in is empty, out is the other
 				if(valueMap.containsKey(this.in.get(1))){
-					valueMap.put(this.out.get(1), valueMap.get(this.in.get(1)));
+					valueMap.put(this.out.get(0), valueMap.get(this.in.get(1)));
 				}
 			}else if(valueMap.containsKey(this.in.get(1))//LAZY EVALUATION
 				&&valueMap.get(this.in.get(1)).length()!=0&&valueMap.get(this.in.get(1)).cardinality()==0){//one input not mapped

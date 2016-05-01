@@ -1,4 +1,7 @@
-﻿-nandFission shoudn't remove any node
+﻿-fix eval
+-eval cost AS
+-fix fussion
+-fix fission:nandFission shoudn't remove any node
 -always evaluate instances first, else nodes
 -sqrt
 -add arrays of nodes to definition

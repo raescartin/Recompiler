@@ -5,11 +5,9 @@
 package vo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Queue;
 
 import utils.FixedBitSet;
 //Each node may have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
@@ -706,37 +704,21 @@ public class Node {
 				if(this.parents.size()==1){
 					this.parents.get(0).eval(valueMap, depth);
 					if(valueMap.containsKey(this.parents.get(0))){
-						if(valueMap.get(this.parents.get(0)).length()==0){
-							valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-						}else if(valueMap.get(this.parents.get(0)).length()==1){//ADAPTATIVE RECURSION
-							if(!this.parents.get(0).children.get(2).children.isEmpty()&&!this.parents.get(0).children.get(1).children.isEmpty()&&this.parents.get(0).children.get(1).children.get(0)==this.parents.get(0).children.get(2).children.get(0)){
-								valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
-								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(2),new FixedBitSet());
-							}else{
-								valueMap.put(this.parents.get(0).children.get(0),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-								valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(0,0));//Default left recursion TODO: check if there's a better way
-							}
-						}else if(valueMap.get(this.parents.get(0)).length()==2){
-							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0)).get(0,0));
-							valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-							valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
+						if(parents.get(0).children.get(0)==this){
+							valueMap.put(this,valueMap.get(this.parents.get(0)).get(0,0));
+						}else if(parents.get(0).children.get(1)==this){
+							valueMap.put(this,valueMap.get(this.parents.get(0)).get(1,valueMap.get(this.parents.get(0)).length()-2));
+						}else if(parents.get(0).children.get(2)==this){
+							valueMap.put(this,valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-1,valueMap.get(this.parents.get(0)).length()-1));
+						}
+					}
+				}else if(this.parents.size()==2&&this.parents.get(0).parents.size()==1&&this.parents.get(1).parents.size()==1&&this.parents.get(0).parents.get(0)==this.parents.get(1).parents.get(0)){// "rest" selection
+					this.parents.get(0).parents.get(0).eval(valueMap, depth);
+					if(valueMap.containsKey(this.parents.get(0).parents.get(0))){
+						if(this.parents.get(0)==this.parents.get(0).parents.get(0).children.get(0)){
+							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0).parents.get(0)).get(0,valueMap.get(this.parents.get(0).parents.get(0)).length()-2));
 						}else{
-							for(int i=0;i<this.parents.get(0).children.size();i++){
-								if(i<this.parents.get(0).children.size()/2){
-									valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(i,i));
-								}else if(valueMap.get(this.parents.get(0)).length()==2){
-									valueMap.put(this.parents.get(0).children.get(1),new FixedBitSet());
-									valueMap.put(this.parents.get(0).children.get(2),valueMap.get(this.parents.get(0)).get(1,1));
-							    }else if(i>(this.parents.get(0).children.size())/2){
-							    	valueMap.put(this.parents.get(0).children.get(i), valueMap.get(this.parents.get(0)).get(valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i,valueMap.get(this.parents.get(0)).length()-this.parents.get(0).children.size()/2-2+i));
-							    }else if(i==this.parents.get(0).children.size()/2){
-							    	valueMap.put(this.parents.get(0).children.get(i),valueMap.get(this.parents.get(0)).get(i,valueMap.get(this.parents.get(0)).length()-i-1));
-							    }
-							}
+							valueMap.put(this.parents.get(0).children.get(0),valueMap.get(this.parents.get(0).parents.get(0)).get(1,valueMap.get(this.parents.get(0).parents.get(0)).length()-1));
 						}
 					}
 				}else{//node with multiple parents

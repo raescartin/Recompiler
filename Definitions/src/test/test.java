@@ -195,7 +195,7 @@ class test {
     	System.out.print(add.toString());
     	add.printEval(A,B);
     	definitionDB.put("add",add);
-    	add.printEval(A,B);//FIXME
+//    	add.printEval(A,B);//FIXME
     	System.out.print(definitionDB.toString());
     	
     	//ZEROS definition////logic definition of zero values
