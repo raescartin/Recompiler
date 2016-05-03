@@ -32,6 +32,7 @@ class test {
     	//NAND definition//
     	Definition nand = new Definition(2,1,"nand");
     	nand.printEval(A,B);
+    	nand.printCost();
         //Declare DATABASE
         DefinitionDB  definitionDB = new DefinitionDB(nand);
 //        nand.printEval(A,B);
@@ -43,8 +44,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(not.toString());
+    	not.printCost();
     	not.printEval(A);
      	definitionDB.put("not",not);
+    	System.out.print("Optimized definition: ");
+    	System.out.print(not.toString());
+     	not.printCost();
      	not.printEval(A);
      	System.out.print(definitionDB.toString());
        
@@ -56,8 +61,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(and.toString());
+    	and.printCost();
     	and.printEval(A,B);
      	definitionDB.put("and",and);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(and.toString());
+     	and.printCost();
      	and.printEval(A,B);
      	System.out.print(definitionDB.toString());
      
@@ -71,8 +80,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(or.toString());
+    	or.printCost();
     	or.printEval(A,B);
      	definitionDB.put("or",or);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(or.toString());
+     	or.printCost();
      	or.printEval(A,B);
      	System.out.print(definitionDB.toString());
     
@@ -86,8 +99,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(xor.toString());
+    	xor.printCost();
     	xor.printEval(A,B);
     	definitionDB.put("xor",xor);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(xor.toString());
+    	xor.printCost();
     	xor.printEval(A,B);
     	System.out.print(definitionDB.toString());
     
@@ -104,8 +121,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(ifDef.toString());
+    	ifDef.printCost();
     	ifDef.printEval(A,B,C);
     	definitionDB.put("if",ifDef);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(ifDef.toString());
+    	ifDef.printCost();
     	ifDef.printEval(A,B,C);
     	System.out.print(definitionDB.toString());
     	
@@ -146,8 +167,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(rifDef.toString());
+    	rifDef.printCost();
     	rifDef.printEval(D,B,C);
     	definitionDB.put("rif",rifDef);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(rifDef.toString());
+     	rifDef.printCost();
     	rifDef.printEval(D,B,C);
     	System.out.print(definitionDB.toString());
     	
@@ -193,8 +218,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(add.toString());
+    	add.printCost();
     	add.printEval(A,B);
     	definitionDB.put("add",add);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(add.toString());
+    	add.printCost();
 //    	add.printEval(A,B);//FIXME
     	System.out.print(definitionDB.toString());
     	
@@ -204,7 +233,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(zeros.toString());
+    	zeros.printCost();
+    	zeros.printEval(A);
     	definitionDB.put("zeros",zeros);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(zeros.toString());
+    	zeros.printCost();
     	zeros.printEval(A);
     	System.out.print(definitionDB.toString());
     	
@@ -216,7 +250,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(ones.toString());
+    	ones.printCost();
+    	ones.printEval(A);
     	definitionDB.put("ones",ones);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(ones.toString());
+    	ones.printCost();
     	ones.printEval(A);
     	System.out.print(definitionDB.toString());
     	
@@ -240,8 +279,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(dec.toString());
+    	dec.printCost();
     	dec.printEval(A);
     	definitionDB.put("dec",dec);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(dec.toString());
+    	dec.printCost();
 //    	dec.printEval(A);//FIXME: intersection with recursion not optimized TODO: fix optimization
     	System.out.print(definitionDB.toString());
     	
@@ -269,9 +312,13 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(cmp.toString());
+    	cmp.printCost();
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	definitionDB.put("cmp",cmp);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(cmp.toString());
+    	cmp.printCost();
     	cmp.printEval(A,A);
     	cmp.printEval(A,B);
     	System.out.print(definitionDB.toString());
@@ -284,9 +331,13 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(eq0.toString());
+    	eq0.printCost();
     	eq0.printEval(A);
     	eq0.printEval(B);
     	definitionDB.put("eq0",eq0);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(eq0.toString());
+    	eq0.printCost();
     	eq0.printEval(A);
     	eq0.printEval(B);
     	System.out.print(definitionDB.toString());
@@ -315,8 +366,12 @@ class test {
     	System.out.println();
     	System.out.print("New definition: ");
     	System.out.print(mul.toString());
+    	mul.printCost();
     	mul.printEval(B,B);
     	definitionDB.put("mul",mul);
+     	System.out.print("Optimized definition: ");
+    	System.out.print(mul.toString());
+    	mul.printCost();
     	mul.printEval(B,B);
     	System.out.print(definitionDB.toString());
     	

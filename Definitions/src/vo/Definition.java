@@ -318,6 +318,26 @@ public class Definition {
 		}
 		return true;
 	}
+	public void printCost(){
+		Definition copyDef=this.copy();
+		copyDef.replaceDefinition(this, copyDef);
+		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
+			copyDef.toNandDefinitions();
+			copyDef.nodeFission();
+			int iterationCost=copyDef.instances.size();
+			System.out.println("Definition cost in nands: "+iterationCost);
+		}else{
+			AddedNodes addedNodes = new AddedNodes();
+			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			copyDef.removeRecursion(addedNodes, removedInstances);
+			copyDef.toNandDefinitions();
+			copyDef.nodeFission();
+			int iterationCost=copyDef.instances.size();
+			int nodesEvaluatedByIteration=1;
+			int recursiveInstances;
+			System.out.println("Definition cost in nands: "+iterationCost+"*n/"+nodesEvaluatedByIteration);
+		}
+	}
 	public void printEval(String ... strings){
 		ArrayList<String> ins = new ArrayList<String>();
 		ArrayList<String> outs = new ArrayList<String>();
