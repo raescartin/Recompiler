@@ -861,13 +861,22 @@ public class Definition {
 			}
 			
 		}
+//	public void fusion() {
+//		HashSet<Node> inNodes = new HashSet<Node>();
+//		HashMap<Node,ArrayList<Instance>> in0OfInstances = new HashMap<Node,ArrayList<Instance>>();
+//		HashMap<Node,ArrayList<Instance>> in1OfInstances = new HashMap<Node,ArrayList<Instance>>();
+//		inNodes.addAll(this.in);
+//		for(Node outNode:this.out){
+//			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
+//		}
+//	}
 	public void fusion() {
 		HashSet<Node> inNodes = new HashSet<Node>();
-		HashMap<Node,ArrayList<Instance>> in0OfInstances = new HashMap<Node,ArrayList<Instance>>();
-		HashMap<Node,ArrayList<Instance>> in1OfInstances = new HashMap<Node,ArrayList<Instance>>();
+		HashMap<Node,ArrayList<Instance>> in0OfNandInstances = new HashMap<Node,ArrayList<Instance>>();
+		HashMap<Node,ArrayList<Instance>> in1OfNandInstances = new HashMap<Node,ArrayList<Instance>>();
 		inNodes.addAll(this.in);
 		for(Node outNode:this.out){
-			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
+			outNode.carryNodeIndexes(inNodes, in0OfNandInstances,in1OfNandInstances);
 		}
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {

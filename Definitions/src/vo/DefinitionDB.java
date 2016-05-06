@@ -87,7 +87,7 @@ public class DefinitionDB {
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut, nandToNode);//definition using only instances of nand
 				definition.update();
-//				definition.fusion();//fusion of nodes //FIXME: needs polishing
+				definition.fusion();//fusion of nodes //FIXME: needs polishing
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
