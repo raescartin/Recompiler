@@ -876,7 +876,13 @@ public class Definition {
 		HashMap<Node,ArrayList<Instance>> in1OfNandInstances = new HashMap<Node,ArrayList<Instance>>();
 		inNodes.addAll(this.in);
 		for(Node outNode:this.out){
-			outNode.carryNodeIndexes(inNodes, in0OfNandInstances,in1OfNandInstances);
+			outNode.mapInsOfNandInstances(inNodes, in0OfNandInstances,in1OfNandInstances);
+		}
+		for(Node outNode:this.out){
+			outNode.triFusion(inNodes, in0OfNandInstances,in1OfNandInstances);
+		}
+		for(Node outNode:this.out){
+			outNode.biFusion(inNodes);
 		}
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {

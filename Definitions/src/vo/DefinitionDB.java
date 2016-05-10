@@ -47,7 +47,7 @@ public class DefinitionDB {
 		if(!definition.selfRecursiveInstances.isEmpty()){
 //			this.optimizeRecursiveIntersection(definition);		
 		}
-		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
+//		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
 		//TODO: Optimize all definitions where this new definition could be used
@@ -87,7 +87,7 @@ public class DefinitionDB {
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut, nandToNode);//definition using only instances of nand
 				definition.update();
-				definition.fusion();//fusion of nodes //FIXME: needs polishing
+				definition.fusion();//fusion of nodes 
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
