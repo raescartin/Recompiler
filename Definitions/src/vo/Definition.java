@@ -871,19 +871,18 @@ public class Definition {
 //		}
 //	}
 	public void fusion() {
-		HashSet<Node> inNodes = new HashSet<Node>();
-		HashMap<Node,ArrayList<Instance>> in0OfNandInstances = new HashMap<Node,ArrayList<Instance>>();
-		HashMap<Node,ArrayList<Instance>> in1OfNandInstances = new HashMap<Node,ArrayList<Instance>>();
-		inNodes.addAll(this.in);
+		HashMap<Node,HashSet<Instance>> in0OfNandInstances = new HashMap<Node,HashSet<Instance>>();
+		HashMap<Node,HashSet<Instance>> in1OfNandInstances = new HashMap<Node,HashSet<Instance>>();
 		for(Node outNode:this.out){
-			outNode.mapInsOfNandInstances(inNodes, in0OfNandInstances,in1OfNandInstances);
+			outNode.mapInsOfNandInstances(in0OfNandInstances,in1OfNandInstances);
+		}
+		for(Node inNode:this.in){
+			inNode.triFusion(in0OfNandInstances,in1OfNandInstances);
 		}
 		for(Node outNode:this.out){
-			outNode.triFusion(inNodes, in0OfNandInstances,in1OfNandInstances);
+			outNode.biFusion();
 		}
-		for(Node outNode:this.out){
-			outNode.biFusion(inNodes);
-		}
+		this.update();
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
 		for(Node outNode:this.out){
