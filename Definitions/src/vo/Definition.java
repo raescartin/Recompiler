@@ -1244,4 +1244,19 @@ public class Definition {
 			outNode.flattenParents();
 		}
 	}
+	public void nodeFissionMapping(HashSet<Node> knownNodes) {
+		//POST: nodeFission() doesn't remove any node, only transforms ADDING subnodes if needed
+				for(Node outNode:this.out){
+					outNode.childrenFission();
+				}
+				this.mapFission(knownNodes);
+				for(Node outNode:this.out){
+					outNode.breakSubnodes();
+				}
+				this.update();
+				for(Node outNode:this.out){
+					outNode.parentsFission();
+				}
+				this.mapFission(knownNodes);
+	}
 }

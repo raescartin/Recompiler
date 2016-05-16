@@ -1,24 +1,14 @@
-﻿-fix eval cost
--fix fission:nandFission shoudn't remove any node
--fix fussion
-
--fix optimization interseccion entre iteraciones de los bucles
+﻿-fix fission:nandFission shoudn't remove any node
+-fix optimization intersection between loop iterations
+-fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
+-use mapLeft and mapRight INSTEAD of splitChildren()
+-fix eval cost
 -sqrt
 -add arrays of nodes to definition
--fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -todo: recursive intersection merge (if/rif)
 
-
--use mapLeft and mapRight INSTEAD of splitChildren()
-
-
-
-
-
-
-
-
 DONE
+-fix fussion
 -independent size of variables? 0(n)=0(1) (->cmp ->eq0 ->if) <-> recursive def if?¿
 	-test a nand with one in bigger than the other (+nodes)
 	-fill with 0 on left if the size of one input is less than expected (ifdef)
