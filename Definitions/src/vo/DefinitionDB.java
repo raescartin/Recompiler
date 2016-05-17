@@ -157,7 +157,33 @@ public class DefinitionDB {
 			this.bifusion(i,nodes);
 			i++;
 		}
+		i=0;
+		while(i<nodes.size()){
+			this.endfusion(i,nodes);
+			i++;
+		}
 		
+	}
+	private void endfusion(int i, ArrayList<Node> nodes) {
+		if(nodes.get(i).parents.size()==2&&nodes.get(i).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0)){
+			if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(0))){
+				Node supernode = new Node();
+				nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(0).add(supernode);
+				nodes.get(i).parents.get(0).children.clear();
+				nodes.get(i).parents.get(0).add(supernode);
+				nodes.get(i).parents.get(1).children.clear();
+				nodes.get(i).parents.get(1).add(supernode);
+				nodes.set(i, supernode);
+			}else if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(2))){
+				Node supernode = new Node();
+				nodes.get(i).parents.get(0).children.clear();
+				nodes.get(i).parents.get(0).add(supernode);
+				nodes.get(i).parents.get(1).children.clear();
+				nodes.get(i).parents.get(1).add(supernode);
+				supernode.add(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(2));
+				nodes.set(i, supernode);
+			}
+		}
 	}
 	private void bifusion(int i, ArrayList<Node> nodes) {
 		if(nodes.get(i).parents.size()==1){
