@@ -843,4 +843,10 @@ public class Node {
 			this.outOfInstance.in.get(1).biFusion();
 		}
 	}
+	public void recursivelyMapParentsMapping(
+			HashMap<Node, Node> definitionToInstanceNodes,
+			HashMap<Node, Node> expandedToDefinition) {
+		// TODO Auto-generated method stub
+		
+	}
 }
