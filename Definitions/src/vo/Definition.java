@@ -1273,7 +1273,8 @@ public class Definition {
 				this.expandInstanceMapping(instance,expandedToDefinition);				
 			}
 		}
-		
+		this.replaceDefinition(definition,this);//replace occurrences of originalDefinition to this, for recursion consistency
+		this.update();
 	}
 	private void expandInstanceMapping(Instance instance,
 			HashMap<Node, Node> expandedToDefinition) {

@@ -846,7 +846,37 @@ public class Node {
 	public void recursivelyMapParentsMapping(
 			HashMap<Node, Node> definitionToInstanceNodes,
 			HashMap<Node, Node> expandedToDefinition) {
-		// TODO Auto-generated method stub
-		
+		if(this.parents.size()==1){
+			Node parent=this.parents.get(0);
+			if(!definitionToInstanceNodes.containsKey(parent)){
+				Node newParent = new Node();
+				definitionToInstanceNodes.put(parent, newParent);
+				expandedToDefinition.put(newParent, parent);
+				parent.recursivelyMapParentsMapping(definitionToInstanceNodes, expandedToDefinition);
+			}
+			for(int j=0;j<3;j++){
+				Node child=parent.children.get(j);
+				if(definitionToInstanceNodes.containsKey(child)){
+					definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(child));
+				}else{
+					Node newChild = new Node();
+					definitionToInstanceNodes.get(parent).add(newChild);
+					definitionToInstanceNodes.put(child, newChild);
+					expandedToDefinition.put(child, newChild);
+				}
+			}
+		}else{
+			for(Node parent:this.parents){//map parent nodes //think don't need to map children
+				if(definitionToInstanceNodes.containsKey(parent)){
+					definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(this));
+				}else{
+					Node newParent = new Node();
+					newParent.add(definitionToInstanceNodes.get(this));
+					definitionToInstanceNodes.put(parent, newParent);
+					expandedToDefinition.put(newParent, parent);
+					parent.recursivelyMapParentsMapping(definitionToInstanceNodes, expandedToDefinition);
+				}
+			}
+		}
 	}
 }
