@@ -109,7 +109,8 @@ public class DefinitionDB {
 		//2 expand recursive instances in copy
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
-		HashMap<Node,Node> definitionToCopy = new HashMap<Node,Node>();
+		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
+		HashMap<Node,Node> expandedToSelf = new HashMap<Node,Node>();
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut = new ArrayList <Node>(); 
 		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
@@ -125,9 +126,14 @@ public class DefinitionDB {
 		ArrayList<NandNode> recursionOutNandNodes = new ArrayList<NandNode>();
 		ArrayList<NandNode> newRecursiveDefinitionNandIn = new ArrayList<NandNode>();
 		ArrayList<NandNode> newRecursiveDefinitionNandOut = new ArrayList<NandNode>();
-		Definition expandedDefinition = definition.copyMapping(definitionToCopy);//freeze original for expansion
+		Definition expandedDefinition = definition.copyMapping(definitionToExpanded);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
+		for(Node node:expandedToDefinition.keySet()){
+			Node definitionNode = expandedToDefinition.get(node);
+			Node selfNode= definitionToExpanded.get(definitionNode);
+			expandedToSelf.put(node, selfNode);
+		}
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
