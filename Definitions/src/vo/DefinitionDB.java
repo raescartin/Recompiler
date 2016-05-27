@@ -205,11 +205,12 @@ public class DefinitionDB {
 	}
 	private void outFusion(int i, ArrayList<Node> nodes) {
 		Node node = nodes.get(i);
-		if(node.children.size()==1){
-			Node supernodeChild = node.children.get(0);
-			if(nodes.containsAll(supernodeChild.parents)){
-				nodes.set(i, supernodeChild);
-				nodes.removeAll(supernodeChild.parents);
+		if(!node.childrenSupernodes.isEmpty()){
+			for(Node supernodeChild :node.childrenSubnodes){
+				if(nodes.containsAll(supernodeChild.parents)){
+					nodes.set(i, supernodeChild);
+					nodes.removeAll(supernodeChild.parents);
+				}
 			}
 		}
 		
@@ -231,82 +232,83 @@ public class DefinitionDB {
 //			i++;
 //		}
 	}
-	private void endfusion(int i, ArrayList<Node> nodes) {
-		if(nodes.get(i).parents.size()==2&&nodes.get(i).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0)
-				&&nodes.get(i).parents.get(0).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0).parents.get(0)){
-			if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(0))){
-				Node supernode = new Node();
-				nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(0).add(supernode);
-				nodes.get(i).parents.get(0).children.clear();
-				nodes.get(i).parents.get(0).add(supernode);
-				nodes.get(i).parents.get(1).children.clear();
-				nodes.get(i).parents.get(1).add(supernode);
-				nodes.remove(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(0));
-				nodes.set(i, supernode);
-			}else if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(2))){
-				Node supernode = new Node();
-				nodes.get(i).parents.get(0).children.clear();
-				nodes.get(i).parents.get(0).add(supernode);
-				nodes.get(i).parents.get(1).children.clear();
-				nodes.get(i).parents.get(1).add(supernode);
-				supernode.add(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(2));
-				nodes.remove(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).children.get(2));
-				nodes.set(i, supernode);
-			}
-		}
-	}
+//	private void endfusion(int i, ArrayList<Node> nodes) {
+//		if(nodes.get(i).parents.size()==2&&nodes.get(i).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0)
+//				&&nodes.get(i).parents.get(0).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0).parents.get(0)){
+//			if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0))){
+//				Node supernode = new Node();
+//				nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0).add(supernode);
+//				nodes.get(i).parents.get(0).childrenSubnodes.clear();
+//				nodes.get(i).parents.get(0).add(supernode);
+//				nodes.get(i).parents.get(1).childrenSubnodes.clear();
+//				nodes.get(i).parents.get(1).add(supernode);
+//				nodes.remove(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0));
+//				nodes.set(i, supernode);
+//			}else if(nodes.contains(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2))){
+//				Node supernode = new Node();
+//				nodes.get(i).parents.get(0).childrenSubnodes.clear();
+//				nodes.get(i).parents.get(0).add(supernode);
+//				nodes.get(i).parents.get(1).childrenSubnodes.clear();
+//				nodes.get(i).parents.get(1).add(supernode);
+//				supernode.add(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2));
+//				nodes.remove(nodes.get(i).parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2));
+//				nodes.set(i, supernode);
+//			}
+//		}
+//	}
 	private void bifusion(int i, ArrayList<Node> nodes) {
+		//if there's two consecutive children of a node on the array of nodes, fuse them
 		Node node = nodes.get(i);
 		if(node.parents.size()==1){
 			Node parent = node.parents.get(0);
-			if(nodes.contains(parent.children.get(0))&&nodes.contains(parent.children.get(1))){
-				Node supernode = new Node();
-				if(parent.children.get(1).children.size()==3&&parent.children.get(1).children.get(0).parents.size()==1){
-					supernode.splitChildren();
-					Node newSupernode = new Node();
-					parent.children.get(1).children.get(0).parents.clear();
-					parent.children.get(1).children.get(1).parents.clear();
-					parent.children.get(1).children.get(2).parents.clear();
-					newSupernode.add(parent.children.get(1).children.get(0));
-					newSupernode.add(parent.children.get(1).children.get(1));
-					newSupernode.add(parent.children.get(1).children.get(2));
-					parent.children.get(1).children.clear();
-					supernode.children.get(1).add(newSupernode);
-					supernode.children.get(2).add(newSupernode);
-				}
-				parent.children.get(0).add(supernode);
-				parent.children.get(1).add(supernode);
-				nodes.set(i, supernode);
-				nodes.removeAll(parent.children);
-			}else if(nodes.contains(parent.children.get(1))&&nodes.contains(parent.children.get(2))){
-				Node supernode = new Node();
-				if(parent.children.get(1).children.size()==3&&parent.children.get(1).children.get(0).parents.size()==1){
-					supernode.splitChildren();
-					Node newSupernode = new Node();
-					parent.children.get(1).children.get(0).parents.clear();
-					parent.children.get(1).children.get(1).parents.clear();
-					parent.children.get(1).children.get(2).parents.clear();
-					newSupernode.add(parent.children.get(1).children.get(0));
-					newSupernode.add(parent.children.get(1).children.get(1));
-					newSupernode.add(parent.children.get(1).children.get(2));
-					parent.children.get(1).children.clear();
-					supernode.children.get(0).add(newSupernode);
-					supernode.children.get(1).add(newSupernode);
-				}
-				parent.children.get(1).add(supernode);
-				parent.children.get(2).add(supernode);
-				nodes.set(i, supernode);
-				nodes.removeAll(parent.children);
+			if(nodes.contains(parent.childrenSubnodes.get(0))&&nodes.contains(parent.childrenSubnodes.get(1))){
+				Node childSupernode = new Node();
+//				if(!parent.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
+//					childSupernode.splitChildrenSubnodes();
+//					Node newSupernode = new Node();
+//					parent.childrenSubnodes.get(1).children.get(0).parents.clear();
+//					parent.childrenSubnodes.get(1).children.get(1).parents.clear();
+//					parent.childrenSubnodes.get(1).children.get(2).parents.clear();
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(0));
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(1));
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(2));
+//					parent.childrenSubnodes.get(1).children.clear();
+//					childSupernode.childrenSubnodes.get(1).add(newSupernode);
+//					childSupernode.childrenSubnodes.get(2).add(newSupernode);
+//				}
+				parent.childrenSubnodes.get(0).addChildSupernode(childSupernode);
+				parent.childrenSubnodes.get(1).addChildSupernode(childSupernode);
+				nodes.set(i, childSupernode);
+				nodes.removeAll(parent.childrenSubnodes);
+			}else if(nodes.contains(parent.childrenSubnodes.get(1))&&nodes.contains(parent.childrenSubnodes.get(2))){
+				Node childSupernode = new Node();
+//				if(parent.childrenSubnodes.get(1).children.size()==3&&parent.childrenSubnodes.get(1).children.get(0).parents.size()==1){
+//					supernode.splitChildrenSubnodes();
+//					Node newSupernode = new Node();
+//					parent.childrenSubnodes.get(1).children.get(0).parents.clear();
+//					parent.childrenSubnodes.get(1).children.get(1).parents.clear();
+//					parent.childrenSubnodes.get(1).children.get(2).parents.clear();
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(0));
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(1));
+//					newSupernode.add(parent.childrenSubnodes.get(1).children.get(2));
+//					parent.childrenSubnodes.get(1).children.clear();
+//					supernode.childrenSubnodes.get(0).add(newSupernode);
+//					supernode.childrenSubnodes.get(1).add(newSupernode);
+//				}
+				parent.childrenSubnodes.get(1).addChildSupernode(childSupernode);
+				parent.childrenSubnodes.get(2).addChildSupernode(childSupernode);
+				nodes.set(i, childSupernode);
+				nodes.removeAll(parent.childrenSubnodes);
 			}
 		}
 	}
 	private void trifusion(int i, ArrayList<Node> nodes) {
-		if(nodes.get(i).parents.size()==1&&nodes.contains(nodes.get(i).parents.get(0).children.get(0))&&nodes.contains(nodes.get(i).parents.get(0).children.get(1))&&nodes.contains(nodes.get(i).parents.get(0).children.get(2))){
+		if(nodes.get(i).parents.size()==1&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(0))&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(1))&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(2))){
 			Node node=nodes.get(i);
 			Node parent=node.parents.get(0);
-			Node childLeft = parent.children.get(0);
-			Node childMid = parent.children.get(1);
-			Node childRight = parent.children.get(2);
+			Node childLeft = parent.childrenSubnodes.get(0);
+			Node childMid = parent.childrenSubnodes.get(1);
+			Node childRight = parent.childrenSubnodes.get(2);
 			nodes.set(i, parent);
 			nodes.remove(childLeft);
 			nodes.remove(childMid);

@@ -1,4 +1,5 @@
-﻿-aceptar nodos duplicados/equivalentes REDUNDANT SUBNODES en las estructuras definition
+﻿-nodeFission includes node simplification?
+-aceptar nodos duplicados/equivalentes REDUNDANT SUBNODES en las estructuras definition
 	-si no se puede trabajar con nodos duplicados entonces la estructura nodo tendrá que tener los tres subnodos hijo Y un vector de supernodos de los que forma parte
 -fix fission:nandFission shoudn't remove any node
 -fix optimization intersection between loop iterations

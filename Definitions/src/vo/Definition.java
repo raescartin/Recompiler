@@ -162,9 +162,12 @@ public class Definition {
 			for(Node parent:node.parents){
 				this.add(parent);
 			}
-			for(Node child:node.children){
+			for(Node child:node.childrenSubnodes){
 				this.add(child);
-			}	
+			}
+			for(Node child:node.childrenSupernodes){
+				this.add(child);
+			}
 		}
 	}
 	public String toString() {
@@ -297,23 +300,26 @@ public class Definition {
 			}
 		}else{//non-added node
 			nodeMap.put(appliedNode,node);//expand node
-			if(!appliedNode.children.isEmpty()||!appliedNode.parents.isEmpty()){
-				if(node.parents.size()<appliedNode.parents.size()){
+			if(!appliedNode.childrenSupernodes.isEmpty()||!appliedNode.childrenSubnodes.isEmpty()||!appliedNode.parents.isEmpty()){
+				if(node.parents.size()!=appliedNode.parents.size()){
 					return false;
 				}
-				for(int i=0;i<appliedNode.parents.size();i++){
-					if(!expandNodes(appliedNode.parents.get(i),node.parents.get(i),nodeMap,instanceMap, toExpand)){
-						return false;
-					}
-				}
-				if(node.children.size()<appliedNode.children.size()){
+//				for(int i=0;i<appliedNode.parents.size();i++){
+//					if(!expandNodes(appliedNode.parents.get(i),node.parents.get(i),nodeMap,instanceMap, toExpand)){
+//						return false;
+//					}
+//				}
+				if(node.childrenSubnodes.size()!=appliedNode.childrenSubnodes.size()){
 					return false;
 				}
-				for(int i=0;i<appliedNode.children.size();i++){
-					if(!expandNodes(appliedNode.children.get(i),node.children.get(i),nodeMap,instanceMap, toExpand)){
-						return false;
-					}
+				if(node.childrenSupernodes.size()!=appliedNode.childrenSupernodes.size()){
+					return false;
 				}
+//				for(int i=0;i<appliedNode.childrenSubnodes.size();i++){
+//					if(!expandNodes(appliedNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i),nodeMap,instanceMap, toExpand)){
+//						return false;
+//					}
+//				}
 			}
 		}
 		return true;
@@ -382,7 +388,7 @@ public class Definition {
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 			}
 		}else{
-			//eval out nodes using BFS
+			//eval out nodes
 			boolean allOuts=false;
 			int depth=0;
 			while(!allOuts){//evaluation ends, when all outs are evaluated
@@ -458,16 +464,12 @@ public class Definition {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
-			mapSubnodeParents(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 			mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
-			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 		}
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 			instance.out.get(i).outOfInstance=null;
-			mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
-//			mapSubnodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);	
-//			mapSupernodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
 		for(Instance definitionInstance:instance.definition.instances){
 				ArrayList<Node> nodes = new ArrayList<Node>();
@@ -478,7 +480,7 @@ public class Definition {
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
 						nodes.add(newNode);
-						node.recursivelyMapParents(definitionToInstanceNodes);
+						mapParents(newNode,node,definitionToInstanceNodes);
 					}
 				}
 				for (Node node: definitionInstance.out) {//map out nodes
@@ -488,7 +490,7 @@ public class Definition {
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
 						nodes.add(newNode);
-						node.recursivelyMapParents(definitionToInstanceNodes);
+						mapParents(newNode,node,definitionToInstanceNodes);
 					}
 				}
 				Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
@@ -518,252 +520,118 @@ public class Definition {
 		}
 		this.instances.remove(instance);
 	}
-	private void mapSubnodeParents(Node node, Node definitionNode, HashMap<Node, Node> definitionToNewNodes) {
-		if(!definitionNode.parents.isEmpty()){
-			if(node.parents.isEmpty()){
-				if(definitionNode.parents.size()==1){
-					Node supernode= new Node();
-					node.definition.add(supernode);
-					supernode.splitChildren();
-					this.nodes.remove(supernode.children.get(definitionNode.parents.get(0).children.indexOf(definitionNode)));
-					supernode.children.set(definitionNode.parents.get(0).children.indexOf(definitionNode), node);
-					node.parents.add(supernode);
-					definitionToNewNodes.put(definitionNode.parents.get(0), supernode);
-					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(0), supernode.children.get(0));
-					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(1), supernode.children.get(1));
-					definitionToNewNodes.put(definitionNode.parents.get(0).children.get(2), supernode.children.get(2));
-					mapSubnodeParents(node,definitionNode,definitionToNewNodes);
-				}else if(definitionNode.parents.size()>1){
-					if(node.children.size()==3&&node.children.get(0).parents.size()==1){//prevent redundant subnodes
-						Node childLeft=node.children.get(0);
-						Node childMid=node.children.get(1);
-						Node childRight=node.children.get(2);
-						Node definitionParentLeft = definitionNode.parents.get(0);
-						Node definitionParentRight = definitionNode.parents.get(definitionNode.parents.size()-1);
-						Node parentLeft=new Node();
-						Node parentRight=new Node();
-						childLeft.parents.clear();
-						parentLeft.add(childLeft);
-						parentLeft.add(new Node());
-						parentLeft.add(new Node());
-						childRight.parents.clear();
-						parentRight.add(new Node());
-						parentRight.add(new Node());
-						parentRight.add(childRight);
-						childMid.parents.clear();
-						if(definitionParentLeft.parents.size()==1){
-							definitionParentLeft=definitionParentLeft.parents.get(0);
-						}else{
-							parentLeft.children.get(1).add(childMid);
-							parentLeft.children.get(2).add(childMid);
-						}
-						for(int i=1;i<definitionNode.parents.size()-1;i++){
-							Node parent=new Node();
-							definitionToNewNodes.put(definitionNode.parents.get(i), parent);
-//							mapSubnodeChildren(parent, definitionNode.parents.get(i), definitionToNewNodes);//FIXME:Needed?
-							parent.add(childMid);
-						}
-						if(definitionParentRight.parents.size()==1){
-							definitionParentRight=definitionParentRight.parents.get(0);
-						}else{
-							parentRight.children.get(0).add(childMid);
-							parentRight.children.get(1).add(childMid);
-						}
-						definitionToNewNodes.put(definitionParentLeft, parentLeft);
-						mapSubnodeChildren(parentLeft, definitionParentLeft, definitionToNewNodes);
-						definitionToNewNodes.put(definitionParentRight, parentRight);
-						mapSubnodeChildren(parentRight, definitionParentRight, definitionToNewNodes);//FIXME
-						node.parents.clear();
-						node.children.clear();
-						childLeft.add(node);
-						node.splice(childMid);
-						childRight.add(node);
-//						node.flattenParents();
-////						node.nodeFussion();
-//						for(Node child:childLeft.children){
-//							child.flattenParents();
-////							child.nodeFussion();
-//						}
-//						for(Node child:childMid.children){
-//							child.flattenParents();
-////							child.nodeFussion();
-//						}
-//						for(Node child:childRight.children){
-//							child.flattenParents();
-////							child.nodeFussion();
-//						}
-					}else{
-						for(Node parent:definitionNode.parents){
-							Node newParent= new Node();
-							newParent.add(node);
-							definitionToNewNodes.put(parent, newParent);
-							mapSubnodeParents(newParent,parent,definitionToNewNodes);
-						}
-					}
+	private void mapParents(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
+		if(definitionNode.parents.size()>1){
+			for(Node parent:definitionNode.parents){
+				if(definitionToInstanceNodes.containsKey(parent)){
+					definitionToInstanceNodes.get(parent).addChildSupernode(node);
+				}else{
+					Node newParent= new Node();
+					newParent.addChildSupernode(node);
+					definitionToInstanceNodes.put(parent, newParent);
+					mapParents(newParent,parent,definitionToInstanceNodes);
 				}
-			}else if(node.parents.size()==definitionNode.parents.size()){//not sure if this check is enough
-				for(int j=0;j<node.parents.size();j++){
-					definitionToNewNodes.put(definitionNode.parents.get(j),node.parents.get(j));
-					mapSubnodeParents(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes);
-				}
-			}else{
-				System.out.print("can happen?");
 			}
-		}
+		} 
 	}
 	private void mapSubnodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
-		if(!definitionNode.children.isEmpty()){
-			if(definitionNode.children.get(0).parents.size()==1){//the children are subnodes
-				if(node.children.size()==definitionNode.children.size()){
-					for(int i=0;i<node.children.size();i++){
-						definitionToInstanceNodes.put(definitionNode.children.get(i),node.children.get(i));	
-					}
-					for(int i=0;i<node.children.size();i++){
-						mapSubnodeChildren(node.children.get(i), definitionNode.children.get(i),definitionToInstanceNodes);
-					}
-				}else{//FIXME: now children size is variable
-					if(definitionNode.children.size()==3&&definitionNode.children.get(0).parents.size()==1){//supernode
-						if(node.parents.size()>1){//prevent redundant subnodes
-							//variables to conserve references
-							Node parentLeft = node.parents.get(0);
-							Node parentRight = node.parents.get(node.parents.size()-1);
-							Node leftLeft = new Node();
-							ArrayList<Node> midArray = new ArrayList<Node>();
-							Node rightRight = new Node();
-							leftLeft=parentLeft.mapLeft(midArray);//FIXME: remove mapLeft
-							rightRight=parentRight.mapRight(midArray);//FIXME: remove mapRight
-							definitionToInstanceNodes.put(definitionNode.children.get(0), leftLeft);
-							mapSubnodeChildren(leftLeft,definitionNode.children.get(0),definitionToInstanceNodes);
-							definitionToInstanceNodes.put(definitionNode.children.get(2), rightRight);
-							mapSubnodeChildren(rightRight,definitionNode.children.get(2),definitionToInstanceNodes);						
-							if(!midArray.isEmpty()){
-								Node mid;
-								if(midArray.size()==1){
-									mid=midArray.get(0);
-								}else{
-									mid= new Node();
-									for(Node midArrayNode:midArray){
-										midArrayNode.add(mid);
-									}
-								}
-								definitionToInstanceNodes.put(definitionNode.children.get(1), mid);
-								mapSubnodeChildren(mid,definitionNode.children.get(1),definitionToInstanceNodes);
-							}
-						}else{
-							if(node.children.isEmpty()){
-								for(@SuppressWarnings("unused") Node child:definitionNode.children){
-									Node newChild= new Node();
-									node.add(newChild);
-								}
-							}else{//node.children.size()==1 splice
-								Node supernode =node.children.get(0);
-								node.children.clear();
-								int insertIndex=supernode.parents.indexOf(node);
-								supernode.parents.remove(insertIndex);
-								for(int i=0;i<3;i++){
-									Node newChild= new Node();
-									node.add(newChild);
-									supernode.parents.add(insertIndex+i, newChild);
-									newChild.children.add(supernode);
-									newChild.definition=supernode.definition;
-									
-								}
-							}
-							for(int i=0;i<3;i++){
-								definitionToInstanceNodes.put(definitionNode.children.get(i), node.children.get(i));
-								mapSubnodeChildren(node.children.get(i),definitionNode.children.get(i),definitionToInstanceNodes);
-							}
-						}
-					}
-				}
+		if(!definitionNode.childrenSubnodes.isEmpty()){
+			if(node.childrenSubnodes.isEmpty()){
+				node.splitChildrenSubnodes();
+			}
+			for(int i=0;i<node.childrenSubnodes.size();i++){
+				definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i));	
+			}
+			for(int i=0;i<node.childrenSubnodes.size();i++){
+				mapSubnodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i),definitionToInstanceNodes);
 			}
 		}
 	}
-	private void mapSupernodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
-		if(!definitionNode.children.isEmpty()){
-			if(definitionNode.children.get(0).parents.size()!=1){//the children nodes are supernodes
-				for(Node definitionSupernode:definitionNode.children){
-					if(!definitionToInstanceNodes.containsKey(definitionSupernode)){
-						ArrayList<Node> parents = new ArrayList<Node>();
-						for(Node definitionParent:definitionSupernode.parents){
-							parents.add(definitionToInstanceNodes.get(definitionParent));
-						}
-						boolean contains=false;
-						for(Node supernode: node.children){
-							supernode.flattenParents();
-							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
-								definitionToInstanceNodes.put(definitionSupernode,supernode);
-								contains=true;
-							}
-						}
-						if(!contains){
-							Node newSupernode = new Node();
-							for(Node definitionParent:definitionSupernode.parents){
-								if(!definitionToInstanceNodes.containsKey(definitionParent)){
-									Node newParent = new Node();//FIXME: should be recursive //parents may be not defined yet
-									definitionToInstanceNodes.put(definitionParent, newParent);
-								}
-								definitionToInstanceNodes.get(definitionParent).add(newSupernode);
-							}
-							definitionToInstanceNodes.put(definitionSupernode, newSupernode);
-						}
-					}
-				}
-			}else{
-				for(int i=0;i<node.children.size();i++){
-					mapSupernodeChildren(node.children.get(i), definitionNode.children.get(i), definitionToInstanceNodes);	
-				}
-			}
-		}
-	}
-	Node mapLeft(Node parentLeft, Node newNode) {
-		if(parentLeft.parents.size()>1){
-			parentLeft=mapLeft(parentLeft.parents.get(0),newNode);
-			for(int i=1;i<parentLeft.parents.size();i++){
-				parentLeft.parents.get(i).children.clear();
-				parentLeft.parents.get(i).add(newNode);
-			}
-		}else{
-			if(parentLeft.parents.size()==1&&(parentLeft.parents.get(0).children.indexOf(parentLeft)==0||parentLeft.parents.get(0).children.indexOf(parentLeft)==2)){
-				//if node is not divisible
-				parentLeft=parentLeft.parents.get(0);
-			}else{
-//				if(parentLeft.children.size()==1)parentLeft.children.clear();
-				parentLeft.splitChildren();
-				if(!parentLeft.children.get(1).children.isEmpty()&&parentLeft.children.get(1).children.get(0).parents.size()==1){//node has subnodes
-					newNode.addSubnodes(parentLeft.children.get(1));
-				}else{
-					parentLeft.children.get(1).add(newNode);
-				}
-				parentLeft.children.get(2).add(newNode);
-			}
-		}
-		return parentLeft;
-	}
-	Node mapRight(Node parentRight, Node newNode) {
-		if(parentRight.parents.size()>1){
-			for(int i=0;i<parentRight.parents.size()-1;i++){
-				parentRight.parents.get(i).children.clear();
-				parentRight.parents.get(i).add(newNode);
-			}
-			parentRight=mapRight(parentRight.parents.get(parentRight.parents.size()-1),newNode);
-		}else{
-			if(parentRight.parents.size()==1&&(parentRight.parents.get(0).children.indexOf(parentRight)==0||parentRight.parents.get(0).children.indexOf(parentRight)==2)){
-				//if node is not divisible
-				parentRight=parentRight.parents.get(0);
-			}else{
-//				if(parentRight.children.size()==1)parentRight.children.clear();
-				parentRight.splitChildren();
-				parentRight.children.get(0).add(newNode);
-				if(!parentRight.children.get(1).children.isEmpty()&&parentRight.children.get(1).children.get(0).parents.size()==1){//node has subnodes
-					newNode.addSubnodes(parentRight.children.get(1));
-				}else{
-					parentRight.children.get(1).add(newNode);
-				}
-			}
-		}
-		return parentRight;
-	}
+//	private void mapSupernodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
+//		if(!definitionNode.childrenSubnodes.isEmpty()){
+//			if(definitionNode.childrenSubnodes.get(0).parents.size()!=1){//the children nodes are supernodes
+//				for(Node definitionSupernode:definitionNode.childrenSubnodes){
+//					if(!definitionToInstanceNodes.containsKey(definitionSupernode)){
+//						ArrayList<Node> parents = new ArrayList<Node>();
+//						for(Node definitionParent:definitionSupernode.parents){
+//							parents.add(definitionToInstanceNodes.get(definitionParent));
+//						}
+//						boolean contains=false;
+//						for(Node supernode: node.childrenSubnodes){
+//							supernode.flattenParents();
+//							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
+//								definitionToInstanceNodes.put(definitionSupernode,supernode);
+//								contains=true;
+//							}
+//						}
+//						if(!contains){
+//							Node newSupernode = new Node();
+//							for(Node definitionParent:definitionSupernode.parents){
+//								if(!definitionToInstanceNodes.containsKey(definitionParent)){
+//									Node newParent = new Node();//FIXME: should be recursive //parents may be not defined yet
+//									definitionToInstanceNodes.put(definitionParent, newParent);
+//								}
+//								definitionToInstanceNodes.get(definitionParent).add(newSupernode);
+//							}
+//							definitionToInstanceNodes.put(definitionSupernode, newSupernode);
+//						}
+//					}
+//				}
+//			}else{
+//				for(int i=0;i<node.childrenSubnodes.size();i++){
+//					mapSupernodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i), definitionToInstanceNodes);	
+//				}
+//			}
+//		}
+//	}
+//	Node mapLeft(Node parentLeft, Node newNode) {
+//		if(parentLeft.parents.size()>1){
+//			parentLeft=mapLeft(parentLeft.parents.get(0),newNode);
+//			for(int i=1;i<parentLeft.parents.size();i++){
+//				parentLeft.parents.get(i).childrenSubnodes.clear();
+//				parentLeft.parents.get(i).add(newNode);
+//			}
+//		}else{
+//			if(parentLeft.parents.size()==1&&(parentLeft.parents.get(0).childrenSubnodes.indexOf(parentLeft)==0||parentLeft.parents.get(0).childrenSubnodes.indexOf(parentLeft)==2)){
+//				//if node is not divisible
+//				parentLeft=parentLeft.parents.get(0);
+//			}else{
+////				if(parentLeft.children.size()==1)parentLeft.children.clear();
+//				parentLeft.splitChildrenSubnodes();
+//				if(!parentLeft.childrenSubnodes.get(1).children.isEmpty()&&parentLeft.childrenSubnodes.get(1).children.get(0).parents.size()==1){//node has subnodes
+//					newNode.addSubnodes(parentLeft.childrenSubnodes.get(1));
+//				}else{
+//					parentLeft.childrenSubnodes.get(1).add(newNode);
+//				}
+//				parentLeft.childrenSubnodes.get(2).add(newNode);
+//			}
+//		}
+//		return parentLeft;
+//	}
+//	Node mapRight(Node parentRight, Node newNode) {
+//		if(parentRight.parents.size()>1){
+//			for(int i=0;i<parentRight.parents.size()-1;i++){
+//				parentRight.parents.get(i).childrenSubnodes.clear();
+//				parentRight.parents.get(i).add(newNode);
+//			}
+//			parentRight=mapRight(parentRight.parents.get(parentRight.parents.size()-1),newNode);
+//		}else{
+//			if(parentRight.parents.size()==1&&(parentRight.parents.get(0).childrenSubnodes.indexOf(parentRight)==0||parentRight.parents.get(0).childrenSubnodes.indexOf(parentRight)==2)){
+//				//if node is not divisible
+//				parentRight=parentRight.parents.get(0);
+//			}else{
+////				if(parentRight.children.size()==1)parentRight.children.clear();
+//				parentRight.splitChildrenSubnodes();
+//				parentRight.childrenSubnodes.get(0).add(newNode);
+//				if(!parentRight.childrenSubnodes.get(1).children.isEmpty()&&parentRight.childrenSubnodes.get(1).children.get(0).parents.size()==1){//node has subnodes
+//					newNode.addSubnodes(parentRight.children.get(1));
+//				}else{
+//					parentRight.children.get(1).add(newNode);
+//				}
+//			}
+//		}
+//		return parentRight;
+//	}
 	public void recoverRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
 		this.in.subList(this.in.size()-addedNodes.in, this.in.size()).clear();//remove added nodes
 		this.out.subList(this.out.size()-addedNodes.out, this.out.size()).clear();//remove added nodes
@@ -784,9 +652,9 @@ public class Definition {
 			outNode.breakSubnodes();
 		}
 		this.update();
-		for(Node outNode:this.out){
-			outNode.parentsFission();
-		}
+//		for(Node outNode:this.out){
+//			outNode.parentsFission();
+//		}
 	}
 	public void toNandDefinitions() {
 		boolean expanded=true;
@@ -811,12 +679,11 @@ public class Definition {
 			for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 				definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
 				mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
-				
 			}
 			for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 				definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 				instance.out.get(i).outOfInstance=null;
-				mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+				mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 			}
 			for(Instance definitionInstance:instance.definition.instances){
 					ArrayList<Node> nodes = new ArrayList<Node>();
@@ -827,39 +694,21 @@ public class Definition {
 							Node newNode = new Node();
 							definitionToInstanceNodes.put(node, newNode);
 							nodes.add(newNode);
-							for(Node parent:node.parents){//map parent nodes //think don't need to map children
-								if(definitionToInstanceNodes.containsKey(parent)){
-									definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
-								}else{
-									Node newParent = new Node();
-									newParent.add(definitionToInstanceNodes.get(node));
-									definitionToInstanceNodes.put(parent, newParent);
-								}
-							}
+							mapParents(newNode,node,definitionToInstanceNodes);
 						}
-						
 					}
 					for (Node node: definitionInstance.out) {//map out nodes
 						if(definitionToInstanceNodes.containsKey(node)){
 							nodes.add(definitionToInstanceNodes.get(node));
 						}else{
-							Node defNode = new Node();
-							definitionToInstanceNodes.put(node, defNode);
-							nodes.add(defNode);
-							for(Node parent:node.parents){//map parent nodes //think don't need to map children
-								if(definitionToInstanceNodes.containsKey(parent)){
-									definitionToInstanceNodes.get(parent).add(definitionToInstanceNodes.get(node));
-								}else{
-									Node newParent = new Node();
-									newParent.add(definitionToInstanceNodes.get(node));
-									definitionToInstanceNodes.put(parent, newParent);
-								}
-							}
+							Node newNode = new Node();
+							definitionToInstanceNodes.put(node, newNode);
+							nodes.add(newNode);
+							mapSubnodeChildren(newNode,node,definitionToInstanceNodes);
 						}
 					}
 					this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
 			}
-			
 		}
 //	public void fusion() {
 //		HashSet<Node> inNodes = new HashSet<Node>();
@@ -909,46 +758,6 @@ public class Definition {
 		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
 		return copyMapping(nodeToCopy);
 	}
-	private Node copyInNode(Node node, HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
-		Node copyNode;
-		if(!nodeToCopy.containsKey(node)){
-			copyNode=new Node();
-			nodeToCopy.put(node, copyNode);
-//			if(!node.parents.isEmpty()){
-//				if(node.parents.size()==1){
-//						Node parent=node.parents.get(0);
-//						Node copyParent;
-//						if(!nodeToCopy.containsKey(parent)){
-//							copyParent = this.copyInNode(parent,nodeToCopy, instanceToCopy, copyDef);
-//						}else{
-//							copyParent = nodeToCopy.get(parent);
-//						}
-//						for(int i=0;i<parent.children.size();i++){
-//							if(!nodeToCopy.containsKey(parent.children.get(i))){
-//								Node copyChildren = new Node();
-//								copyParent.add(copyChildren);
-//								nodeToCopy.put(parent.children.get(i),copyChildren);
-//							}else{
-//								copyParent.add(nodeToCopy.get(parent.children.get(i)));
-//							}
-//						}
-//				}else{
-//					for(int i=0;i<node.parents.size();i++){
-//						if(!nodeToCopy.containsKey(node.parents.get(i))){
-//							Node copyParent = this.copyInNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
-//							copyParent.add(copyNode);
-//						}else{
-//							nodeToCopy.get(node.parents.get(i)).add(copyNode);
-//						}
-//					}
-//				}
-//			}
-		}else{
-			copyNode=nodeToCopy.get(node);
-		}
-		return copyNode;
-	}
 	private Node copyNode(Node node,
 			HashMap<Node, Node> nodeToCopy,
 			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
@@ -965,28 +774,28 @@ public class Definition {
 						}else{
 							copyParent = nodeToCopy.get(parent);
 						}
-						for(int i=0;i<parent.children.size();i++){
-							if(!nodeToCopy.containsKey(parent.children.get(i))){
+						for(int i=0;i<parent.childrenSubnodes.size();i++){
+							if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
 								Node copyChildren = new Node();
-								copyParent.add(copyChildren);
-								nodeToCopy.put(parent.children.get(i),copyChildren);
+								copyParent.addChildSubnode(copyChildren);
+								nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
 							}else{
-								copyParent.add(nodeToCopy.get(parent.children.get(i)));
+								copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
 							}
 						}
 				}else{
 					for(int i=0;i<node.parents.size();i++){
 						if(!nodeToCopy.containsKey(node.parents.get(i))){
 							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
-							copyParent.add(copyNode);
+							copyParent.addChildSupernode(copyNode);
 						}else{
-							nodeToCopy.get(node.parents.get(i)).add(copyNode);
+							nodeToCopy.get(node.parents.get(i)).addChildSupernode(copyNode);
 						}
 					}
 				}
 			}
 			if(node.outOfInstance!=null){
-					this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
+				this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
 			}
 		}else{
 			copyNode=nodeToCopy.get(node);
@@ -1037,16 +846,12 @@ public class Definition {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
-			mapSubnodeParents(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 			mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);	
-			mapSupernodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
 		}
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 			instance.out.get(i).outOfInstance=null;
-			mapSubnodeParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
-//			mapSubnodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);	
-//			mapSupernodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
 		for(Instance definitionInstance:instance.definition.instances){
 				ArrayList<Node> nodes = new ArrayList<Node>();
@@ -1057,7 +862,7 @@ public class Definition {
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
 						nodes.add(newNode);
-						node.recursivelyMapParents(definitionToInstanceNodes);
+						mapParents(newNode,node,definitionToInstanceNodes);
 					}
 				}
 				for (Node node: definitionInstance.out) {//map out nodes
@@ -1067,7 +872,7 @@ public class Definition {
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
 						nodes.add(newNode);
-						node.recursivelyMapParents(definitionToInstanceNodes);
+						mapSubnodeChildren(newNode,node,definitionToInstanceNodes);
 					}
 				}
 				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
@@ -1240,9 +1045,9 @@ public class Definition {
 					outNode.breakSubnodes();
 				}
 				this.update();
-				for(Node outNode:this.out){
-					outNode.parentsFission();
-				}
+//				for(Node outNode:this.out){
+//					outNode.parentsFission();
+//				}
 				this.mapFission(knownNodes);
 	}
 	public Definition copyMapping(
@@ -1252,7 +1057,7 @@ public class Definition {
 		inNodes.addAll(this.in);
 		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			Node inNode = this.copyInNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
+			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
 			copyDef.in.add(inNode);
 			copyDef.add(inNode);
 		}
@@ -1284,22 +1089,17 @@ public class Definition {
 	}
 	private void expandInstanceInstancesMapping(Instance instance,
 			HashMap<Node, Node> expandedToDefinition) {
-		//TODO: map expandedToDefinition nodes
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
 			expandedToDefinition.put(instance.in.get(i), instance.definition.in.get(i));
-//			mapSubnodeParentsMapping(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes,expandedToDefinition);
 			mapSubnodeChildrenMapping(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes,expandedToDefinition);	
-//			mapSupernodeChildrenMapping(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes,expandedToDefinition);//TODO:remove
 		}
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 			expandedToDefinition.put(instance.out.get(i), instance.definition.out.get(i));
 			instance.out.get(i).outOfInstance=null;
-			mapSubnodeParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
-//			mapSubnodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);	
-//			mapSupernodeChildren(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+			mapParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
 		}
 		for(Instance definitionInstance:instance.definition.instances){
 				ArrayList<Node> nodes = new ArrayList<Node>();
@@ -1311,7 +1111,7 @@ public class Definition {
 						definitionToInstanceNodes.put(node, newNode);
 						expandedToDefinition.put(newNode, node);
 						nodes.add(newNode);
-						node.recursivelyMapParentsMapping(definitionToInstanceNodes,expandedToDefinition);
+						mapParentsMapping(newNode,node,definitionToInstanceNodes,expandedToDefinition);
 					}
 				}
 				for (Node node: definitionInstance.out) {//map out nodes
@@ -1322,209 +1122,80 @@ public class Definition {
 						definitionToInstanceNodes.put(node, newNode);
 						expandedToDefinition.put(newNode, node);
 						nodes.add(newNode);
-						node.recursivelyMapParentsMapping(definitionToInstanceNodes,expandedToDefinition);
+						mapSubnodeChildrenMapping(newNode,node,definitionToInstanceNodes,expandedToDefinition);
 					}
 				}
 				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
 		}
 	}
-	private void mapSupernodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes,
-			HashMap<Node, Node> expandedToDefinition) {
-		if(!definitionNode.children.isEmpty()){
-			if(definitionNode.children.get(0).parents.size()!=1){//the children nodes are supernodes
-				for(Node definitionSupernode:definitionNode.children){
-					if(!definitionToInstanceNodes.containsKey(definitionSupernode)){
-						ArrayList<Node> parents = new ArrayList<Node>();
-						for(Node definitionParent:definitionSupernode.parents){
-							parents.add(definitionToInstanceNodes.get(definitionParent));
-						}
-						boolean contains=false;
-						for(Node supernode: node.children){
-							supernode.flattenParents();
-							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
-								definitionToInstanceNodes.put(definitionSupernode,supernode);
-								expandedToDefinition.put(supernode, definitionSupernode);
-								contains=true;
-							}
-						}
-						if(!contains){
-							Node newSupernode = new Node();
-							for(Node definitionParent:definitionSupernode.parents){
-								if(!definitionToInstanceNodes.containsKey(definitionParent)){
-									Node newParent = new Node();//FIXME: should be recursive //parents may be not defined yet
-									definitionToInstanceNodes.put(definitionParent, newParent);
-									expandedToDefinition.put(newParent, definitionParent);
-								}
-								definitionToInstanceNodes.get(definitionParent).add(newSupernode);
-							}
-							definitionToInstanceNodes.put(definitionSupernode, newSupernode);
-							expandedToDefinition.put(newSupernode,definitionSupernode);
-						}
-					}
-				}
-			}else{
-				for(int i=0;i<node.children.size();i++){
-					mapSupernodeChildrenMapping(node.children.get(i), definitionNode.children.get(i), definitionToInstanceNodes, expandedToDefinition);	
-				}
-			}
-		}
-	}
-	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
-		if(!node.children.isEmpty()&&!definitionNode.children.isEmpty()){
-			if(node.children.get(0).parents.size()==1){
-				if(definitionNode.children.get(0).parents.size()==1){//both children are subnodes
-					for(int i=0;i<node.children.size();i++){
-						definitionToInstanceNodes.put(definitionNode.children.get(i),node.children.get(i));	
-						expandedToDefinition.put(node.children.get(i),definitionNode.children.get(i));	
-					}
-					for(int i=0;i<node.children.size();i++){
-						mapSubnodeChildrenMapping(node.children.get(i), definitionNode.children.get(i),definitionToInstanceNodes,expandedToDefinition);
-					}
-				}else{//node children are subnodes, definitionNode children are supernodes
-					//TODO: fix recursion
-					Node redundantNode = new Node();//node equivalent to original node
-					for(int i=0;i<node.children.size();i++){
-						mapSubnodeChildrenMapping(node.children.get(i), definitionNode.children.get(i),definitionToInstanceNodes,expandedToDefinition);
-						node.children.get(i).add(redundantNode);	
-					}
-					for(Node definitionNodeChildSupernode:definitionNode.children){
-						Node newSupernode= new Node();
-						redundantNode.add(newSupernode);
-						definitionToInstanceNodes.put(definitionNodeChildSupernode,newSupernode);	
-						expandedToDefinition.put(newSupernode,definitionNodeChildSupernode);	
-						
-					}
-				}
-			}else{
-				if(definitionNode.children.get(0).parents.size()==1){//node children are supernodes, definitionNode children are subnodes
-				}
-			}
-		}
-//								Node supernode =node.children.get(0);
-//								node.children.clear();
-//								int insertIndex=supernode.parents.indexOf(node);
-//								supernode.parents.remove(insertIndex);
-//								for(int i=0;i<3;i++){
-//									Node newChild= new Node();
-//									node.add(newChild);
-//									supernode.parents.add(insertIndex+i, newChild);
-//									newChild.children.add(supernode);
-//									newChild.definition=supernode.definition;
-//									
+//	private void mapSupernodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes,
+//			HashMap<Node, Node> expandedToDefinition) {
+//		if(!definitionNode.childrenSubnodes.isEmpty()){
+//			if(definitionNode.children.get(0).parents.size()!=1){//the children nodes are supernodes
+//				for(Node definitionSupernode:definitionNode.children){
+//					if(!definitionToInstanceNodes.containsKey(definitionSupernode)){
+//						ArrayList<Node> parents = new ArrayList<Node>();
+//						for(Node definitionParent:definitionSupernode.parents){
+//							parents.add(definitionToInstanceNodes.get(definitionParent));
+//						}
+//						boolean contains=false;
+//						for(Node supernode: node.children){
+//							supernode.flattenParents();
+//							if(definitionSupernode.parents.size()==supernode.parents.size()&&supernode.parents.containsAll(parents)){
+//								definitionToInstanceNodes.put(definitionSupernode,supernode);
+//								expandedToDefinition.put(supernode, definitionSupernode);
+//								contains=true;
+//							}
+//						}
+//						if(!contains){
+//							Node newSupernode = new Node();
+//							for(Node definitionParent:definitionSupernode.parents){
+//								if(!definitionToInstanceNodes.containsKey(definitionParent)){
+//									Node newParent = new Node();//FIXME: should be recursive //parents may be not defined yet
+//									definitionToInstanceNodes.put(definitionParent, newParent);
+//									expandedToDefinition.put(newParent, definitionParent);
 //								}
+//								definitionToInstanceNodes.get(definitionParent).add(newSupernode);
 //							}
-//							for(int i=0;i<3;i++){
-//								definitionToInstanceNodes.put(definitionNode.children.get(i), node.children.get(i));
-//								expandedToDefinition.put(node.children.get(i),definitionNode.children.get(i));
-//								mapSubnodeChildrenMapping(node.children.get(i),definitionNode.children.get(i),definitionToInstanceNodes,expandedToDefinition);
-//							}
+//							definitionToInstanceNodes.put(definitionSupernode, newSupernode);
+//							expandedToDefinition.put(newSupernode,definitionSupernode);
 //						}
 //					}
 //				}
+//			}else{
+//				for(int i=0;i<node.children.size();i++){
+//					mapSupernodeChildrenMapping(node.children.get(i), definitionNode.children.get(i), definitionToInstanceNodes, expandedToDefinition);	
+//				}
 //			}
 //		}
-		
+//	}
+	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
+		if(!definitionNode.childrenSubnodes.isEmpty()){
+			if(node.childrenSubnodes.isEmpty()){
+				node.splitChildrenSubnodes();
+			}
+			for(int i=0;i<node.childrenSubnodes.size();i++){
+				definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i));	
+				expandedToDefinition.put(node.childrenSubnodes.get(i),definitionNode.childrenSubnodes.get(i));
+			}
+			for(int i=0;i<node.childrenSubnodes.size();i++){
+				mapSubnodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i),definitionToInstanceNodes);
+			}
+		}
 	}
-	private void mapSubnodeParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToNewNodes, HashMap<Node, Node> expandedToDefinition) {
-			if(!definitionNode.parents.isEmpty()){
-				if(node.parents.isEmpty()){
-					if(definitionNode.parents.size()==1){
-						Node supernode= new Node();
-						node.definition.add(supernode);
-						supernode.splitChildren();
-						this.nodes.remove(supernode.children.get(definitionNode.parents.get(0).children.indexOf(definitionNode)));
-						supernode.children.set(definitionNode.parents.get(0).children.indexOf(definitionNode), node);
-						node.parents.add(supernode);
-						definitionToNewNodes.put(definitionNode.parents.get(0), supernode);
-						definitionToNewNodes.put(definitionNode.parents.get(0).children.get(0), supernode.children.get(0));
-						definitionToNewNodes.put(definitionNode.parents.get(0).children.get(1), supernode.children.get(1));
-						definitionToNewNodes.put(definitionNode.parents.get(0).children.get(2), supernode.children.get(2));
-						expandedToDefinition.put(supernode, definitionNode.parents.get(0));
-						expandedToDefinition.put(supernode.children.get(0), definitionNode.parents.get(0).children.get(0));
-						expandedToDefinition.put(supernode.children.get(1), definitionNode.parents.get(0).children.get(1));
-						expandedToDefinition.put(supernode.children.get(2), definitionNode.parents.get(0).children.get(2));
-						mapSubnodeParentsMapping(node,definitionNode,definitionToNewNodes,expandedToDefinition);
-					}else if(definitionNode.parents.size()>1){
-						if(node.children.size()==3&&node.children.get(0).parents.size()==1){//prevent redundant subnodes
-							Node childLeft=node.children.get(0);
-							Node childMid=node.children.get(1);
-							Node childRight=node.children.get(2);
-							Node definitionParentLeft = definitionNode.parents.get(0);
-							Node definitionParentRight = definitionNode.parents.get(definitionNode.parents.size()-1);
-							Node parentLeft=new Node();
-							Node parentRight=new Node();
-							childLeft.parents.clear();
-							parentLeft.add(childLeft);
-							parentLeft.add(new Node());
-							parentLeft.add(new Node());
-							childRight.parents.clear();
-							parentRight.add(new Node());
-							parentRight.add(new Node());
-							parentRight.add(childRight);
-							childMid.parents.clear();
-							if(definitionParentLeft.parents.size()==1){
-								definitionParentLeft=definitionParentLeft.parents.get(0);
-							}else{
-								parentLeft.children.get(1).add(childMid);
-								parentLeft.children.get(2).add(childMid);
-							}
-							for(int i=1;i<definitionNode.parents.size()-1;i++){
-								Node parent=new Node();
-								definitionToNewNodes.put(definitionNode.parents.get(i), parent);
-								expandedToDefinition.put(parent, definitionNode.parents.get(i));
-//								mapSubnodeChildren(parent, definitionNode.parents.get(i), definitionToNewNodes);//FIXME:Needed?
-								parent.add(childMid);
-							}
-							if(definitionParentRight.parents.size()==1){
-								definitionParentRight=definitionParentRight.parents.get(0);
-							}else{
-								parentRight.children.get(0).add(childMid);
-								parentRight.children.get(1).add(childMid);
-							}
-							definitionToNewNodes.put(definitionParentLeft, parentLeft);
-							expandedToDefinition.put(parentLeft, definitionParentLeft);
-							mapSubnodeChildrenMapping(parentLeft, definitionParentLeft, definitionToNewNodes,expandedToDefinition);
-							definitionToNewNodes.put(definitionParentRight, parentRight);
-							expandedToDefinition.put(parentRight, definitionParentRight);
-							mapSubnodeChildrenMapping(parentRight, definitionParentRight, definitionToNewNodes,expandedToDefinition);//FIXME
-							node.parents.clear();
-							node.children.clear();
-							childLeft.add(node);
-							node.splice(childMid);
-							childRight.add(node);
-//							node.flattenParents();
-////							node.nodeFussion();
-//							for(Node child:childLeft.children){
-//								child.flattenParents();
-////								child.nodeFussion();
-//							}
-//							for(Node child:childMid.children){
-//								child.flattenParents();
-////								child.nodeFussion();
-//							}
-//							for(Node child:childRight.children){
-//								child.flattenParents();
-////								child.nodeFussion();
-//							}
-						}else{
-							for(Node parent:definitionNode.parents){
-								Node newParent= new Node();
-								newParent.add(node);
-								definitionToNewNodes.put(parent, newParent);
-								expandedToDefinition.put(newParent,parent);
-								mapSubnodeParentsMapping(newParent,parent,definitionToNewNodes,expandedToDefinition);
-							}
-						}
-					}
-				}else if(node.parents.size()==definitionNode.parents.size()){//not sure if this check is enough
-					for(int j=0;j<node.parents.size();j++){
-						definitionToNewNodes.put(definitionNode.parents.get(j),node.parents.get(j));
-						expandedToDefinition.put(node.parents.get(j),definitionNode.parents.get(j));
-						mapSubnodeParentsMapping(node.parents.get(j), definitionNode.parents.get(j),definitionToNewNodes,expandedToDefinition);
-					}
+	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
+		if(definitionNode.parents.size()>1){
+			for(Node parent:definitionNode.parents){
+				if(definitionToInstanceNodes.containsKey(parent)){
+					definitionToInstanceNodes.get(parent).addChildSupernode(node);
 				}else{
-					System.out.print("can happen?");
+					Node newParent= new Node();
+					newParent.addChildSupernode(node);
+					definitionToInstanceNodes.put(parent, newParent);
+					expandedToDefinition.put(newParent,parent);
+					mapParentsMapping(newParent,parent,definitionToInstanceNodes, expandedToDefinition);
 				}
 			}
+		} 
 	}
 }
