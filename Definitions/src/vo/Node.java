@@ -865,4 +865,65 @@ public class Node {
 		}
 		return node;
 	}
+	public Node removeRedundantSubnodes() {
+		Node node = this;
+		//FIMXE: make recusive, subnode parent 
+		if(this.parents.size()==1&&!this.parents.get(0).childrenSubnodes.isEmpty()){
+			if (this.parents.get(0).childrenSubnodes.get(0)==this){
+				if(this.parents.get(0).parents.size()>1){
+					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodes();
+				}
+			}
+			if (this.parents.get(0).childrenSubnodes.get(2)==this){
+				if(this.parents.get(0).parents.size()>1){
+					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(2).removeRedundantSubnodes();
+				}
+			}
+		}
+		for(int i=0;i<this.parents.size();i++){
+			this.parents.set(i,this.parents.get(i).removeRedundantSubnodes());
+		}
+		if(this.outOfInstance!=null){
+			for(int i=0;i<this.outOfInstance.in.size();i++){
+				this.outOfInstance.in.set(i, this.outOfInstance.in.get(i).removeRedundantSubnodes());
+			}
+		}
+		return node;
+	}
+	public Node removeRedundantSubnodesMapping(
+			HashMap<Node, Node> expandedToSelf) {
+		Node node = this;
+		//FIMXE: make recusive, subnode parent 
+		if(this.parents.size()==1&&!this.parents.get(0).childrenSubnodes.isEmpty()){
+			if (this.parents.get(0).childrenSubnodes.get(0)==this){
+				if(this.parents.get(0).parents.size()>1){
+					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodesMapping(expandedToSelf);
+					if(expandedToSelf.containsKey(this)){
+						expandedToSelf.put(node, expandedToSelf.get(this));
+					}
+				}
+			}
+			if (this.parents.get(0).childrenSubnodes.get(2)==this){
+				if(this.parents.get(0).parents.size()>1){
+					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(2).removeRedundantSubnodesMapping(expandedToSelf);
+					if(expandedToSelf.containsKey(this)){
+						expandedToSelf.put(node, expandedToSelf.get(this));
+					}
+				}
+			}
+		}
+		for(int i=0;i<this.parents.size();i++){
+			this.parents.set(i,this.parents.get(i).removeRedundantSubnodesMapping(expandedToSelf));
+		}
+		if(this.outOfInstance!=null){
+			for(int i=0;i<this.outOfInstance.in.size();i++){
+				this.outOfInstance.in.set(i, this.outOfInstance.in.get(i).removeRedundantSubnodesMapping(expandedToSelf));
+			}
+		}
+		return node;
+	}
 }

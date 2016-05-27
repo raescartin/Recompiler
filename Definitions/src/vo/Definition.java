@@ -329,6 +329,7 @@ public class Definition {
 		copyDef.replaceDefinition(this, copyDef);
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			copyDef.toNandDefinitions();
+			copyDef.removeRedundantSubnodes();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
 			System.out.println("Definition cost in nands: "+iterationCost);
@@ -1197,5 +1198,18 @@ public class Definition {
 				}
 			}
 		} 
+	}
+	public void removeRedundantSubnodes() {
+		for(int i=0;i<this.out.size();i++){
+			this.out.set(i, out.get(i).removeRedundantSubnodes());
+		}
+		
+	}
+	public void removeRedundantSubnodesMapping(
+			HashMap<Node, Node> expandedToSelf) {
+		for(int i=0;i<this.out.size();i++){
+			this.out.set(i, out.get(i).removeRedundantSubnodesMapping(expandedToSelf));
+		}
+		
 	}
 }

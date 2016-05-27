@@ -82,6 +82,7 @@ public class DefinitionDB {
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 				definition.toNandDefinitions();
 				definition.flattenParents();
+				definition.removeRedundantSubnodes();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
@@ -134,6 +135,7 @@ public class DefinitionDB {
 			Node selfNode= definitionToExpanded.get(definitionNode);
 			expandedToSelf.put(node, selfNode);
 		}
+		expandedDefinition.removeRedundantSubnodesMapping(expandedToSelf);
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
