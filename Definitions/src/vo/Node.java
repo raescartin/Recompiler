@@ -326,7 +326,14 @@ public class Node {
 			for(Node parent:this.parents){
 				nodes.addAll(parent.flattenParents());
 			}
-			this.parents=nodes;
+			this.parents.clear();
+			for(Node parent:nodes){
+				if(parent.childrenSupernodes.contains(this)){
+					parents.add(parent);
+				}else{
+					parent.addChildSupernode(this);
+				}
+			}
 		}		
 //		if(this.parents.size()==1){
 //			this.parents.get(0).flattenParents();

@@ -110,10 +110,10 @@ public class DefinitionDB {
 		//2 expand recursive instances in copy
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
+		//TODO: FIX expandedToDefinition
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
 		HashMap<Node,Node> expandedToSelf = new HashMap<Node,Node>();
-		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveIn0 = new ArrayList <Node>(); 
@@ -169,7 +169,7 @@ public class DefinitionDB {
 		this.nodeInFusion(recursiveIn,expandedToSelf.keySet());
 		this.nodeOutFusion(recursiveOut,expandedToSelf.keySet());
 		for(Node node:recursiveIn){
-			expandedDefinition.add(node);
+//			expandedDefinition.add(node);
 			if(expandedToSelf.containsKey(node)){
 				recursiveIn0.add(expandedToSelf.get(node));
 			}else{
@@ -177,15 +177,14 @@ public class DefinitionDB {
 			}
 		}
 		for(Node node:recursiveOut){
-			expandedDefinition.add(node);
+//			expandedDefinition.add(node);
 			recursiveOut0.add(expandedToSelf.get(node));
 		}
-		definition=expandedDefinition.copyMapping(nodeToCopy);
 		for(Node node:recursiveIn0){
-			recursiveInInstance.add(nodeToCopy.get(node));
+			recursiveInInstance.add(expandedToDefinition.get(node));
 		}
 		for(Node node:recursiveOut0){
-			recursiveOutInstance.add(nodeToCopy.get(node));
+			recursiveOutInstance.add(expandedToDefinition.get(node));
 		}
 		ArrayList<Node> nodes = new ArrayList<Node>();
 		
@@ -212,6 +211,7 @@ public class DefinitionDB {
 		expandedDefinition.in=recursiveIn0;
 		expandedDefinition.out=recursiveOut0;
 		newRecursiveDefinition=expandedDefinition.copy();
+		newRecursiveDefinition.update();
 		nodes.clear();
 		nodes.addAll(recursiveInInstance);
 		nodes.addAll(recursiveOutInstance);
@@ -249,10 +249,17 @@ public class DefinitionDB {
 	}
 	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
 		//TODO: test
+		//FIXME: !!![15, 4] instead of [4,15]!!!
 		Node node = nodes.get(i);
 		if(!node.childrenSupernodes.isEmpty()){
 			for(Node supernodeChildCandidate:set){
 				if(!supernodeChildCandidate.parents.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parents)){
+					for(Node childrenSupernode:nodes.get(i).childrenSupernodes){
+						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parents.isEmpty()&&childrenSupernode.parents.containsAll(supernodeChildCandidate.parents)){
+							childrenSupernode.parents.set(childrenSupernode.parents.indexOf(nodes.get(i)), supernodeChildCandidate);
+							childrenSupernode.parents.removeAll(supernodeChildCandidate.parents);
+						}
+					}
 					nodes.set(i, supernodeChildCandidate);
 					nodes.removeAll(supernodeChildCandidate.parents);
 				}
