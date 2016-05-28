@@ -871,14 +871,22 @@ public class Node {
 		if(this.parents.size()==1&&!this.parents.get(0).childrenSubnodes.isEmpty()){
 			if (this.parents.get(0).childrenSubnodes.get(0)==this){
 				if(this.parents.get(0).parents.size()>1){
-					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
-					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodes();
+					if(this.parents.get(0).parents.get(0).parents.size()==1&&(this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0)==parents.get(0).parents.get(0)||this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(0))){
+						node=this.parents.get(0).parents.get(0).removeRedundantSubnodes();
+					}else{
+						this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+						node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodes();
+					}
 				}
 			}
 			if (this.parents.get(0).childrenSubnodes.get(2)==this){
 				if(this.parents.get(0).parents.size()>1){
-					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
-					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(2).removeRedundantSubnodes();
+					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
+						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).removeRedundantSubnodes();
+					}else{
+						this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).splitChildrenSubnodes();
+						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(2).removeRedundantSubnodes();
+					}
 				}
 			}
 		}
@@ -895,23 +903,52 @@ public class Node {
 	public Node removeRedundantSubnodesMapping(
 			HashMap<Node, Node> expandedToSelf) {
 		Node node = this;
-		//FIMXE: make recusive, subnode parent 
-		if(this.parents.size()==1&&!this.parents.get(0).childrenSubnodes.isEmpty()){
+		if(this.parents.size()==1){//!this.parents.get(0).childrenSubnodes.isEmpty()
 			if (this.parents.get(0).childrenSubnodes.get(0)==this){
 				if(this.parents.get(0).parents.size()>1){
-					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
-					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodesMapping(expandedToSelf);
-					if(expandedToSelf.containsKey(this)){
-						expandedToSelf.put(node, expandedToSelf.get(this));
+					if(this.parents.get(0).parents.get(0).parents.size()==1&&(this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0)==parents.get(0).parents.get(0)||this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(0))){
+						node=this.parents.get(0).parents.get(0).removeRedundantSubnodesMapping(expandedToSelf);
+					}else{
+						this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+						node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodesMapping(expandedToSelf);
+						if(expandedToSelf.containsKey(this)){
+							expandedToSelf.put(node, expandedToSelf.get(this));
+						}
 					}
 				}
-			}
-			if (this.parents.get(0).childrenSubnodes.get(2)==this){
+			}else if (this.parents.get(0).childrenSubnodes.get(1)==this){
 				if(this.parents.get(0).parents.size()>1){
-					this.parents.get(0).parents.get(0).splitChildrenSubnodes();
-					node=this.parents.get(0).parents.get(0).childrenSubnodes.get(2).removeRedundantSubnodesMapping(expandedToSelf);
-					if(expandedToSelf.containsKey(this)){
-						expandedToSelf.put(node, expandedToSelf.get(this));
+					ArrayList<Node> nodes = new ArrayList<Node>();
+					if(this.parents.get(0).parents.get(0).parents.size()==1&&(this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0)==parents.get(0).parents.get(0)||this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(0))){
+//						node=this.parents.get(0).parents.get(0).removeRedundantSubnodesMapping(expandedToSelf);
+					}else{
+						this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+						nodes.add(this.parents.get(0).parents.get(0).childrenSubnodes.get(1));
+						nodes.add(this.parents.get(0).parents.get(0).childrenSubnodes.get(2));
+					}
+					nodes.addAll(this.parents.get(0).parents.subList(1,this.parents.get(0).parents.size()-1));
+					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
+//						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).removeRedundantSubnodesMapping(expandedToSelf);
+					}else{
+						this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).splitChildrenSubnodes();
+						nodes.add(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(0));
+						nodes.add(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(1));
+					}
+					node.parents.clear();
+					for(Node parent:nodes){
+						parent.addChildSupernode(node);
+					}
+				}
+			}else if (this.parents.get(0).childrenSubnodes.get(2)==this){
+				if(this.parents.get(0).parents.size()>1){
+					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
+						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).removeRedundantSubnodesMapping(expandedToSelf);
+					}else{
+						this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).splitChildrenSubnodes();
+						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(2).removeRedundantSubnodesMapping(expandedToSelf);
+						if(expandedToSelf.containsKey(this)){
+							expandedToSelf.put(node, expandedToSelf.get(this));
+						}
 					}
 				}
 			}
