@@ -645,7 +645,8 @@ public class Definition {
 	}
 
 	public void nodeFission() {
-		//POST: nodeFission() doesn't remove any node, only transforms ADDING subnodes if needed
+		this.removeRedundantSubnodes();
+		this.flattenParents();
 		for(Node outNode:this.out){
 			outNode.childrenFission();
 		}
@@ -1036,8 +1037,9 @@ public class Definition {
 			outNode.flattenParents();
 		}
 	}
-	public void nodeFissionMapping(HashSet<Node> knownNodes) {
-		//POST: nodeFission() doesn't remove any node, only transforms ADDING subnodes if needed
+	public void nodeFissionMapping(HashSet<Node> knownNodes, HashMap<Node, Node> expandedToSelf) {
+				this.removeRedundantSubnodesMapping(expandedToSelf);
+				this.flattenParents();
 				for(Node outNode:this.out){
 					outNode.childrenFission();
 				}

@@ -5,6 +5,7 @@
 package vo;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -314,28 +315,41 @@ public class Node {
 //			}
 //		}
 //	}
-	public void flattenParents() {
-		if(this.parents.size()==1){
+	public ArrayList<Node> flattenParents() {
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		if(this.parents.size()==0){
+			nodes.add(this);
+		}else if(this.parents.size()==1){	
 			this.parents.get(0).flattenParents();
+			nodes.add(this);
 		}else{
-			ArrayList<Node> parents = new ArrayList<Node>();
-			parents.addAll(this.parents);
-			for(Node parent:parents){
-				if(parent.parents.size()>1){
-					parent.flattenParents();
-					int parentIndex=this.parents.indexOf(parent);
-					for(Node parentParent:parent.parents){
-						Collections.replaceAll(parentParent.childrenSubnodes, parent,this);
-					}
-					this.parents.remove(parentIndex);
-					this.parents.addAll(parentIndex, parent.parents);
-				}
+			for(Node parent:this.parents){
+				nodes.addAll(parent.flattenParents());
 			}
-		}
+			this.parents=nodes;
+		}		
+//		if(this.parents.size()==1){
+//			this.parents.get(0).flattenParents();
+//		}else{
+//			ArrayList<Node> parents = new ArrayList<Node>();
+//			parents.addAll(this.parents);
+//			for(Node parent:parents){
+//				if(parent.parents.size()>1){
+//					parent.flattenParents();
+//					int parentIndex=this.parents.indexOf(parent);
+//					for(Node parentParent:parent.parents){
+//						Collections.replaceAll(parentParent.childrenSubnodes, parent,this);
+//					}
+//					this.parents.remove(parentIndex);
+//					this.parents.addAll(parentIndex, parent.parents);
+//				}
+//			}
+//		}
 		if(this.outOfInstance!=null){//out of nand
 			this.outOfInstance.in.get(0).flattenParents();
 			this.outOfInstance.in.get(1).flattenParents();
 		}
+		return nodes;
 	}
 	public void nodeFussion() {
 		for(int i=0;i<this.parents.size();i++){
@@ -878,8 +892,28 @@ public class Node {
 						node=this.parents.get(0).parents.get(0).childrenSubnodes.get(0).removeRedundantSubnodes();
 					}
 				}
-			}
-			if (this.parents.get(0).childrenSubnodes.get(2)==this){
+			}else if (this.parents.get(0).childrenSubnodes.get(1)==this){
+				if(this.parents.get(0).parents.size()>1){
+					ArrayList<Node> nodes = new ArrayList<Node>();
+					if(this.parents.get(0).parents.get(0).parents.size()==1&&(this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0)==parents.get(0).parents.get(0)||this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(0))){
+					}else{
+						this.parents.get(0).parents.get(0).splitChildrenSubnodes();
+						nodes.add(this.parents.get(0).parents.get(0).childrenSubnodes.get(1));
+						nodes.add(this.parents.get(0).parents.get(0).childrenSubnodes.get(2));
+					}
+					nodes.addAll(this.parents.get(0).parents.subList(1,this.parents.get(0).parents.size()-1));
+					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
+					}else{
+						this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).splitChildrenSubnodes();
+						nodes.add(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(0));
+						nodes.add(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(1));
+					}
+					node.parents.clear();
+					for(Node parent:nodes){
+						parent.addChildSupernode(node);
+					}
+				}
+			}else if (this.parents.get(0).childrenSubnodes.get(2)==this){
 				if(this.parents.get(0).parents.size()>1){
 					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
 						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).removeRedundantSubnodes();
@@ -920,7 +954,6 @@ public class Node {
 				if(this.parents.get(0).parents.size()>1){
 					ArrayList<Node> nodes = new ArrayList<Node>();
 					if(this.parents.get(0).parents.get(0).parents.size()==1&&(this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(0)==parents.get(0).parents.get(0)||this.parents.get(0).parents.get(0).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(0))){
-//						node=this.parents.get(0).parents.get(0).removeRedundantSubnodesMapping(expandedToSelf);
 					}else{
 						this.parents.get(0).parents.get(0).splitChildrenSubnodes();
 						nodes.add(this.parents.get(0).parents.get(0).childrenSubnodes.get(1));
@@ -928,7 +961,6 @@ public class Node {
 					}
 					nodes.addAll(this.parents.get(0).parents.subList(1,this.parents.get(0).parents.size()-1));
 					if(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.size()==1&&(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(0)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1)||this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).parents.get(0).childrenSubnodes.get(2)==this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1))){
-//						node=this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).removeRedundantSubnodesMapping(expandedToSelf);
 					}else{
 						this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).splitChildrenSubnodes();
 						nodes.add(this.parents.get(0).parents.get(this.parents.get(0).parents.size()-1).childrenSubnodes.get(0));
