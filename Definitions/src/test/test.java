@@ -173,7 +173,7 @@ class test {
      	System.out.print("Optimized definition: ");
     	System.out.print(rifDef.toString());
      	rifDef.printCost();
-    	rifDef.printEval(D,B,C);
+    	rifDef.printEval(D,B,C);//TODO: FIXME
     	System.out.print(definitionDB.toString());
     	
 //    	//RECURSIVE XOR //TODO: should optimize to simply XOR

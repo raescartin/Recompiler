@@ -101,6 +101,24 @@ public class Node {
 			nodeToNand.put(this, nandNode);
 		}
 	}
+	public void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashMap<NandNode, Node> nandToNode) {		
+		int subnodes=0;
+		for(Node child:this.childrenSubnodes){
+			subnodes++;
+			child.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+		}
+		if(subnodes==0){
+			NandNode nandNode;
+			if(nandToNodeIn.contains(this)){
+				nandNode=nodeToNand.get(this);
+			}else{
+				nandNode = nandForest.addIn();
+				nandToNodeIn.add(this);
+			}
+			nodeToNand.put(this, nandNode);
+			nandToNode.put(nandNode,this);
+		}
+	}
 	public void mapOutParents(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
@@ -1001,5 +1019,49 @@ public class Node {
 			}
 		}
 		return node;
+	}
+	public void mapOutParentsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, ArrayList<Node> nandToNodeOut, HashMap<NandNode, Node> nandToNode) {
+			ArrayList<NandNode> nandNodes = new ArrayList<NandNode> ();
+			NandNode nandNode;
+			if(nodeToNand.containsKey(this)){
+				nandNode = nandForest.setOut(nodeToNand.get(this));
+				nandToNodeOut.add(this);
+				nandNodes.add(nandNode);
+			}else if(this.outOfInstance!=null){
+				nandNode = nandForest.setOut(this.toNandsMapping(nodeToNand,nandForest,nandToNode));
+				nandToNodeOut.add(this);
+				nandNodes.add(nandNode);
+				nodeToNand.put(this, nandNode);
+				nandToNode.put(nandNode, this);
+			}else{
+				for(Node parent:this.parents){
+					parent.mapOutParentsMapping(nodeToNand, nandForest, nandToNodeOut,nandToNode);
+				}
+			}
+		
+	}
+	private NandNode toNandsMapping(HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, HashMap<NandNode, Node> nandToNode) {
+		//PRE: Node fission
+				//Nodes are mapped up to down
+				//tree is traversed down to up (so recursive calls needed)
+				//evaluate node
+				//-if a node is both in and out, there's no need to optimize it, nor take it to nandForest
+				//-nand ins maybe set before toNands
+				//-using "indexOf(this) seems unreliable
+				NandNode nandNode;
+				if(nodeToNand.containsKey(this)){//this map is to keep track of evaluated nodes
+					nandNode=nodeToNand.get(this);//evaluated node
+				}else{//node is out of an instance of NAND definition
+					Node node1=this.outOfInstance.in.get(0);
+					Node node2=this.outOfInstance.in.get(1);
+					NandNode nandNode1=node1.toNandsMapping(nodeToNand,nandForest,nandToNode);
+					NandNode nandNode2=node2.toNandsMapping(nodeToNand,nandForest,nandToNode);
+					nandNode=nandForest.add(nandNode1,nandNode2);
+					nodeToNand.put(this, nandNode);
+					nandToNode.put(nandNode, this);
+				}
+				return nandNode;
 	}
 }

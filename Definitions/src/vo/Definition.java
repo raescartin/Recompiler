@@ -758,7 +758,8 @@ public class Definition {
 	}
 	public Definition copy() {
 		HashMap<Node,Node> nodeToCopy = new HashMap<Node,Node>();
-		return copyMapping(nodeToCopy);
+		HashMap<Node,Node> copyToNode = new HashMap<Node,Node>();
+		return copyMapping(nodeToCopy,copyToNode);
 	}
 	private Node copyNode(Node node,
 			HashMap<Node, Node> nodeToCopy,
@@ -964,7 +965,7 @@ public class Definition {
 		originalNodes.addAll(this.nodes);	
 	}
 	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
-			ArrayList<Node> nandToNodeOut, HashMap<Node, NandNode> nodeToNand, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes) {
+			ArrayList<Node> nandToNodeOut, HashMap<Node, NandNode> nodeToNand, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
 			//PRE: this definition is not recursive and doesn't contain recursive definitions
 				// the nodes have been split to the minimum needed 
 				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -973,33 +974,33 @@ public class Definition {
 				NandForest nandForest = new NandForest(0);
 				
 				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes);
-				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes);
+				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes,nandToNode);
+				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes,nandToNode);
 				//IN and OUTS mapped and in nandForest
 				//can't optimize nandForest here since Maps will lose references
 				return nandForest;
 	}
 	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeOut, int out,
-			ArrayList<NandNode> recursionInNandNodes) {
+			ArrayList<NandNode> recursionInNandNodes, HashMap<NandNode, Node> nandToNode) {
 		int nandOut = 0;
 		for(int i=0;i<this.out.size();i++){
 			if(i==this.out.size()-out){
 				nandOut=nandForest.out.size();
 			}
-			this.out.get(i).mapOutParents(nodeToNand,nandForest, nandToNodeOut);
+			this.out.get(i).mapOutParentsMapping(nodeToNand,nandForest, nandToNodeOut,nandToNode);
 		}
 		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
 	}
 	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
 			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
-			ArrayList<NandNode> recursionOutNandNodes) {
+			ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
 		int nandIn = 0;
 		for(int i=0;i<this.in.size();i++){
 			if(i==this.in.size()-in){
 				nandIn=nandForest.in.size();
 			}
-			this.in.get(i).mapInChildren(nodeToNand, nandForest, nandToNodeIn);
+			this.in.get(i).mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn,nandToNode);
 		}
 		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
 	}
@@ -1054,22 +1055,96 @@ public class Definition {
 				this.mapFission(knownNodes);
 	}
 	public Definition copyMapping(
-			HashMap<Node, Node> nodeToCopy) {
+			HashMap<Node, Node> nodeToCopy, HashMap<Node, Node> copyToNode) {
 		HashMap<Instance,Instance> instanceToCopy = new HashMap<Instance,Instance>();
 		HashSet<Node> inNodes = new HashSet<Node>();
 		inNodes.addAll(this.in);
 		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			Node inNode = this.copyNode(this.in.get(i), nodeToCopy, instanceToCopy,copyDef);
+			Node inNode = this.copyNodeMapping(this.in.get(i), nodeToCopy, instanceToCopy,copyDef,copyToNode);
 			copyDef.in.add(inNode);
 			copyDef.add(inNode);
 		}
 		for(int i=0;i<this.out.size();i++){
-			Node outNode = this.copyNode(this.out.get(i),nodeToCopy,instanceToCopy,copyDef);
+			Node outNode = this.copyNodeMapping(this.out.get(i),nodeToCopy,instanceToCopy,copyDef,copyToNode);
 			copyDef.out.add(outNode);
 			copyDef.add(outNode);
 		}
 		return copyDef;
+	}
+	private Node copyNodeMapping(Node node,
+			HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef,HashMap<Node, Node> copyToNode) {
+		Node copyNode;
+		if(!nodeToCopy.containsKey(node)){
+			copyNode=new Node();
+			nodeToCopy.put(node, copyNode);
+			copyToNode.put(copyNode,node);
+			if(!node.parents.isEmpty()){
+				if(node.parents.size()==1){
+						Node parent=node.parents.get(0);
+						Node copyParent;
+						if(!nodeToCopy.containsKey(parent)){
+							copyParent = this.copyNodeMapping(parent,nodeToCopy, instanceToCopy, copyDef,copyToNode);
+						}else{
+							copyParent = nodeToCopy.get(parent);
+						}
+						for(int i=0;i<parent.childrenSubnodes.size();i++){
+							if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
+								Node copyChildren = new Node();
+								copyParent.addChildSubnode(copyChildren);
+								nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
+								copyToNode.put(copyChildren, parent.childrenSubnodes.get(i));
+							}else{
+								copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
+							}
+						}
+				}else{
+					for(int i=0;i<node.parents.size();i++){
+						if(!nodeToCopy.containsKey(node.parents.get(i))){
+							Node copyParent = this.copyNodeMapping(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef, copyToNode);
+							copyParent.addChildSupernode(copyNode);
+						}else{
+							nodeToCopy.get(node.parents.get(i)).addChildSupernode(copyNode);
+						}
+					}
+				}
+			}
+			if(node.outOfInstance!=null){
+				this.copyInstanceMapping(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef,copyToNode);
+			}
+		}else{
+			copyNode=nodeToCopy.get(node);
+		}
+		return copyNode;
+	}
+	private void copyInstanceMapping(Instance instance,
+			HashMap<Node, Node> nodeToCopy,
+			HashMap<Instance, Instance> instanceToCopy, Definition copyDef,HashMap<Node, Node> copyToNode) {
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		
+		for(int i=0;i<instance.in.size();i++){
+			if(nodeToCopy.containsKey(instance.in.get(i))){
+				nodes.add(nodeToCopy.get(instance.in.get(i)));
+			}else{
+				nodes.add(this.copyNodeMapping(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef,copyToNode));
+			}
+		}
+		for(int i=0;i<instance.out.size();i++){
+			if(nodeToCopy.containsKey(instance.out.get(i))){
+				nodes.add(nodeToCopy.get(instance.out.get(i)));
+			}else{
+				nodes.add(this.copyNodeMapping(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef,copyToNode));
+			}
+		}
+//		if(instance.definition!=this){
+
+		if(!instanceToCopy.containsKey(instance)){
+			instanceToCopy.put(instance,copyDef.add(instance.definition,nodes.toArray(new Node[nodes.size()])));
+		}
+//		}else{
+//			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
+//		}
 	}
 	public void expandInstancesMapping(Definition definition,
 			HashMap<Node, Node> expandedToDefinition) {
