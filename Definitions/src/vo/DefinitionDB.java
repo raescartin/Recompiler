@@ -113,7 +113,7 @@ public class DefinitionDB {
 		//TODO: FIX expandedToDefinition
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
-		HashMap<Node,Node> expandedToSelf = new HashMap<Node,Node>();
+//		HashMap<Node,Node> expandedToSelf = new HashMap<Node,Node>();
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveIn0 = new ArrayList <Node>(); 
@@ -135,15 +135,15 @@ public class DefinitionDB {
 		Definition expandedDefinition = definition.copyMapping(definitionToExpanded);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
-		for(Node node:expandedToDefinition.keySet()){
-			Node definitionNode = expandedToDefinition.get(node);
-			Node selfNode= definitionToExpanded.get(definitionNode);
-			expandedToSelf.put(node, selfNode);
-		}
+//		for(Node node:expandedToDefinition.keySet()){
+//			Node definitionNode = expandedToDefinition.get(node);
+//			Node selfNode= definitionToExpanded.get(definitionNode);
+//			expandedToSelf.put(node, selfNode);
+//		}
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
-		expandedDefinition.nodeFissionMapping(originalNodes,expandedToSelf);//fission of nodes to minimum size needed, also removes redundant subnodes
+		expandedDefinition.nodeFissionMapping(originalNodes,expandedToDefinition);//fission of nodes to minimum size needed, also removes redundant subnodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,nodeToNand,addedNodes,recursionInNandNodes,recursionOutNandNodes);//non recursive definition to nandforest
 		for(Node node:originalNodes){
 			if(nodeToNand.containsKey(node)){
@@ -166,19 +166,17 @@ public class DefinitionDB {
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		expandedDefinition.update();//can update since it doesn't break references (to hashsets)
 		expandedDefinition.replaceDefinition(expandedDefinition, definition);
-		this.nodeInFusion(recursiveIn,expandedToSelf.keySet());
-		this.nodeOutFusion(recursiveOut,expandedToSelf.keySet());
+		this.nodeInFusion(recursiveIn,expandedToDefinition.keySet());
+		this.nodeOutFusion(recursiveOut,expandedToDefinition.keySet());
 		for(Node node:recursiveIn){
-//			expandedDefinition.add(node);
-			if(expandedToSelf.containsKey(node)){
-				recursiveIn0.add(expandedToSelf.get(node));
+			if(expandedToDefinition.containsKey(node)){
+				recursiveIn0.add(definitionToExpanded.get(expandedToDefinition.get(node)));
 			}else{
 				recursiveIn0.add(node);
 			}
 		}
 		for(Node node:recursiveOut){
-//			expandedDefinition.add(node);
-			recursiveOut0.add(expandedToSelf.get(node));
+			recursiveOut0.add(definitionToExpanded.get(expandedToDefinition.get(node)));
 		}
 		for(Node node:recursiveIn0){
 			recursiveInInstance.add(expandedToDefinition.get(node));
