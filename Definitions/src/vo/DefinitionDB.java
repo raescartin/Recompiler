@@ -136,11 +136,6 @@ public class DefinitionDB {
 		Definition expandedDefinition = definition.copyMapping(definitionToExpanded,expandedToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
-//		for(Node node:expandedToDefinition.keySet()){
-//			Node definitionNode = expandedToDefinition.get(node);
-//			Node selfNode= definitionToExpanded.get(definitionNode);
-//			expandedToSelf.put(node, selfNode);
-//		}
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
@@ -190,7 +185,7 @@ public class DefinitionDB {
 		//TODO: 
 		//-apply to original definition the new outs (instance of newRecursiveDefinition) mapping outs from newRecursiveDefinition
 		//-apply to newRecursiveDefinition the new ins mapping form original definition
-		Definition newRecursiveDefinition= new Definition(recursiveIn.size(),recursiveOut.size(),definition.name+"Recur");
+		Definition tempRecursiveDefinition= new Definition(recursiveIn.size(),recursiveOut.size(),definition.name+"Recur");
 		nodes.clear();
 		nodes.addAll(recursiveIn);
 		nodes.addAll(recursiveOut);
@@ -198,11 +193,14 @@ public class DefinitionDB {
 			out.parents.clear();
 			out.outOfInstance=null;
 		}
-		expandedDefinition.add(newRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		expandedDefinition.in=recursiveIn0;
 		expandedDefinition.out=recursiveOut0;
-		newRecursiveDefinition=expandedDefinition.copy();
+		Definition newRecursiveDefinition=expandedDefinition.copy();
+		newRecursiveDefinition.name=definition.name+"Recur";
+		newRecursiveDefinition.replaceDefinition(tempRecursiveDefinition, newRecursiveDefinition);
 		newRecursiveDefinition.update();
+		this.definitions.put(newRecursiveDefinition.name, newRecursiveDefinition);
 		nodes.clear();
 		nodes.addAll(recursiveInInstance);
 		nodes.addAll(recursiveOutInstance);
