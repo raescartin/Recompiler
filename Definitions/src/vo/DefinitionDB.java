@@ -157,9 +157,9 @@ public class DefinitionDB {
 		}
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		expandedDefinition.update();//can update since it doesn't break references (to hashsets)
-		expandedDefinition.replaceDefinition(expandedDefinition, definition);
 		this.nodeInFusion(recursiveIn,expandedToDefinition.keySet());
 		this.nodeOutFusion(recursiveOut,expandedToDefinition.keySet());
+		expandedDefinition.update();
 		for(Node node:recursiveIn){
 			if(newNodeToNand.containsKey(node)){
 				recursiveInInstance.add(expandedToDefinition.get(nandToNode.get(newNodeToNand.get(node))));
@@ -175,10 +175,18 @@ public class DefinitionDB {
 			}
 		}
 		for(Node node:recursiveInInstance){
-			recursiveIn0.add(definitionToExpanded.get(node));
+			if(nodeToNand.containsKey(definitionToExpanded.get(node))){
+				recursiveIn0.add(nandToNewNode.get(nodeToNand.get(definitionToExpanded.get(node))));
+			}else{
+				recursiveIn0.add(definitionToExpanded.get(node));
+			}
 		}
 		for(Node node:recursiveOutInstance){
-			recursiveOut0.add(definitionToExpanded.get(node));
+			if(nodeToNand.containsKey(definitionToExpanded.get(node))){
+				recursiveOut0.add(nandToNewNode.get(nodeToNand.get(definitionToExpanded.get(node))));
+			}else{
+				recursiveOut0.add(definitionToExpanded.get(node));
+			}
 		}
 		ArrayList<Node> nodes = new ArrayList<Node>();
 		
@@ -194,6 +202,7 @@ public class DefinitionDB {
 			out.outOfInstance=null;
 		}
 		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		expandedDefinition.update();
 		expandedDefinition.in=recursiveIn0;
 		expandedDefinition.out=recursiveOut0;
 		Definition newRecursiveDefinition=expandedDefinition.copy();

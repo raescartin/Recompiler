@@ -1,16 +1,21 @@
-﻿-nodeFission includes node simplification?
--aceptar nodos duplicados/equivalentes REDUNDANT SUBNODES en las estructuras definition
-	-si no se puede trabajar con nodos duplicados entonces la estructura nodo tendrá que tener los tres subnodos hijo Y un vector de supernodos de los que forma parte
--fix fission:nandFission shoudn't remove any node
--fix optimization intersection between loop iterations
+﻿-bug in intersection optimization, recursive definition keeps interesction (even if it's not needed)
+-recoverSupernodes after toNand,fromNand
+-fix nodeFission
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
--use mapLeft and mapRight INSTEAD of splitChildren()
--fix eval cost
 -sqrt
 -add arrays of nodes to definition
 -todo: recursive intersection merge (if/rif)
+-todo: better eval cost
+
 
 DONE
+-eval():nodeFission removes only instance on optimized rif
+-fix fission:nandFission shoudn't remove any node
+-fix optimization intersection between loop iterations
+-aceptar nodos duplicados/equivalentes REDUNDANT SUBNODES en las estructuras definition
+	-si no se puede trabajar con nodos duplicados entonces la estructura nodo tendrá que tener los tres subnodos hijo Y un vector de supernodos de los que forma parte
+	-redundant subnodes are removed in nodeFission
+-nodeFission includes node simplification/elimination of redundant subnodes
 -fix fussion
 -independent size of variables? 0(n)=0(1) (->cmp ->eq0 ->if) <-> recursive def if?¿
 	-test a nand with one in bigger than the other (+nodes)

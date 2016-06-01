@@ -325,25 +325,51 @@ public class Definition {
 		return true;
 	}
 	public void printCost(){
+		String strCost = new String();
+		strCost=this.cost();
+		System.out.println("Definition cost in nands: "+strCost);
+	}
+	private String cost() {
 		Definition copyDef=this.copy();
 		copyDef.replaceDefinition(this, copyDef);
+		String strCost = new String();
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			copyDef.toNandDefinitions();
-			copyDef.removeRedundantSubnodes();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
-			System.out.println("Definition cost in nands: "+iterationCost);
+			strCost=String.valueOf(iterationCost);
 		}else{
 			AddedNodes addedNodes = new AddedNodes();
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			for(Instance instanceOfRecursiveDefinition:copyDef.instancesOfRecursiveDefinitions){
+				strCost+=instanceOfRecursiveDefinition.definition.cost()+"+";
+				copyDef.removeRecursiveInstance(instanceOfRecursiveDefinition, addedNodes, removedInstances);
+			}
+			copyDef.instancesOfRecursiveDefinitions.clear();
 			copyDef.removeRecursion(addedNodes, removedInstances);
 			copyDef.toNandDefinitions();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
-			int nodesEvaluatedByIteration=1;
-			int recursiveInstances;
-			System.out.println("Definition cost in nands: "+iterationCost+"*n/"+nodesEvaluatedByIteration);
+			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
+			if(this.selfRecursiveInstances.isEmpty()){
+				strCost+=String.valueOf(iterationCost);//TODO: n is a generic variable name, for now
+			}else{
+				if(nodesEvaluatedByIteration==1){
+					if(this.selfRecursiveInstances.size()<2){
+						strCost+=String.valueOf(iterationCost+"*n");//TODO: n is a generic variable name, for now
+					}else{//log base number of selfRecursiveInstances
+						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size()));
+					}
+				}else{
+					if(this.selfRecursiveInstances.size()<2){
+						strCost+=String.valueOf(iterationCost+"*n/"+nodesEvaluatedByIteration);
+					}else{//log base number of selfRecursiveInstances
+						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size())+"/"+nodesEvaluatedByIteration);
+					}
+				}
+			}
 		}
+		return strCost;
 	}
 	public void printEval(String ... strings){
 		ArrayList<String> ins = new ArrayList<String>();

@@ -172,7 +172,7 @@ class test {
     	definitionDB.put("rif",rifDef);
      	System.out.print("Optimized definition: ");
     	System.out.print(rifDef.toString());
-     	rifDef.printCost();//FIXME
+     	rifDef.printCost();
     	rifDef.printEval(D,B,C);
     	System.out.print(definitionDB.toString());
     	
