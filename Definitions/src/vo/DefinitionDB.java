@@ -82,7 +82,6 @@ public class DefinitionDB {
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 				definition.toNandDefinitions();
-
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
@@ -110,7 +109,6 @@ public class DefinitionDB {
 		//2 expand recursive instances in copy
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
-		//TODO: FIX expandedToDefinition
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
@@ -189,8 +187,6 @@ public class DefinitionDB {
 			}
 		}
 		ArrayList<Node> nodes = new ArrayList<Node>();
-		
-		//TODO: 
 		//-apply to original definition the new outs (instance of newRecursiveDefinition) mapping outs from newRecursiveDefinition
 		//-apply to newRecursiveDefinition the new ins mapping form original definition
 		Definition tempRecursiveDefinition= new Definition(recursiveIn.size(),recursiveOut.size(),definition.name+"Recur");

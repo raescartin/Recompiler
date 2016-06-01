@@ -257,51 +257,48 @@ public class Node {
 //		}
 //		
 //	}
-//	public void parentsFission() {
-//		//if in of nand has  multiple parents, separate in multiple nands
-//		for(Node parent:this.parents){
-//			parent.parentsFission();
-//		}
-//		if(this.outOfInstance!=null){//out of nand
-//			this.nandParentFission();
-//		}
-//	}
-//	private void nandParentFission() {
-//		//FIXME: NEEDED?
-//		Node in0=this.outOfInstance.in.get(0);
-//		Node in1=this.outOfInstance.in.get(1);
-//		in0.parentsFission();
-//		in1.parentsFission();
-//		if(in0.parents.size()>1||in1.parents.size()>1){
-//			if(in0.parents.size()!=in1.parents.size()){//can happen?
-//				ArrayList<Node> leftArray = new ArrayList<Node>();
-//				ArrayList<Node> rightArray = new ArrayList<Node>();
-//				in0.splitChildren(leftArray);
-//				in1.splitChildren(rightArray);
-//				this.definition.instances.remove(this.outOfInstance);
-//				for(int i=0;i<3;i++){//should be recursive into parents
-//					Node newNode = new Node();
-//					Node[] nodes={leftArray.get(i),rightArray.get(i),newNode};
-//					this.definition.add(this.outOfInstance.definition, nodes);
-//					newNode.add(this);
-//	//				newNode.nandParentFission();
-//				}
-//				this.outOfInstance=null;
-//				this.parents.get(1).nandParentFission();
-//			}else{
-//				this.definition.instances.remove(this.outOfInstance);
-//				for(int i=0;i<in0.parents.size();i++){//should be recursive into parents
-//					Node newNode = new Node();
-//					Node[] nodes={in0.parents.get(i),in1.parents.get(i),newNode};
-//					this.definition.add(this.outOfInstance.definition, nodes);
-////					this.parents.clear();
-//					newNode.add(this);
-//					newNode.nandParentFission();
-//				}
-//				this.outOfInstance=null;
-//			}
-//		}
-//	}
+	public void parentsFission() {
+		//if in of nand has  multiple parents, separate in multiple nands
+		for(Node parent:this.parents){
+			parent.parentsFission();
+		}
+		if(this.outOfInstance!=null){//out of nand
+			this.nandParentFission();
+		}
+	}
+	private void nandParentFission() {
+		Node in0=this.outOfInstance.in.get(0);
+		Node in1=this.outOfInstance.in.get(1);
+		in0.parentsFission();
+		in1.parentsFission();
+		if(in0.parents.size()>1||in1.parents.size()>1){
+			if(in0.parents.size()!=in1.parents.size()){//can happen?
+				in0.splitChildrenSubnodes();
+				in1.splitChildrenSubnodes();
+				this.definition.instances.remove(this.outOfInstance);
+				for(int i=0;i<3;i++){//should be recursive into parents
+					Node newNode = new Node();
+					Node[] nodes={in0.childrenSubnodes.get(i),in1.childrenSubnodes.get(i),newNode};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					newNode.addChildSupernode(this);
+	//				newNode.nandParentFission();
+				}
+				this.outOfInstance=null;
+				this.parents.get(1).nandParentFission();
+			}else{
+				this.definition.instances.remove(this.outOfInstance);
+				for(int i=0;i<in0.parents.size();i++){//should be recursive into parents
+					Node newNode = new Node();
+					Node[] nodes={in0.parents.get(i),in1.parents.get(i),newNode};
+					this.definition.add(this.outOfInstance.definition, nodes);
+//					this.parents.clear();
+					newNode.addChildSupernode(this);
+					newNode.nandParentFission();
+				}
+				this.outOfInstance=null;
+			}
+		}
+	}
 //	public void recursivelyMapParents(HashMap<Node, Node> definitionToInstanceNodes) {
 //		if(this.parents.size()==1){
 //			Node parent=this.parents.get(0);

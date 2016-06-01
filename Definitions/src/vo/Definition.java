@@ -680,9 +680,9 @@ public class Definition {
 			outNode.breakSubnodes();
 		}
 		this.update();
-//		for(Node outNode:this.out){
-//			outNode.parentsFission();
-//		}
+		for(Node outNode:this.out){
+			outNode.parentsFission();
+		}
 	}
 	public void toNandDefinitions() {
 		boolean expanded=true;
