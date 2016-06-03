@@ -272,20 +272,7 @@ public class Node {
 		in0.parentsFission();
 		in1.parentsFission();
 		if(in0.parents.size()>1||in1.parents.size()>1){
-			if(in0.parents.size()!=in1.parents.size()){//can happen?
-				in0.splitChildrenSubnodes();
-				in1.splitChildrenSubnodes();
-				this.definition.instances.remove(this.outOfInstance);
-				for(int i=0;i<3;i++){//should be recursive into parents
-					Node newNode = new Node();
-					Node[] nodes={in0.childrenSubnodes.get(i),in1.childrenSubnodes.get(i),newNode};
-					this.definition.add(this.outOfInstance.definition, nodes);
-					newNode.addChildSupernode(this);
-	//				newNode.nandParentFission();
-				}
-				this.outOfInstance=null;
-				this.parents.get(1).nandParentFission();
-			}else{
+			if(in0.parents.size()==in1.parents.size()){
 				this.definition.instances.remove(this.outOfInstance);
 				for(int i=0;i<in0.parents.size();i++){//should be recursive into parents
 					Node newNode = new Node();

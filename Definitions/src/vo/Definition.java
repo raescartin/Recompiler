@@ -676,6 +676,7 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.childrenFission();
 		}
+		this.removeRedundantSubnodes();
 		for(Node outNode:this.out){
 			outNode.breakSubnodes();
 		}
@@ -1071,13 +1072,14 @@ public class Definition {
 					outNode.childrenFission();
 				}
 				this.mapFission(knownNodes);
+				this.removeRedundantSubnodesMapping(expandedToSelf);
 				for(Node outNode:this.out){
 					outNode.breakSubnodes();
 				}
 				this.update();
-//				for(Node outNode:this.out){
-//					outNode.parentsFission();
-//				}
+				for(Node outNode:this.out){
+					outNode.parentsFission();
+				}
 				this.mapFission(knownNodes);
 	}
 	public Definition copyMapping(
