@@ -673,17 +673,12 @@ public class Definition {
 	public void nodeFission() {
 		this.removeRedundantSubnodes();
 		this.flattenParents();
-		for(Node outNode:this.out){
-			outNode.childrenFission();
-		}
+		this.childrenFission();
 		this.removeRedundantSubnodes();
-		for(Node outNode:this.out){
-			outNode.breakSubnodes();
-		}
+		this.breakSubnodes();
+//		this.update();//why is it needed?
+		this.parentsFission();
 		this.update();
-		for(Node outNode:this.out){
-			outNode.parentsFission();
-		}
 	}
 	public void toNandDefinitions() {
 		boolean expanded=true;
@@ -1068,19 +1063,29 @@ public class Definition {
 	public void nodeFissionMapping(HashSet<Node> knownNodes, HashMap<Node, Node> expandedToSelf) {
 				this.removeRedundantSubnodesMapping(expandedToSelf);
 				this.flattenParents();
-				for(Node outNode:this.out){
-					outNode.childrenFission();
-				}
+				this.childrenFission();
 				this.mapFission(knownNodes);
 				this.removeRedundantSubnodesMapping(expandedToSelf);
-				for(Node outNode:this.out){
-					outNode.breakSubnodes();
-				}
-				this.update();
-				for(Node outNode:this.out){
-					outNode.parentsFission();
-				}
+				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
+//				this.update();//why is it needed?
+				this.parentsFission();
 				this.mapFission(knownNodes);
+				this.update();
+	}
+	private void parentsFission() {
+		for(Node outNode:this.out){
+			outNode.parentsFission();
+		}
+	}
+	private void breakSubnodes() {
+		for(Node outNode:this.out){
+			outNode.breakSubnodes();
+		}
+	}
+	private void childrenFission() {
+		for(Node outNode:this.out){
+			outNode.childrenFission();
+		}
 	}
 	public Definition copyMapping(
 			HashMap<Node, Node> nodeToCopy, HashMap<Node, Node> copyToNode) {
@@ -1204,7 +1209,8 @@ public class Definition {
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
 			expandedToDefinition.put(instance.out.get(i), instance.definition.out.get(i));
-			instance.out.get(i).outOfInstance=null;
+			instance.out.get(i).outOfInstance=null;//needed?
+//			instance.out.get(i).mapParentsMapping(definitionToInstanceNodes,expandedToDefinition);
 			mapParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
 		}
 		for(Instance definitionInstance:instance.definition.instances){
@@ -1290,7 +1296,37 @@ public class Definition {
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
-		if(definitionNode.parents.size()>1){
+		if(definitionNode.parents.size()==1){
+			if(definitionToInstanceNodes.containsKey(definitionNode.parents.get(0))){
+				for(Node definitionChildSubnode:definitionNode.parents.get(0).childrenSubnodes){
+					Node childSubnode = null;
+					if(definitionToInstanceNodes.containsKey(definitionChildSubnode)){
+						childSubnode = definitionToInstanceNodes.get(definitionChildSubnode);
+					}else{
+						childSubnode = new Node();
+					}
+					definitionToInstanceNodes.get(definitionNode.parents.get(0)).addChildSubnode(childSubnode);
+					definitionToInstanceNodes.put(definitionChildSubnode, childSubnode);
+					expandedToDefinition.put(childSubnode,definitionChildSubnode);
+				}
+			}else{
+				Node newParent = new Node();
+				definitionToInstanceNodes.put(definitionNode.parents.get(0), newParent);
+				expandedToDefinition.put(newParent,definitionNode.parents.get(0));
+				for(Node definitionChildSubnode:definitionNode.parents.get(0).childrenSubnodes){
+					Node childSubnode = null;
+					if(definitionToInstanceNodes.containsKey(definitionChildSubnode)){
+						childSubnode = definitionToInstanceNodes.get(definitionChildSubnode);
+					}else{
+						childSubnode = new Node();
+					}
+					definitionToInstanceNodes.get(definitionNode.parents.get(0)).addChildSubnode(childSubnode);
+					definitionToInstanceNodes.put(definitionChildSubnode, childSubnode);
+					expandedToDefinition.put(childSubnode,definitionChildSubnode);
+				}
+				mapParentsMapping(newParent,definitionNode.parents.get(0),definitionToInstanceNodes, expandedToDefinition);
+			}
+		}else if(definitionNode.parents.size()>1){
 			for(Node parent:definitionNode.parents){
 				if(definitionToInstanceNodes.containsKey(parent)){
 					definitionToInstanceNodes.get(parent).addChildSupernode(node);

@@ -714,7 +714,7 @@ public class Node {
 			}
 		}
 	}
-	public void breakSubnodes() {
+	public void breakSubnodes() {//removes link from childrenSubnodes to parent
 		if(this.outOfInstance!=null){
 			if(this.parents.size()==1){
 				this.parents.clear();
