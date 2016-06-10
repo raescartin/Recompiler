@@ -63,7 +63,7 @@ public class Definition {
 	public String name;
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
-	public ArrayList<Instance> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
+	public ArrayList<HashSet<Instance>> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
 	public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
 	public HashSet<Instance> selfRecursiveInstances;//Recursive instances of this definition, contained in this definition
 	public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
@@ -76,7 +76,7 @@ public class Definition {
 		//INITIALIZE VARIABLES
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
-		this.instances = new ArrayList<Instance>();
+		this.instances = new ArrayList<HashSet<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
@@ -99,7 +99,7 @@ public class Definition {
 		//INITIALIZE VARIABLES
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
-		this.instances = new ArrayList<Instance>();
+		this.instances = new ArrayList<HashSet<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
@@ -150,7 +150,17 @@ public class Definition {
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
 		}
-		this.instances.add(instance);
+		int maxDepth =0;
+		for(Node nodeIn:instance.in){
+			if(nodeIn.outOfInstance!=null&&nodeIn.outOfInstance.depth>maxDepth){
+				maxDepth=nodeIn.outOfInstance.depth;
+			}
+		}
+		instance.depth=maxDepth+1;
+		if(this.instances.size()<instance.depth+1){
+			this.instances.add(new HashSet<Instance>());
+		}
+		this.instances.get(instance.depth).add(instance); 
 		return instance;
 	}
 	public void add(Node node){
@@ -188,9 +198,12 @@ public class Definition {
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=("]");
 		
-		string+=(" = ");
-		for (Instance instance : this.instances) {//print instances
-		    string+=instance.toString(this);
+		string+=(" =\n ");
+		for(HashSet<Instance> hashSetOfInstances:this.instances){
+			for (Instance instance : hashSetOfInstances) {//print instances
+			    string+=instance.toString(this);
+			}
+			string+=("\n");
 		}
 		string+=(" root in: ");
 		for (Definition root : this.rootIn){
@@ -200,84 +213,84 @@ public class Definition {
 		string+="\n";
 		return string;
 	}
-	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> supernodeOuts) {
-		//PRE: .this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
-		//POST:apply definition with instance as root of appliedDefinition
-		// and replaces existing instances with instance to an existing applied definition
-		//TODO: replace only non outside referenced instances (without intersections),if the replaced instances have any halfway node don't replace
-		//MAYBE: verify that all roots are expanded (if needed, +++cost)
-		Instance expandingInstance=instance;
-		Instance expandingAppliedInstance=null;
-		HashSet<Instance> toExpand = new HashSet<Instance>();//instances to expand
-		HashMap<Instance,Instance> instanceMap = new HashMap<Instance,Instance>();//map of expanded instances
-		HashMap<Node,Node> nodeMap = new HashMap<Node,Node>();//map of expanded nodes
-		if(appliedDefinition.out!=null&&!appliedDefinition.out.isEmpty()&&this.name!="nand"){//if applied definition is not nand//FIXME: only third term needed?//FIX nand checking
-			expandingAppliedInstance=appliedDefinition.out.get(0).findRootInstance();
-			instanceMap.put(expandingAppliedInstance,expandingInstance);
-			toExpand.add(expandingAppliedInstance);
-			while(!toExpand.isEmpty()){
-				if(expandingInstance==null||expandingInstance.definition!=expandingAppliedInstance.definition){//instance must be to same definition and nºins and nºout must be equal
-					return false;
-				}else{
-					for (int i = 0; i < expandingAppliedInstance.in.size(); i++){//expand all in nodes
-						if(!this.expandNodes(expandingAppliedInstance.in.get(i),expandingInstance.in.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
-							return false;
-						}
-					}
-					for (int i = 0; i < expandingAppliedInstance.out.size(); i++){//expand all out nodes
-						if(!this.expandNodes(expandingAppliedInstance.out.get(i),expandingInstance.out.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
-							return false;
-						}
-					}
-					toExpand.remove(expandingAppliedInstance);
-					if(toExpand.iterator().hasNext()){
-						expandingAppliedInstance=toExpand.iterator().next();
-						expandingInstance=instanceMap.get(expandingAppliedInstance);
-					}
-					
-				}
-				
-			}
-			ArrayList<Node> inArray = new ArrayList<Node>();
-			ArrayList<Node> outArray = new ArrayList<Node>();
-			for (Node node : appliedDefinition.in) {
-				inArray.add(nodeMap.get(node));
-			}
-			for (Node node : appliedDefinition.out) {
-				Node outNode=nodeMap.get(node);
-				outArray.add(outNode);
-				outNode.outOfInstance=instance;
-			}
-			//replace instance
-			instance.in=inArray;
-			instance.definition=appliedDefinition;
-			//Connect out
-			instance.out=outArray;
-			//remove replaced instances (except "instance" already overwritten) 
-			HashSet<Instance> expandedInstances = new HashSet<Instance>();//make a HashSet of all the expanded instances of definition
-			expandedInstances.addAll(instanceMap.values());//(part of this definition) for future verification
-			HashSet<Instance> removableInstances = new HashSet<Instance>(expandedInstances);//copy all the expanded instances
-			//select removable instances
-			for(Instance thisInstance : this.instances){
-				if(!expandedInstances.contains(thisInstance)){
-					for(Node node :thisInstance.in){
-						removableInstances.remove(node.outOfInstance);
-					}
-				}
-			}
-			//remove the already replaced instance (to applied definition)
-			removableInstances.remove(instance);
-			//remove the removable instances
-			for (Instance removableInstance : removableInstances) {
-				boolean containsInOutNode=false;//checking not to remove a non removable node
-				for(Node outNode:removableInstance.out){
-					if(supernodeOuts.contains(outNode.supernodeParent())) containsInOutNode=true;
-				}
-				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to ¿list?HASH¿map? to remove in O(1) instead O(n)?
-			}
-		}
-		return true;
-	}
+//	public boolean apply(Instance instance, Definition appliedDefinition, HashSet<Node> supernodeOuts) {
+//		//PRE: .this is the definition where instance is, instance is the root instance, appliedDefinition the definition applied
+//		//POST:apply definition with instance as root of appliedDefinition
+//		// and replaces existing instances with instance to an existing applied definition
+//		//TODO: replace only non outside referenced instances (without intersections),if the replaced instances have any halfway node don't replace
+//		//MAYBE: verify that all roots are expanded (if needed, +++cost)
+//		Instance expandingInstance=instance;
+//		Instance expandingAppliedInstance=null;
+//		HashSet<Instance> toExpand = new HashSet<Instance>();//instances to expand
+//		HashMap<Instance,Instance> instanceMap = new HashMap<Instance,Instance>();//map of expanded instances
+//		HashMap<Node,Node> nodeMap = new HashMap<Node,Node>();//map of expanded nodes
+//		if(appliedDefinition.out!=null&&!appliedDefinition.out.isEmpty()&&this.name!="nand"){//if applied definition is not nand//FIXME: only third term needed?//FIX nand checking
+//			expandingAppliedInstance=appliedDefinition.out.get(0).findRootInstance();
+//			instanceMap.put(expandingAppliedInstance,expandingInstance);
+//			toExpand.add(expandingAppliedInstance);
+//			while(!toExpand.isEmpty()){
+//				if(expandingInstance==null||expandingInstance.definition!=expandingAppliedInstance.definition){//instance must be to same definition and nºins and nºout must be equal
+//					return false;
+//				}else{
+//					for (int i = 0; i < expandingAppliedInstance.in.size(); i++){//expand all in nodes
+//						if(!this.expandNodes(expandingAppliedInstance.in.get(i),expandingInstance.in.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
+//							return false;
+//						}
+//					}
+//					for (int i = 0; i < expandingAppliedInstance.out.size(); i++){//expand all out nodes
+//						if(!this.expandNodes(expandingAppliedInstance.out.get(i),expandingInstance.out.get(i),nodeMap,instanceMap,toExpand)){//added as different node (non unique)
+//							return false;
+//						}
+//					}
+//					toExpand.remove(expandingAppliedInstance);
+//					if(toExpand.iterator().hasNext()){
+//						expandingAppliedInstance=toExpand.iterator().next();
+//						expandingInstance=instanceMap.get(expandingAppliedInstance);
+//					}
+//					
+//				}
+//				
+//			}
+//			ArrayList<Node> inArray = new ArrayList<Node>();
+//			ArrayList<Node> outArray = new ArrayList<Node>();
+//			for (Node node : appliedDefinition.in) {
+//				inArray.add(nodeMap.get(node));
+//			}
+//			for (Node node : appliedDefinition.out) {
+//				Node outNode=nodeMap.get(node);
+//				outArray.add(outNode);
+//				outNode.outOfInstance=instance;
+//			}
+//			//replace instance
+//			instance.in=inArray;
+//			instance.definition=appliedDefinition;
+//			//Connect out
+//			instance.out=outArray;
+//			//remove replaced instances (except "instance" already overwritten) 
+//			HashSet<Instance> expandedInstances = new HashSet<Instance>();//make a HashSet of all the expanded instances of definition
+//			expandedInstances.addAll(instanceMap.values());//(part of this definition) for future verification
+//			HashSet<Instance> removableInstances = new HashSet<Instance>(expandedInstances);//copy all the expanded instances
+//			//select removable instances
+//			for(Instance thisInstance : this.instances){
+//				if(!expandedInstances.contains(thisInstance)){
+//					for(Node node :thisInstance.in){
+//						removableInstances.remove(node.outOfInstance);
+//					}
+//				}
+//			}
+//			//remove the already replaced instance (to applied definition)
+//			removableInstances.remove(instance);
+//			//remove the removable instances
+//			for (Instance removableInstance : removableInstances) {
+//				boolean containsInOutNode=false;//checking not to remove a non removable node
+//				for(Node outNode:removableInstance.out){
+//					if(supernodeOuts.contains(outNode.supernodeParent())) containsInOutNode=true;
+//				}
+//				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to ¿list?HASH¿map? to remove in O(1) instead O(n)?
+//			}
+//		}
+//		return true;
+//	}
 	private boolean expandNodes(Node appliedNode, Node node,
 			HashMap<Node, Node> nodeMap, HashMap<Instance, Instance> instanceMap, HashSet<Instance> toExpand) {
 		if(appliedNode.outOfInstance!=null){

@@ -20,6 +20,7 @@ public class Instance implements java.io.Serializable{
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
 	public Definition definition;
+	public int depth;
 	//CONSTRUCTOR
 	public Instance() {
 		in = new ArrayList<Node>();
