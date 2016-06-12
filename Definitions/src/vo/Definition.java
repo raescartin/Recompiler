@@ -150,7 +150,7 @@ public class Definition {
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
 		}
-		int maxDepth =0;
+		int maxDepth =-1;
 		for(Node nodeIn:instance.in){
 			if(nodeIn.outOfInstance!=null&&nodeIn.outOfInstance.depth>maxDepth){
 				maxDepth=nodeIn.outOfInstance.depth;
@@ -511,39 +511,40 @@ public class Definition {
 			instance.out.get(i).outOfInstance=null;
 			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
-		for(Instance definitionInstance:instance.definition.instances){
-				ArrayList<Node> nodes = new ArrayList<Node>();
-				for (Node node: definitionInstance.in) {//map in nodes
-					if(definitionToInstanceNodes.containsKey(node)){
-						nodes.add(definitionToInstanceNodes.get(node));
-					}else{
-						Node newNode = new Node();
-						definitionToInstanceNodes.put(node, newNode);
-						nodes.add(newNode);
-						mapParents(newNode,node,definitionToInstanceNodes);
+		for(HashSet<Instance> hashSetOfInstances:this.instances){
+			for (Instance definitionInstance : hashSetOfInstances) {
+					ArrayList<Node> nodes = new ArrayList<Node>();
+					for (Node node: definitionInstance.in) {//map in nodes
+						if(definitionToInstanceNodes.containsKey(node)){
+							nodes.add(definitionToInstanceNodes.get(node));
+						}else{
+							Node newNode = new Node();
+							definitionToInstanceNodes.put(node, newNode);
+							nodes.add(newNode);
+							mapParents(newNode,node,definitionToInstanceNodes);
+						}
 					}
-				}
-				for (Node node: definitionInstance.out) {//map out nodes
-					if(definitionToInstanceNodes.containsKey(node)){
-						nodes.add(definitionToInstanceNodes.get(node));
-					}else{
-						Node newNode = new Node();
-						definitionToInstanceNodes.put(node, newNode);
-						nodes.add(newNode);
-						mapParents(newNode,node,definitionToInstanceNodes);
+					for (Node node: definitionInstance.out) {//map out nodes
+						if(definitionToInstanceNodes.containsKey(node)){
+							nodes.add(definitionToInstanceNodes.get(node));
+						}else{
+							Node newNode = new Node();
+							definitionToInstanceNodes.put(node, newNode);
+							nodes.add(newNode);
+							mapParents(newNode,node,definitionToInstanceNodes);
+						}
 					}
-				}
-				Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
-				if(newInstance.definition==instance.definition){
-					this.instancesOfRecursiveDefinitions.remove(newInstance);
-					this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
-				}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
-					this.instancesOfRecursiveDefinitions.remove(newInstance);
-					this.instances.remove(newInstance);
-					this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
-				}
+					Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+					if(newInstance.definition==instance.definition){
+						this.instancesOfRecursiveDefinitions.remove(newInstance);
+						this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
+					}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
+						this.instancesOfRecursiveDefinitions.remove(newInstance);
+						this.instances.remove(newInstance);
+						this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
+					}
+			}
 		}
-		
 	}
 	void removeRecursiveInstance(Instance instance,AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		removedInstances.add(instance);
@@ -698,7 +699,9 @@ public class Definition {
 		ArrayList<Instance> instances = new ArrayList<Instance>();
 		while(expanded){
 			instances.clear();
-			instances.addAll(this.instances);
+			for(HashSet<Instance> hashSetOfInstances:this.instances){
+				instances.addAll(hashSetOfInstances);
+			}
 			expanded=false;
 			for(Instance instance:instances){
 				if(instance.definition.name!="nand"){
@@ -722,7 +725,9 @@ public class Definition {
 				instance.out.get(i).outOfInstance=null;
 				mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 			}
-			for(Instance definitionInstance:instance.definition.instances){
+
+			for(HashSet<Instance> hashSetOfInstances:instance.definition.instances){
+				for (Instance definitionInstance : hashSetOfInstances) {
 					ArrayList<Node> nodes = new ArrayList<Node>();
 					for (Node node: definitionInstance.in) {//map in nodes
 						if(definitionToInstanceNodes.containsKey(node)){
@@ -745,6 +750,7 @@ public class Definition {
 						}
 					}
 					this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+				}
 			}
 		}
 //	public void fusion() {
@@ -891,7 +897,8 @@ public class Definition {
 			instance.out.get(i).outOfInstance=null;
 			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
-		for(Instance definitionInstance:instance.definition.instances){
+		for(HashSet<Instance> hashSetOfInstances:instance.definition.instances){
+			for (Instance definitionInstance : hashSetOfInstances) {
 				ArrayList<Node> nodes = new ArrayList<Node>();
 				for (Node node: definitionInstance.in) {//map in nodes
 					if(definitionToInstanceNodes.containsKey(node)){
@@ -914,19 +921,21 @@ public class Definition {
 					}
 				}
 				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+			}
 		}
-		
 	}
 	public void replaceDefinition(Definition definition, Definition newDef) {
-		for(Instance instance :this.instances){
-			if(instance.definition==definition){
-				this.instancesOfRecursiveDefinitions.remove(instance);
-				this.selfRecursiveInstances.remove(instance);
-				instance.definition=newDef;
-				if(this==newDef){
-					this.selfRecursiveInstances.add(instance);
-				}else if(!newDef.selfRecursiveInstances.isEmpty()||!newDef.instancesOfRecursiveDefinitions.isEmpty()){
-					this.instancesOfRecursiveDefinitions.add(instance);
+		for(HashSet<Instance> hashSetOfInstances:this.instances){
+			for (Instance instance : hashSetOfInstances) {
+				if(instance.definition==definition){
+					this.instancesOfRecursiveDefinitions.remove(instance);
+					this.selfRecursiveInstances.remove(instance);
+					instance.definition=newDef;
+					if(this==newDef){
+						this.selfRecursiveInstances.add(instance);
+					}else if(!newDef.selfRecursiveInstances.isEmpty()||!newDef.instancesOfRecursiveDefinitions.isEmpty()){
+						this.instancesOfRecursiveDefinitions.add(instance);
+					}
 				}
 			}
 		}
@@ -981,15 +990,11 @@ public class Definition {
 		}
 		
 	}
-	public void extractNewRecursiveDefinition(
-			ArrayList<Node> newRecursiveDefinitionIn,
-			ArrayList<Node> newRecursiveDefinitionOut) {
-		// TODO Auto-generated method stub
-		
-	}
 	public void expandInstances(Definition definition) {
 		ArrayList<Instance> instances = new ArrayList<Instance>();
-		instances.addAll(this.instances);
+		for(HashSet<Instance> hashSetOfInstances:this.instances){
+			instances.addAll(hashSetOfInstances);
+		}
 		for(Instance instance : instances){
 			if(instance.definition==definition){//need to expand on previous definition
 				this.expandInstance(instance);				
@@ -1047,6 +1052,7 @@ public class Definition {
 		}
 	}
 	public void update() {
+		//POST: resets every node id for this definition
 		//update definition nodes and instances
 		this.nodes.clear();
 		this.maxNode=0;
@@ -1054,7 +1060,7 @@ public class Definition {
 		this.instancesOfRecursiveDefinitions.clear();
 		this.selfRecursiveInstances.clear();
 		for(Node inNode:this.in){
-			inNode.mapIns(this);
+			inNode.mapNode(this);
 		}
 		for(Node outNode:this.out){
 			outNode.updateDefinition(this);
@@ -1196,7 +1202,9 @@ public class Definition {
 			HashMap<Node, Node> expandedToDefinition) {
 		//TODO: FIXME if multiple recursive instances of definition
 		ArrayList<Instance> instances = new ArrayList<Instance>();
-		instances.addAll(this.instances);
+		for(HashSet<Instance> hashSetOfInstances:this.instances){
+			instances.addAll(hashSetOfInstances);
+		}
 		for(Instance instance : instances){
 			if(instance.definition==definition){//need to expand on previous definition
 				this.expandInstanceMapping(instance,expandedToDefinition);				
@@ -1226,7 +1234,8 @@ public class Definition {
 //			instance.out.get(i).mapParentsMapping(definitionToInstanceNodes,expandedToDefinition);
 			mapParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
 		}
-		for(Instance definitionInstance:instance.definition.instances){
+		for(HashSet<Instance> hashSetOfInstances:instance.definition.instances){
+			for(Instance definitionInstance:hashSetOfInstances){
 				ArrayList<Node> nodes = new ArrayList<Node>();
 				for (Node node: definitionInstance.in) {//map in nodes
 					if(definitionToInstanceNodes.containsKey(node)){
@@ -1251,6 +1260,7 @@ public class Definition {
 					}
 				}
 				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+			}
 		}
 	}
 //	private void mapSupernodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes,

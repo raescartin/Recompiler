@@ -247,15 +247,8 @@ public class DefinitionDB {
 			}else{
 				in2 = nandToNode.get(nandNode.in2);
 			}
-			Instance nandInstance = new Instance();//instance of a definition
-			nandInstance.in = new ArrayList<Node>();
-			nandInstance.in.add(in1);
-			nandInstance.in.add(in2);
-			nandInstance.definition=this.get("nand");
-			outNode.outOfInstance=nandInstance;
-			def.add(outNode);
-			nandInstance.out.add(outNode);
-			def.instances.add(nandInstance );
+			Node[] nodes = new Node[]{in1,in2,outNode};
+			def.add(this.get("nand"),nodes);
 			nandToNode.put(nandNode,outNode);
 			nodeToNand.put(outNode,nandNode);
 		}
@@ -483,53 +476,46 @@ public class DefinitionDB {
 			}else{
 				in2 = nandToNode.get(nandNode.in2);
 			}
-			Instance nandInstance = new Instance();//instance of a definition
-			nandInstance.in = new ArrayList<Node>();
-			nandInstance.in.add(in1);
-			nandInstance.in.add(in2);
-			nandInstance.definition=this.get("nand");
-			outNode.outOfInstance=nandInstance;
-			def.add(outNode);
-			nandInstance.out.add(outNode);
-			def.instances.add(nandInstance );
+			Node[] nodes = new Node[]{in1,in2,outNode};
+			def.add(this.get("nand"),nodes);
 			nandToNode.put(nandNode,outNode);
 		}
 	}
-	public void toHighestLevel(Definition definition) {
-		//PRE: definition may be recursive
-		//POST: apply definitions from definitionDB to transform the definition to the highest level possible
-		//TODO:prioritize intersection elimination, if more practical needed add one more stage
-		HashSet<Node> supernodeOuts= new HashSet<Node>();
-		//Use A* type algorithm to locate highest level definitions
-		//applying all definitions with same root
-		definition.mapSupernodeOuts(supernodeOuts);
-		int instanceIndex;
-		int rootIndex;
-		boolean appliedOnce;//at least one definition has been applied
-		Instance instance;
-		Definition appliedDefinition;
-		do{
-			appliedOnce=false;
-			instanceIndex=0;
-			while (instanceIndex<definition.instances.size()) {//one level up, while needed instead of for, since list can be modified on loop
-				instance=definition.instances.get(instanceIndex);
-				rootIndex=0;
-				boolean applied=false;
-				while (rootIndex<instance.definition.rootIn.size()&&applied==false) {//loop while not modified (if one rootIn used, rest worthless)
-					appliedDefinition=instance.definition.rootIn.get(rootIndex);
-					if(definition!=appliedDefinition){//prevent applying definition to self
-						applied=definition.apply(instance,appliedDefinition,supernodeOuts);
-						if (applied) {
-							instanceIndex=0;//restart index
-						}
-						appliedOnce=appliedOnce||applied;
-					}
-					rootIndex++;
-				}	
-				instanceIndex++;
-			}
-		}while(appliedOnce);//while at least one definition applied through all instances
-	}
+//	public void toHighestLevel(Definition definition) {
+//		//PRE: definition may be recursive
+//		//POST: apply definitions from definitionDB to transform the definition to the highest level possible
+//		//TODO:prioritize intersection elimination, if more practical needed add one more stage
+//		HashSet<Node> supernodeOuts= new HashSet<Node>();
+//		//Use A* type algorithm to locate highest level definitions
+//		//applying all definitions with same root
+//		definition.mapSupernodeOuts(supernodeOuts);
+//		int instanceIndex;
+//		int rootIndex;
+//		boolean appliedOnce;//at least one definition has been applied
+//		Instance instance;
+//		Definition appliedDefinition;
+//		do{
+//			appliedOnce=false;
+//			instanceIndex=0;
+//			while (instanceIndex<definition.instances.size()) {//one level up, while needed instead of for, since list can be modified on loop
+//				instance=definition.instances.get(instanceIndex);
+//				rootIndex=0;
+//				boolean applied=false;
+//				while (rootIndex<instance.definition.rootIn.size()&&applied==false) {//loop while not modified (if one rootIn used, rest worthless)
+//					appliedDefinition=instance.definition.rootIn.get(rootIndex);
+//					if(definition!=appliedDefinition){//prevent applying definition to self
+//						applied=definition.apply(instance,appliedDefinition,supernodeOuts);
+//						if (applied) {
+//							instanceIndex=0;//restart index
+//						}
+//						appliedOnce=appliedOnce||applied;
+//					}
+//					rootIndex++;
+//				}	
+//				instanceIndex++;
+//			}
+//		}while(appliedOnce);//while at least one definition applied through all instances
+//	}
 	@Override
 	public String toString(){
 		String string = new String("DATABASE:\n");

@@ -93,7 +93,6 @@ public class Instance implements java.io.Serializable{
 	}
 	public void updateDefinition(Definition definition) {
 		if(!definition.instances.contains(this)){
-			definition.instances.add(this);
 			if(this.definition==definition){
 				definition.selfRecursiveInstances.add(this);
 			}else if(!this.definition.selfRecursiveInstances.isEmpty()||!this.definition.instancesOfRecursiveDefinitions.isEmpty()){
@@ -102,6 +101,10 @@ public class Instance implements java.io.Serializable{
 			for(Node inNode:this.in){
 				inNode.updateDefinition(definition);
 			}
+			if(definition.instances.size()<depth+1){
+				definition.instances.add(new HashSet<Instance>());
+			}
+			definition.instances.get(depth).add(this);
 		}
 		
 	}

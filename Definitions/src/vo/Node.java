@@ -702,7 +702,7 @@ public class Node {
 	}
 	public void updateDefinition(Definition definition) {
 		if(!definition.nodes.contains(this)){
-			this.idForDefinition=definition.maxNode;//debugging only
+			this.idForDefinition=definition.maxNode;
 			definition.maxNode++;
 			this.definition=definition;
 			definition.nodes.add(this);
@@ -726,15 +726,12 @@ public class Node {
 			parent.breakSubnodes();
 		}
 	}
-	public void mapIns(Definition definition) {
+	public void mapNode(Definition definition) {
 		if(!definition.nodes.contains(this)){
 			this.idForDefinition=definition.maxNode;//debugging only
 			definition.maxNode++;
 			this.definition=definition;
 			definition.nodes.add(this);
-			for(Node parent:this.parents){
-				parent.mapIns(definition);
-			}
 		}
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap, int depth) {
