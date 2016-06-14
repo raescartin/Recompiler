@@ -198,10 +198,10 @@ public class Definition {
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=("]");
 		
-		string+=(" =\n ");
+		string+=(" =\n");
 		for(HashSet<Instance> hashSetOfInstances:this.instances){
 			for (Instance instance : hashSetOfInstances) {//print instances
-			    string+=instance.toString(this);
+			    string+=" "+instance.toString(this);
 			}
 			string+=("\n");
 		}
@@ -338,11 +338,12 @@ public class Definition {
 		return true;
 	}
 	public void printCost(){
-		String strCost = new String();
-		strCost=this.cost();
+		String strCost=this.cost();
 		System.out.println("Definition cost in nands: "+strCost);
+		String strParallelCost=this.parallelCost();
+		System.out.println("Definition cost in parallel nands: "+strParallelCost);
 	}
-	private String cost() {
+	private String parallelCost() {
 		Definition copyDef=this.copy();
 		copyDef.replaceDefinition(this, copyDef);
 		String strCost = new String();
@@ -363,6 +364,58 @@ public class Definition {
 			copyDef.toNandDefinitions();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
+			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
+			if(this.selfRecursiveInstances.isEmpty()){
+				strCost+=String.valueOf(iterationCost);//TODO: n is a generic variable name, for now
+			}else{
+				if(nodesEvaluatedByIteration==1){
+					if(this.selfRecursiveInstances.size()<2){
+						strCost+=String.valueOf(iterationCost+"*n");//TODO: n is a generic variable name, for now
+					}else{//log base number of selfRecursiveInstances
+						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size()));
+					}
+				}else{
+					if(this.selfRecursiveInstances.size()<2){
+						strCost+=String.valueOf(iterationCost+"*n/"+nodesEvaluatedByIteration);
+					}else{//log base number of selfRecursiveInstances
+						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size())+"/"+nodesEvaluatedByIteration);
+					}
+				}
+			}
+		}
+		return strCost;
+	}
+	private String cost() {
+		Definition copyDef=this.copy();
+		copyDef.replaceDefinition(this, copyDef);
+		String strCost = new String();
+		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
+			copyDef.toNandDefinitions();
+			copyDef.nodeFission();
+			int iterationCost=0;
+			for(HashSet<Instance> instanceHashSet:this.instances){
+				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
+					iterationCost++;
+				}
+			}
+			strCost=String.valueOf(iterationCost);
+		}else{
+			AddedNodes addedNodes = new AddedNodes();
+			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			for(Instance instanceOfRecursiveDefinition:copyDef.instancesOfRecursiveDefinitions){
+				strCost+=instanceOfRecursiveDefinition.definition.cost()+"+";
+				copyDef.removeRecursiveInstance(instanceOfRecursiveDefinition, addedNodes, removedInstances);
+			}
+			copyDef.instancesOfRecursiveDefinitions.clear();
+			copyDef.removeRecursion(addedNodes, removedInstances);
+			copyDef.toNandDefinitions();
+			copyDef.nodeFission();
+			int iterationCost=0;
+			for(HashSet<Instance> instanceHashSet:this.instances){
+				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
+					iterationCost++;
+				}
+			}
 			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
 			if(this.selfRecursiveInstances.isEmpty()){
 				strCost+=String.valueOf(iterationCost);//TODO: n is a generic variable name, for now
@@ -696,10 +749,11 @@ public class Definition {
 	}
 	public void toNandDefinitions() {
 		//PRE:definition is not recursive nor self recursive
+		HashSet<Node> expandedNodes = new HashSet<Node>();
 		this.instances.clear();
 //		this.nodes.clear();
 		for(Node outNode:this.out){
-			outNode.toNandDefinitions();
+			outNode.toNandDefinitions(expandedNodes);
 		}
 	}
 	void expandInstanceToNandInstances(Instance instance) {
@@ -1376,12 +1430,12 @@ public class Definition {
 				}else{
 					in0=new Node();
 				}
+				this.addNandInstances(definitionNode.outOfInstance.in.get(0), in0, definitionToInstanceNodes);
 				if(definitionToInstanceNodes.containsKey(definitionNode.outOfInstance.in.get(1))){
 					in1=definitionToInstanceNodes.get(definitionNode.outOfInstance.in.get(1));
 				}else{
 					in1=new Node();
 				}
-				this.addNandInstances(definitionNode.outOfInstance.in.get(0), in0, definitionToInstanceNodes);
 				this.addNandInstances(definitionNode.outOfInstance.in.get(1), in1, definitionToInstanceNodes);
 				Node[] nodes ={in0,in1,instanceNode};
 				this.add(definitionNode.outOfInstance.definition,nodes);

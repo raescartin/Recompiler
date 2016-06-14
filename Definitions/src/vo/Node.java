@@ -1045,20 +1045,23 @@ public class Node {
 				}
 				return nandNode;
 	}
-	public void toNandDefinitions() {
-		if(this.outOfInstance!=null){
-			for(Node inOfInstance:this.outOfInstance.in){
-				inOfInstance.toNandDefinitions();
-			}
-			if(this.outOfInstance.definition.name=="nand"){
-				Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
-				this.definition.add(this.outOfInstance.definition,nodes);
+	public void toNandDefinitions(HashSet<Node> expandedNodes) {
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+			if(this.outOfInstance!=null){
+				for(Node inOfInstance:this.outOfInstance.in){
+					inOfInstance.toNandDefinitions(expandedNodes);
+				}
+				if(this.outOfInstance.definition.name=="nand"){
+					Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
+					this.definition.add(this.outOfInstance.definition,nodes);
+				}else{
+					this.expandInstanceToNandInstances(this.outOfInstance);
+				}
 			}else{
-				this.expandInstanceToNandInstances(this.outOfInstance);
-			}
-		}else{
-			for(Node parent:this.parents){
-				parent.toNandDefinitions();
+				for(Node parent:this.parents){
+					parent.toNandDefinitions(expandedNodes);
+				}
 			}
 		}
 	}
