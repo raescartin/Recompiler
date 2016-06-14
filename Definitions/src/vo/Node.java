@@ -1045,4 +1045,32 @@ public class Node {
 				}
 				return nandNode;
 	}
+	public void toNandDefinitions() {
+		if(this.outOfInstance!=null){
+			for(Node inOfInstance:this.outOfInstance.in){
+				inOfInstance.toNandDefinitions();
+			}
+			if(this.outOfInstance.definition.name=="nand"){
+				Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
+				this.definition.add(this.outOfInstance.definition,nodes);
+			}else{
+				this.expandInstanceToNandInstances(this.outOfInstance);
+			}
+		}else{
+			for(Node parent:this.parents){
+				parent.toNandDefinitions();
+			}
+		}
+	}
+	private void expandInstanceToNandInstances(Instance instance) {
+		Definition instanceDefinition=instance.definition.copy();
+		instanceDefinition.toNandDefinitions();
+		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
+		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+			definitionToInstanceNodes.put(instanceDefinition.in.get(i), instance.in.get(i));
+		}
+		for (int i = 0; i < instance.out.size(); i++) {//map from out nodes way up
+			this.definition.addNandInstances(instanceDefinition.out.get(i), instance.out.get(i),definitionToInstanceNodes);
+		}
+	}
 }
