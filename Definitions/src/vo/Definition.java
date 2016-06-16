@@ -564,38 +564,40 @@ public class Definition {
 			instance.out.get(i).outOfInstance=null;
 			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
+		ArrayList<Instance> instances = new ArrayList<Instance>();
 		for(HashSet<Instance> hashSetOfInstances:this.instances){
-			for (Instance definitionInstance : hashSetOfInstances) {
-					ArrayList<Node> nodes = new ArrayList<Node>();
-					for (Node node: definitionInstance.in) {//map in nodes
-						if(definitionToInstanceNodes.containsKey(node)){
-							nodes.add(definitionToInstanceNodes.get(node));
-						}else{
-							Node newNode = new Node();
-							definitionToInstanceNodes.put(node, newNode);
-							nodes.add(newNode);
-							mapParents(newNode,node,definitionToInstanceNodes);
-						}
-					}
-					for (Node node: definitionInstance.out) {//map out nodes
-						if(definitionToInstanceNodes.containsKey(node)){
-							nodes.add(definitionToInstanceNodes.get(node));
-						}else{
-							Node newNode = new Node();
-							definitionToInstanceNodes.put(node, newNode);
-							nodes.add(newNode);
-							mapParents(newNode,node,definitionToInstanceNodes);
-						}
-					}
-					Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
-					if(newInstance.definition==instance.definition){
-						this.instancesOfRecursiveDefinitions.remove(newInstance);
-						this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
-					}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
-						this.instancesOfRecursiveDefinitions.remove(newInstance);
-						this.instances.remove(newInstance);
-						this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
-					}
+			instances.addAll(hashSetOfInstances);
+		}
+		for(Instance definitionInstance:instances){
+			ArrayList<Node> nodes = new ArrayList<Node>();
+			for (Node node: definitionInstance.in) {//map in nodes
+				if(definitionToInstanceNodes.containsKey(node)){
+					nodes.add(definitionToInstanceNodes.get(node));
+				}else{
+					Node newNode = new Node();
+					definitionToInstanceNodes.put(node, newNode);
+					nodes.add(newNode);
+					mapParents(newNode,node,definitionToInstanceNodes);
+				}
+			}
+			for (Node node: definitionInstance.out) {//map out nodes
+				if(definitionToInstanceNodes.containsKey(node)){
+					nodes.add(definitionToInstanceNodes.get(node));
+				}else{
+					Node newNode = new Node();
+					definitionToInstanceNodes.put(node, newNode);
+					nodes.add(newNode);
+					mapParents(newNode,node,definitionToInstanceNodes);
+				}
+			}
+			Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+			if(newInstance.definition==instance.definition){
+				this.instancesOfRecursiveDefinitions.remove(newInstance);
+				this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
+			}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
+				this.instancesOfRecursiveDefinitions.remove(newInstance);
+				this.instances.remove(newInstance);
+				this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
 			}
 		}
 	}
@@ -1098,14 +1100,21 @@ public class Definition {
 		//update definition nodes and instances
 		this.nodes.clear();
 		this.maxNode=0;
+		for(HashSet<Instance> instancesHashSet:this.instances){//fix depth for proper reset
+			for(Instance instance:instancesHashSet){
+				instance.depth=-1;
+			}
+		}
 		this.instances.clear();
 		this.instancesOfRecursiveDefinitions.clear();
 		this.selfRecursiveInstances.clear();
+		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node inNode:this.in){
 			inNode.mapNode(this);
+			expandedNodes.add(inNode);
 		}
 		for(Node outNode:this.out){
-			outNode.updateDefinition(this);
+			outNode.updateDefinition(this,expandedNodes);
 		}
 	}
 	public void clearInstances() {
@@ -1155,9 +1164,17 @@ public class Definition {
 		inNodes.addAll(this.in);
 		Definition copyDef = new Definition(0,0,this.name+"Copy");
 		for(int i=0;i<this.in.size();i++){
-			Node inNode = this.copyNodeMapping(this.in.get(i), nodeToCopy, instanceToCopy,copyDef,copyToNode);
-			copyDef.in.add(inNode);
-			copyDef.add(inNode);
+//			Node inNode = this.copyNodeMapping(this.in.get(i), nodeToCopy, instanceToCopy,copyDef,copyToNode);
+			Node copyNode;
+			if(!nodeToCopy.containsKey(this.in.get(i))){
+				copyNode=new Node();
+				nodeToCopy.put(this.in.get(i), copyNode);
+				copyToNode.put(copyNode,this.in.get(i));
+			}else{
+				copyNode=nodeToCopy.get(this.in.get(i));
+			}
+			copyDef.in.add(copyNode);
+			copyDef.add(copyNode);
 		}
 		for(int i=0;i<this.out.size();i++){
 			Node outNode = this.copyNodeMapping(this.out.get(i),nodeToCopy,instanceToCopy,copyDef,copyToNode);

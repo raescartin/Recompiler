@@ -700,17 +700,18 @@ public class Node {
 		}
 		
 	}
-	public void updateDefinition(Definition definition) {
-		if(!definition.nodes.contains(this)){
-			this.idForDefinition=definition.maxNode;
-			definition.maxNode++;
-			this.definition=definition;
-			definition.nodes.add(this);
+	public void updateDefinition(Definition definition,HashSet<Node> expandedNodes) {
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+//			this.idForDefinition=definition.maxNode;
+//			definition.maxNode++;
+//			this.definition=definition;
+//			definition.nodes.add(this);
 			if(this.outOfInstance!=null){
-				this.outOfInstance.updateDefinition(definition);
+				this.outOfInstance.updateDefinition(definition, expandedNodes);
 			}
 			for(Node parent:this.parents){
-				parent.updateDefinition(definition);
+				parent.updateDefinition(definition,expandedNodes);
 			}
 		}
 	}

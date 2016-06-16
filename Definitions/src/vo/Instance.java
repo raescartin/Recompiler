@@ -91,21 +91,22 @@ public class Instance implements java.io.Serializable{
 		string+=("] ");
 		return string;
 	}
-	public void updateDefinition(Definition definition) {
-		if(!definition.instances.contains(this)){
+	public void updateDefinition(Definition definition,HashSet<Node> expandedNodes) {
+//		if(!definition.instances.contains(this)){
 			if(this.definition==definition){
 				definition.selfRecursiveInstances.add(this);
 			}else if(!this.definition.selfRecursiveInstances.isEmpty()||!this.definition.instancesOfRecursiveDefinitions.isEmpty()){
 				definition.instancesOfRecursiveDefinitions.add(this);
 			}
 			for(Node inNode:this.in){
-				inNode.updateDefinition(definition);
+				inNode.updateDefinition(definition, expandedNodes);
 			}
-			if(definition.instances.size()<depth+1){
-				definition.instances.add(new HashSet<Instance>());
-			}
-			definition.instances.get(depth).add(this);
-		}
+			ArrayList<Node> nodes = new ArrayList<Node>();
+			nodes.addAll(this.in);
+			nodes.addAll(this.out);
+			definition.add(this.definition, nodes.toArray(new Node[nodes.size()]));
+			expandedNodes.addAll(this.out);
+//		}
 		
 	}
 //	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth) {
