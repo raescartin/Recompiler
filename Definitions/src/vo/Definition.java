@@ -150,17 +150,19 @@ public class Definition {
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
 		}
-		int maxDepth =-1;
+		int depth =0;
 		for(Node nodeIn:instance.in){
-			if(nodeIn.outOfInstance!=null&&nodeIn.outOfInstance.depth>maxDepth){
-				maxDepth=nodeIn.outOfInstance.depth;
+			if(nodeIn.depth+1>depth){
+				depth=nodeIn.depth+1;
 			}
 		}
-		instance.depth=maxDepth+1;
-		if(this.instances.size()<instance.depth+1){
+		for(Node nodeOut:instance.out){
+			nodeOut.depth=depth;
+		}
+		if(this.instances.size()<depth+1){
 			this.instances.add(new HashSet<Instance>());
 		}
-		this.instances.get(instance.depth).add(instance); 
+		this.instances.get(depth).add(instance); 
 		return instance;
 	}
 	public void add(Node node){
@@ -926,7 +928,9 @@ public class Definition {
 		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
 			instance.out.get(i).outOfInstance=null;
 		}
-		this.instances.remove(instance);
+		for(HashSet<Instance> instanceHashSet:this.instances){
+			instanceHashSet.remove(instance);
+		}
 		this.instancesOfRecursiveDefinitions.remove(instance);
 		this.selfRecursiveInstances.remove(instance);
 	}
@@ -1100,11 +1104,6 @@ public class Definition {
 		//update definition nodes and instances
 		this.nodes.clear();
 		this.maxNode=0;
-		for(HashSet<Instance> instancesHashSet:this.instances){//fix depth for proper reset
-			for(Instance instance:instancesHashSet){
-				instance.depth=-1;
-			}
-		}
 		this.instances.clear();
 		this.instancesOfRecursiveDefinitions.clear();
 		this.selfRecursiveInstances.clear();
@@ -1114,7 +1113,7 @@ public class Definition {
 			expandedNodes.add(inNode);
 		}
 		for(Node outNode:this.out){
-			outNode.updateDefinition(this,expandedNodes);
+			outNode.updateNode(this,expandedNodes);
 		}
 	}
 	public void clearInstances() {

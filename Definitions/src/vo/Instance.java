@@ -20,7 +20,6 @@ public class Instance implements java.io.Serializable{
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
 	public Definition definition;
-	public int depth;
 	//CONSTRUCTOR
 	public Instance() {
 		in = new ArrayList<Node>();
@@ -91,23 +90,20 @@ public class Instance implements java.io.Serializable{
 		string+=("] ");
 		return string;
 	}
-	public void updateDefinition(Definition definition,HashSet<Node> expandedNodes) {
-//		if(!definition.instances.contains(this)){
+	public void updateInstance(Definition definition,HashSet<Node> expandedNodes) {
 			if(this.definition==definition){
 				definition.selfRecursiveInstances.add(this);
 			}else if(!this.definition.selfRecursiveInstances.isEmpty()||!this.definition.instancesOfRecursiveDefinitions.isEmpty()){
 				definition.instancesOfRecursiveDefinitions.add(this);
 			}
 			for(Node inNode:this.in){
-				inNode.updateDefinition(definition, expandedNodes);
+				inNode.updateNode(definition, expandedNodes);
 			}
 			ArrayList<Node> nodes = new ArrayList<Node>();
 			nodes.addAll(this.in);
 			nodes.addAll(this.out);
 			definition.add(this.definition, nodes.toArray(new Node[nodes.size()]));
 			expandedNodes.addAll(this.out);
-//		}
-		
 	}
 //	public void eval(HashMap<Node, FixedBitSet> valueMap, ArrayList<HashSet<Node>> emptyNodesByDefinition, int depth) {
 //		HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;

@@ -23,22 +23,27 @@ public class Node {
 	//DEBUGGING ONLY
 	public int idForDefinition;//id of node for the definition where it's used
 	//END OF DEBUGGING ONLY
+	public int depth;
 	
 	public Node() { 
 		this.parents = new ArrayList<Node>();
 		this.childrenSubnodes = new ArrayList<Node>();
 		this.childrenSupernodes = new ArrayList<Node>();
+		this.depth=-1;
 	}
-	public Node addChildSupernode(Node node) {//add children supernode to node		
-		node.parents.add(this);
-		this.childrenSupernodes.add(node);
+	public Node addChildSupernode(Node childSuperNode) {//add children supernode to node		
+		childSuperNode.parents.add(this);
+		this.childrenSupernodes.add(childSuperNode);
 		if(this.definition!=null){
-			this.definition.add(node);
+			this.definition.add(childSuperNode);
 		}
-		if(node.definition!=null){
-			node.definition.add(this);
+		if(childSuperNode.definition!=null){
+			childSuperNode.definition.add(this);
 		}
-		return node;
+		if(this.depth>childSuperNode.depth){
+			childSuperNode.depth=this.depth;
+		}
+		return childSuperNode;
 	}
 	public NandNode toNands(HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
 		//PRE: Node fission
@@ -595,13 +600,13 @@ public class Node {
 //		}
 //		
 //	}
-	public Node supernodeParent() {
-		if(this.parents.size()==1){
-			return this.parents.get(0).supernodeParent();
-		}else{
-			return this;
-		}
-	}
+//	public Node supernodeParent() {
+//		if(this.parents.size()==1){
+//			return this.parents.get(0).supernodeParent();
+//		}else{
+//			return this;
+//		}
+//	}
 	public void nodeMapFission(Definition definition,
 			HashSet<Node> originalNodes) {
 		for(Node parent:this.parents){
@@ -698,20 +703,16 @@ public class Node {
 				parent.mapOutParentsMapping(nodeToNand, nandForest, nandToNodeOut, inOutNodes, originalDefinitionNandOut);
 			}
 		}
-		
 	}
-	public void updateDefinition(Definition definition,HashSet<Node> expandedNodes) {
+	public void updateNode(Definition definition,HashSet<Node> expandedNodes) {
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
-//			this.idForDefinition=definition.maxNode;
-//			definition.maxNode++;
-//			this.definition=definition;
-//			definition.nodes.add(this);
 			if(this.outOfInstance!=null){
-				this.outOfInstance.updateDefinition(definition, expandedNodes);
-			}
-			for(Node parent:this.parents){
-				parent.updateDefinition(definition,expandedNodes);
+				this.outOfInstance.updateInstance(definition, expandedNodes);
+			}else{
+				for(Node parent:this.parents){
+					parent.updateNode(definition,expandedNodes);
+				}
 			}
 		}
 	}
@@ -875,16 +876,17 @@ public class Node {
 //			}
 //		}
 //	}
-	public Node addChildSubnode(Node node) {
-		node.parents.add(this);
-		this.childrenSubnodes.add(node);
+	public Node addChildSubnode(Node childSubnode) {
+		childSubnode.parents.add(this);
+		this.childrenSubnodes.add(childSubnode);
 		if(this.definition!=null){
-			this.definition.add(node);
+			this.definition.add(childSubnode);
 		}
-		if(node.definition!=null){
-			node.definition.add(this);
+		if(childSubnode.definition!=null){
+			childSubnode.definition.add(this);
 		}
-		return node;
+		childSubnode.depth=this.depth;
+		return childSubnode;
 	}
 	public Node removeRedundantSubnodes() {
 		Node node = this;
