@@ -86,7 +86,7 @@ public class DefinitionDB {
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				this.fromNandForest(definition,nandForest,nandToNodeIn,nandToNodeOut, nandToNode);//definition using only instances of nand
-				definition.update();
+//				definition.update();
 				definition.fusion();//fusion of nodes 
 			}	
 		}else{//definition has recursion
@@ -154,7 +154,7 @@ public class DefinitionDB {
 			recursiveOut.add(nandToNewNode.get(nandNode));
 		}
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-		expandedDefinition.update();//can update since it doesn't break references (to hashsets)
+//		expandedDefinition.update();//can update since it doesn't break references (to hashsets)
 		this.nodeInFusion(recursiveIn,expandedToDefinition.keySet());
 		this.nodeOutFusion(recursiveOut,expandedToDefinition.keySet());
 		expandedDefinition.update();

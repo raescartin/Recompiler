@@ -91,11 +91,6 @@ public class Instance implements java.io.Serializable{
 		return string;
 	}
 	public void updateInstance(Definition definition,HashSet<Node> expandedNodes) {
-			if(this.definition==definition){
-				definition.selfRecursiveInstances.add(this);
-			}else if(!this.definition.selfRecursiveInstances.isEmpty()||!this.definition.instancesOfRecursiveDefinitions.isEmpty()){
-				definition.instancesOfRecursiveDefinitions.add(this);
-			}
 			for(Node inNode:this.in){
 				inNode.updateNode(definition, expandedNodes);
 			}

@@ -749,7 +749,7 @@ public class Definition {
 		this.breakSubnodes();
 //		this.update();//why is it needed?
 		this.parentsFission();
-		this.update();
+//		this.update();
 	}
 	public void toNandDefinitions() {
 		//PRE:definition is not recursive nor self recursive
@@ -820,7 +820,7 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.biFusion();
 		}
-		this.update();
+//		this.update();
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
 		for(Node outNode:this.out){
@@ -1139,7 +1139,7 @@ public class Definition {
 //				this.update();//why is it needed?
 				this.parentsFission();
 				this.mapFission(knownNodes);
-				this.update();
+//				this.update();
 	}
 	private void parentsFission() {
 		for(Node outNode:this.out){
@@ -1269,7 +1269,7 @@ public class Definition {
 			}
 		}
 		this.replaceDefinition(definition,this);//replace occurrences of originalDefinition to this, for recursion consistency
-		this.update();
+//		this.update();
 	}
 	private void expandInstanceMapping(Instance instance,
 			HashMap<Node, Node> expandedToDefinition) {
