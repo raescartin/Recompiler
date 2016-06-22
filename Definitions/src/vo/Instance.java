@@ -133,15 +133,16 @@ public class Instance implements Comparable<Instance> {
 //		
 //	}
 	public int compareTo(Instance otherInstance) {
-		// TODO fine tunning of ordering
+		// TODO use definition id instead of hash
 		String thisString= new String();
 		String otherString= new String();
+		String thisOutString= new String();
+		String otherOutString= new String();
 		BigInteger thisBigInt;
 		BigInteger otherBigInt;
 		for(Node inNode:this.in){
 			thisString.concat(String.valueOf(inNode.idForDefinition));
 		}
-		
 		for(Node inNode:otherInstance.in){
 			otherString.concat(String.valueOf(inNode.idForDefinition));
 		}
@@ -156,6 +157,28 @@ public class Instance implements Comparable<Instance> {
 			otherBigInt = new BigInteger(otherString);
 		}
 		int comp=thisBigInt.compareTo(otherBigInt);
+		if(comp==0){
+			comp=this.definition.hashCode()-otherInstance.definition.hashCode();
+		}
+		if(comp==0){
+			for(Node outNode:this.out){
+				thisOutString.concat(String.valueOf(outNode.idForDefinition));
+			}
+			for(Node outNode:otherInstance.out){
+				otherOutString.concat(String.valueOf(outNode.idForDefinition));
+			}
+			if(thisOutString.isEmpty()){
+				thisBigInt=BigInteger.valueOf(0);
+			}else{
+				thisBigInt = new BigInteger(thisOutString);
+			}
+			if(otherOutString.isEmpty()){
+				otherBigInt=BigInteger.valueOf(0);
+			}else{
+				otherBigInt = new BigInteger(otherOutString);
+			}
+			comp=thisBigInt.compareTo(otherBigInt);
+		}
 		return comp;
 	}
 }

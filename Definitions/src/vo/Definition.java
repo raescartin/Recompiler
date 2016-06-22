@@ -61,6 +61,7 @@ import utils.FixedBitSet;
 
 
 public class Definition {
+	//TODO: add id to definition? use instead of hash in instance ordering
 	public int maxNode=0;//keep track for easy consistency while removing nodes
 	public String name;
 	public ArrayList<Node> in;
