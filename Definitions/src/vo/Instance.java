@@ -4,19 +4,11 @@
  *******************************************************************************/
 package vo;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 
-import utils.FixedBitSet;
-
-public class Instance implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 804522577555261305L;
+public class Instance implements Comparable<Instance> {
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
 	public Definition definition;
@@ -140,4 +132,30 @@ public class Instance implements java.io.Serializable{
 //		}
 //		
 //	}
+	public int compareTo(Instance otherInstance) {
+		// TODO fine tunning of ordering
+		String thisString= new String();
+		String otherString= new String();
+		BigInteger thisBigInt;
+		BigInteger otherBigInt;
+		for(Node inNode:this.in){
+			thisString.concat(String.valueOf(inNode.idForDefinition));
+		}
+		
+		for(Node inNode:otherInstance.in){
+			otherString.concat(String.valueOf(inNode.idForDefinition));
+		}
+		if(thisString.isEmpty()){
+			thisBigInt=BigInteger.valueOf(0);
+		}else{
+			thisBigInt = new BigInteger(thisString);
+		}
+		if(otherString.isEmpty()){
+			otherBigInt=BigInteger.valueOf(0);
+		}else{
+			otherBigInt = new BigInteger(otherString);
+		}
+		int comp=thisBigInt.compareTo(otherBigInt);
+		return comp;
+	}
 }
