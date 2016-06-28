@@ -134,6 +134,7 @@ public class Instance implements Comparable<Instance> {
 //	}
 	public int compareTo(Instance otherInstance) {
 		// TODO use definition id instead of hash
+		// CARE: treeset doesn't accept duplicates
 		String thisString= new String();
 		String otherString= new String();
 		String thisOutString= new String();
@@ -141,42 +142,26 @@ public class Instance implements Comparable<Instance> {
 		BigInteger thisBigInt;
 		BigInteger otherBigInt;
 		for(Node inNode:this.in){
-			thisString.concat(String.valueOf(inNode.idForDefinition));
+			thisString=thisString.concat(String.valueOf(inNode.idForDefinition));
 		}
 		for(Node inNode:otherInstance.in){
-			otherString.concat(String.valueOf(inNode.idForDefinition));
+			otherString=otherString.concat(String.valueOf(inNode.idForDefinition));
 		}
-		if(thisString.isEmpty()){
-			thisBigInt=BigInteger.valueOf(0);
-		}else{
-			thisBigInt = new BigInteger(thisString);
-		}
-		if(otherString.isEmpty()){
-			otherBigInt=BigInteger.valueOf(0);
-		}else{
-			otherBigInt = new BigInteger(otherString);
-		}
+		thisBigInt = new BigInteger(thisString);
+		otherBigInt = new BigInteger(otherString);
 		int comp=thisBigInt.compareTo(otherBigInt);
 		if(comp==0){
 			comp=this.definition.hashCode()-otherInstance.definition.hashCode();
 		}
 		if(comp==0){
 			for(Node outNode:this.out){
-				thisOutString.concat(String.valueOf(outNode.idForDefinition));
+				thisOutString=thisOutString.concat(String.valueOf(outNode.idForDefinition));
 			}
 			for(Node outNode:otherInstance.out){
-				otherOutString.concat(String.valueOf(outNode.idForDefinition));
+				otherOutString=otherOutString.concat(String.valueOf(outNode.idForDefinition));
 			}
-			if(thisOutString.isEmpty()){
-				thisBigInt=BigInteger.valueOf(0);
-			}else{
-				thisBigInt = new BigInteger(thisOutString);
-			}
-			if(otherOutString.isEmpty()){
-				otherBigInt=BigInteger.valueOf(0);
-			}else{
-				otherBigInt = new BigInteger(otherOutString);
-			}
+			thisBigInt = new BigInteger(thisOutString);
+			otherBigInt = new BigInteger(otherOutString);
 			comp=thisBigInt.compareTo(otherBigInt);
 		}
 		return comp;

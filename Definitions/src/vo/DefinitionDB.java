@@ -81,7 +81,7 @@ public class DefinitionDB {
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
 				ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 				ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
-				definition.toNandDefinitions();
+				definition.toNandInstances();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				NandForest nandForest = definition.toNandForest(nandToNodeIn,nandToNodeOut);//non recursive definition to nandforest
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();

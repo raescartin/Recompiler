@@ -20,6 +20,7 @@ import utils.FixedBitSet;
 //	-A definition is composed by instances of definitions
 //	-Nand is the basic definition
 //-Definitions may be recursive and ARE TURING COMPLETE (equivalent to algorithms)
+//-Definitions don't accept duplicate instances, via a tree set
 //PRE: all inputs(and in consequence outputs) of a nand definition must be of the same size
 
 
@@ -291,7 +292,7 @@ public class Definition {
 //				for(Node outNode:removableInstance.out){
 //					if(supernodeOuts.contains(outNode.supernodeParent())) containsInOutNode=true;
 //				}
-//				if(!containsInOutNode) this.instances.remove(removableInstance);//TODO:change to 퓄ist?HASH퓅ap? to remove in O(1) instead O(n)?
+//				if(!containsInOutNode) this.removeInstance(removableInstance);//TODO:change to 퓄ist?HASH퓅ap? to remove in O(1) instead O(n)?
 //			}
 //		}
 //		return true;
@@ -353,7 +354,7 @@ public class Definition {
 		copyDef.replaceDefinition(this, copyDef);
 		String strCost = new String();
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
-			copyDef.toNandDefinitions();
+			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
 			strCost=String.valueOf(iterationCost);
@@ -366,7 +367,7 @@ public class Definition {
 			}
 			copyDef.instancesOfRecursiveDefinitions.clear();
 			copyDef.removeRecursion(addedNodes, removedInstances);
-			copyDef.toNandDefinitions();
+			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=copyDef.instances.size();
 			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
@@ -395,7 +396,7 @@ public class Definition {
 		copyDef.replaceDefinition(this, copyDef);
 		String strCost = new String();
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
-			copyDef.toNandDefinitions();
+			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=0;
 			for(SortedSet<Instance> instanceHashSet:this.instances){
@@ -413,7 +414,7 @@ public class Definition {
 			}
 			copyDef.instancesOfRecursiveDefinitions.clear();
 			copyDef.removeRecursion(addedNodes, removedInstances);
-			copyDef.toNandDefinitions();
+			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=0;
 			for(SortedSet<Instance> instanceHashSet:this.instances){
@@ -554,7 +555,7 @@ public class Definition {
 		instances.addAll(this.instancesOfRecursiveDefinitions);
 		this.instancesOfRecursiveDefinitions.clear();
 		for(Instance instance:instances){//map all the instancesOfRecursiveDefinitions nodes
-			this.instances.remove(instance);
+			this.removeInstance(instance);
 			this.expandRecursiveInstance(instance, addedNodes, removedInstances);
 		}
 	}
@@ -601,7 +602,7 @@ public class Definition {
 				this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
 			}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
 				this.instancesOfRecursiveDefinitions.remove(newInstance);
-				this.instances.remove(newInstance);
+				this.removeInstance(newInstance);
 				this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
 			}
 		}
@@ -619,7 +620,7 @@ public class Definition {
 				addedNodes.out++;
 			}
 		}
-		this.instances.remove(instance);
+		this.removeInstance(instance);
 	}
 	private void mapParents(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
 		if(definitionNode.parents.size()>1){
@@ -754,9 +755,10 @@ public class Definition {
 		this.parentsFission();
 //		this.update();
 	}
-	public void toNandDefinitions() {
+	public void toNandInstances() {
 		//PRE:definition is not recursive nor self recursive
 		HashSet<Node> expandedNodes = new HashSet<Node>();
+		expandedNodes.addAll(this.in);
 		this.instances.clear();
 //		this.nodes.clear();
 		for(Node outNode:this.out){
@@ -931,8 +933,11 @@ public class Definition {
 		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
 			instance.out.get(i).outOfInstance=null;
 		}
-		for(SortedSet<Instance> instanceHashSet:this.instances){
+		ArrayList<SortedSet<Instance>> instances = new ArrayList<SortedSet<Instance>>();
+		instances.addAll(this.instances);
+		for(SortedSet<Instance> instanceHashSet:instances){
 			instanceHashSet.remove(instance);
+			if(instanceHashSet.isEmpty()) this.instances.remove(instanceHashSet);
 		}
 		this.instancesOfRecursiveDefinitions.remove(instance);
 		this.selfRecursiveInstances.remove(instance);
@@ -1144,7 +1149,7 @@ public class Definition {
 				this.mapFission(knownNodes);
 //				this.update();
 	}
-	private void parentsFission() {
+	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 		for(Node outNode:this.out){
 			outNode.parentsFission();
 		}
@@ -1154,7 +1159,7 @@ public class Definition {
 			outNode.breakSubnodes();
 		}
 	}
-	private void childrenFission() {
+	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
 		for(Node outNode:this.out){
 			outNode.childrenFission();
 		}

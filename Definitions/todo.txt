@@ -1,14 +1,18 @@
-﻿-bug in intersection optimization, recursive definition keeps interesction (even if it's not needed)
--recoverSupernodes after toNand,fromNand
+﻿TODO
+-fix subnodes depth
+-fix Definition.toNandInstances() to work on recursive definitions (-> maybe fix optimize with this in mind) 
+-fix cost eval 
+-recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
 -fix nodeFission
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
 -add arrays of nodes to definition
 -todo: recursive intersection merge (if/rif)
--todo: better eval cost
+
 
 
 DONE
+-bug in intersection optimization, recursive definition keeps interesction (even if it's not needed)
 -eval():nodeFission removes only instance on optimized rif
 -fix fission:nandFission shoudn't remove any node
 -fix optimization intersection between loop iterations
