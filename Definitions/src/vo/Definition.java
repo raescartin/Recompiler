@@ -814,13 +814,12 @@ public class Definition {
 //		}
 //	}
 	public void fusion() {
-		HashMap<Node,HashSet<Instance>> in0OfNandInstances = new HashMap<Node,HashSet<Instance>>();
-		HashMap<Node,HashSet<Instance>> in1OfNandInstances = new HashMap<Node,HashSet<Instance>>();
+		HashMap<Node,HashSet<Instance>> inOfNandInstances = new HashMap<Node,HashSet<Instance>>();
 		for(Node outNode:this.out){
-			outNode.mapInsOfNandInstances(in0OfNandInstances,in1OfNandInstances);
+			outNode.mapInsOfNandInstances(inOfNandInstances);
 		}
 		for(Node inNode:this.in){
-			inNode.triFusion(in0OfNandInstances,in1OfNandInstances);
+			inNode.triFusion(inOfNandInstances);
 		}
 		for(Node outNode:this.out){
 			outNode.biFusion();
