@@ -12,10 +12,12 @@ public class Instance implements Comparable<Instance> {
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
 	public Definition definition;
+	public int depth;
 	//CONSTRUCTOR
 	public Instance() {
 		in = new ArrayList<Node>();
 		out = new ArrayList<Node>();
+		depth=0;
 	}
 	//METHODS
 //	public void eval(HashMap<Node, FixedBitSet> valueMap, HashSet<Instance> recursiveInstances, HashSet<Instance> instancesToExpand) {

@@ -154,19 +154,16 @@ public class Definition {
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
 		}
-		int depth =0;
 		for(Node nodeIn:instance.in){
-			if(nodeIn.depth+1>depth){
-				depth=nodeIn.depth+1;
+			int nodeDepth=nodeIn.getDepth();
+			if(nodeDepth+1>instance.depth){
+				instance.depth=nodeDepth+1;
 			}
 		}
-		for(Node nodeOut:instance.out){
-			nodeOut.depth=depth;
-		}
-		if(this.instances.size()<depth+1){
+		if(this.instances.size()<instance.depth+1){
 			this.instances.add(new TreeSet<Instance>());
 		}
-		this.instances.get(depth).add(instance); 
+		this.instances.get(instance.depth).add(instance); 
 		return instance;
 	}
 	public void add(Node node){

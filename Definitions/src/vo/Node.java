@@ -21,13 +21,11 @@ public class Node {
 	//DEBUGGING ONLY
 	public int idForDefinition;//id of node for the definition where it's used
 	//END OF DEBUGGING ONLY
-	public int depth;
 	
 	public Node() { 
 		this.parents = new ArrayList<Node>();
 		this.childrenSubnodes = new ArrayList<Node>();
 		this.childrenSupernodes = new ArrayList<Node>();
-		this.depth=-1;
 	}
 	public Node addChildSupernode(Node childSuperNode) {//add children supernode to node		
 		childSuperNode.parents.add(this);
@@ -37,9 +35,6 @@ public class Node {
 		}
 		if(childSuperNode.definition!=null){
 			childSuperNode.definition.add(this);
-		}
-		if(this.depth>childSuperNode.depth){
-			childSuperNode.depth=this.depth;
 		}
 		return childSuperNode;
 	}
@@ -849,7 +844,6 @@ public class Node {
 		if(childSubnode.definition!=null){
 			childSubnode.definition.add(this);
 		}
-		childSubnode.depth=this.depth;
 		return childSubnode;
 	}
 	public Node removeRedundantSubnodes() {
@@ -1028,7 +1022,6 @@ public class Node {
 			}else{
 				for(Node parent:this.parents){
 					parent.toNandDefinitions(expandedNodes);
-					if(parent.depth>this.depth) this.depth=parent.depth;
 				}
 			}
 		}
@@ -1043,5 +1036,19 @@ public class Node {
 		for (int i = 0; i < instance.out.size(); i++) {//map from out nodes way up
 			this.definition.addNandInstances(instanceDefinition.out.get(i), instance.out.get(i),definitionToInstanceNodes);
 		}
+	}
+	public int getDepth() {
+		int depth=-1;
+		if(this.outOfInstance!=null){
+			depth=this.outOfInstance.depth;
+		}else{
+			for(Node parent:this.parents){
+				int parentDepth=parent.getDepth();
+				if(parentDepth>depth){
+					depth=parentDepth;
+				}
+			}
+		}
+		return depth;
 	}
 }
