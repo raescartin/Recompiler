@@ -137,35 +137,48 @@ public class Instance implements Comparable<Instance> {
 	public int compareTo(Instance otherInstance) {
 		// TODO use definition id instead of hash
 		// CARE: treeset doesn't accept duplicates
-		String thisString= new String();
-		String otherString= new String();
+//		String thisString= new String();
+//		String otherString= new String();
+//		String thisOutString= new String();
+//		String otherOutString= new String();
+//		BigInteger thisBigInt;
+//		BigInteger otherBigInt;
+//		for(Node inNode:this.in){
+//			thisString=thisString.concat(String.valueOf(inNode.idForDefinition));
+//		}
+//		for(Node inNode:otherInstance.in){
+//			otherString=otherString.concat(String.valueOf(inNode.idForDefinition));
+//		}
+//		thisBigInt = new BigInteger(thisString);
+//		otherBigInt = new BigInteger(otherString);
+//		int comp=thisBigInt.compareTo(otherBigInt);
+//		if(comp==0){
+//			comp=this.definition.hashCode()-otherInstance.definition.hashCode();
+//		}
+//		if(comp==0){
+//			for(Node outNode:this.out){
+//				thisOutString=thisOutString.concat(String.valueOf(outNode.idForDefinition));
+//			}
+//			for(Node outNode:otherInstance.out){
+//				otherOutString=otherOutString.concat(String.valueOf(outNode.idForDefinition));
+//			}
+//			thisBigInt = new BigInteger(thisOutString);
+//			otherBigInt = new BigInteger(otherOutString);
+//			comp=thisBigInt.compareTo(otherBigInt);
+//		}
+//		return comp;
 		String thisOutString= new String();
 		String otherOutString= new String();
 		BigInteger thisBigInt;
 		BigInteger otherBigInt;
-		for(Node inNode:this.in){
-			thisString=thisString.concat(String.valueOf(inNode.idForDefinition));
+		for(Node outNode:this.out){
+			thisOutString=thisOutString.concat(String.valueOf(outNode.idForDefinition));
 		}
-		for(Node inNode:otherInstance.in){
-			otherString=otherString.concat(String.valueOf(inNode.idForDefinition));
+		for(Node outNode:otherInstance.out){
+			otherOutString=otherOutString.concat(String.valueOf(outNode.idForDefinition));
 		}
-		thisBigInt = new BigInteger(thisString);
-		otherBigInt = new BigInteger(otherString);
-		int comp=thisBigInt.compareTo(otherBigInt);
-		if(comp==0){
-			comp=this.definition.hashCode()-otherInstance.definition.hashCode();
-		}
-		if(comp==0){
-			for(Node outNode:this.out){
-				thisOutString=thisOutString.concat(String.valueOf(outNode.idForDefinition));
-			}
-			for(Node outNode:otherInstance.out){
-				otherOutString=otherOutString.concat(String.valueOf(outNode.idForDefinition));
-			}
-			thisBigInt = new BigInteger(thisOutString);
-			otherBigInt = new BigInteger(otherOutString);
-			comp=thisBigInt.compareTo(otherBigInt);
-		}
-		return comp;
+		thisBigInt = new BigInteger(thisOutString);
+		otherBigInt = new BigInteger(otherOutString);
+		return thisBigInt.compareTo(otherBigInt);
 	}
 }

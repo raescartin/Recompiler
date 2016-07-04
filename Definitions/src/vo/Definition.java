@@ -1140,10 +1140,8 @@ public class Definition {
 				this.mapFission(knownNodes);
 				this.removeRedundantSubnodesMapping(expandedToSelf);
 				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
-//				this.update();//why is it needed?
 				this.parentsFission();
 				this.mapFission(knownNodes);
-//				this.update();
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 		for(Node outNode:this.out){

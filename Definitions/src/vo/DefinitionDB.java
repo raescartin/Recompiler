@@ -110,6 +110,7 @@ public class DefinitionDB {
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
+		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
 		ArrayList <Node> recursiveIn = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut = new ArrayList <Node>(); 

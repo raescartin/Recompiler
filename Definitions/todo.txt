@@ -1,17 +1,16 @@
 ﻿TODO
--fix subnodes depth
--fix Definition.toNandInstances() to work on recursive definitions (-> maybe fix optimize with this in mind) 
--fix cost eval 
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
--fix nodeFission
+-fix nodeFission:fix childrenFission to removeRedundantSubnodes
+-fix cost eval 
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
--add arrays of nodes to definition
+-add arrays of nodes to definition/try to implement algorithms with arrays
 -todo: recursive intersection merge (if/rif)
-
-
+-change Definition to Function
+-fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-fix subnodes depth, now in instance eval is recursive on subnodes
 -bug in intersection optimization, recursive definition keeps interesction (even if it's not needed)
 -eval():nodeFission removes only instance on optimized rif
 -fix fission:nandFission shoudn't remove any node
