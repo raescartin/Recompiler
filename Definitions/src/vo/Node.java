@@ -1051,4 +1051,44 @@ public class Node {
 		}
 		return depth;
 	}
+	public Node findLeftChild(Node midChild) {
+		Node leftChild;
+		if(this.parents.size()==1&&(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this)){
+			//indivisible node
+			leftChild=this;
+		}else{
+			if(this.parents.size()<2){
+				this.splitChildrenSubnodes();
+				leftChild=this.childrenSubnodes.get(0);
+				this.childrenSubnodes.get(1).addChildSupernode(midChild);
+				this.childrenSubnodes.get(2).addChildSupernode(midChild);
+			}else{
+				leftChild=this.parents.get(0).findLeftChild(midChild);
+				for(int i=1;i<this.parents.size();i++){
+					this.parents.get(i).addChildSupernode(midChild);
+				}
+			}
+		}
+		return leftChild;
+	}
+	public Node findRightChild(Node midChild) {
+		Node rightChild;
+		if(this.parents.size()==1&&(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this)){
+			//indivisible node
+			rightChild=this;
+		}else{
+			if(this.parents.size()<2){
+				this.splitChildrenSubnodes();
+				this.childrenSubnodes.get(0).addChildSupernode(midChild);
+				this.childrenSubnodes.get(1).addChildSupernode(midChild);
+				rightChild=this.childrenSubnodes.get(2); 
+			}else{
+				for(int i=0;i<this.parents.size()-1;i++){
+					this.parents.get(i).addChildSupernode(midChild);
+				}
+				rightChild=this.parents.get(this.parents.size()-1).findRightChild(midChild);
+			}
+		}
+		return rightChild;
+	}
 }

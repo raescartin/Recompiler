@@ -135,10 +135,11 @@ public class DefinitionDB {
 		Definition expandedDefinition = definition.copyMapping(definitionToExpanded,expandedToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
-		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
-		expandedDefinition.nodeFissionMapping(originalNodes,expandedToDefinition);//fission of nodes to minimum size needed, also removes redundant subnodes
+		expandedDefinition.nodeFissionMapping(expandedToDefinition);//fission of nodes to minimum size needed, also removes redundant subnodes
+		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,nodeToNand,addedNodes,recursionInNandNodes,recursionOutNandNodes,nandToNode);//non recursive definition to nandforest
 		for(Node node:originalNodes){
 			if(nodeToNand.containsKey(node)){
@@ -155,7 +156,6 @@ public class DefinitionDB {
 			recursiveOut.add(nandToNewNode.get(nandNode));
 		}
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-//		expandedDefinition.update();//can update since it doesn't break references (to hashsets)
 		this.nodeInFusion(recursiveIn,expandedToDefinition.keySet());
 		this.nodeOutFusion(recursiveOut,expandedToDefinition.keySet());
 		expandedDefinition.update();

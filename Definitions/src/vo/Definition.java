@@ -1133,15 +1133,13 @@ public class Definition {
 			outNode.flattenParents();
 		}
 	}
-	public void nodeFissionMapping(HashSet<Node> knownNodes, HashMap<Node, Node> expandedToSelf) {
+	public void nodeFissionMapping(HashMap<Node, Node> expandedToSelf) {
 				this.removeRedundantSubnodesMapping(expandedToSelf);
 				this.flattenParents();
 				this.childrenFission();
-				this.mapFission(knownNodes);
 				this.removeRedundantSubnodesMapping(expandedToSelf);
 				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
-				this.mapFission(knownNodes);
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 		for(Node outNode:this.out){
@@ -1366,16 +1364,37 @@ public class Definition {
 //	}
 	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
 		if(!definitionNode.childrenSubnodes.isEmpty()){
+			Node leftChild;
+			Node midChild;
+			Node rightChild;
 			if(node.childrenSubnodes.isEmpty()){
-				node.splitChildrenSubnodes();
+				if(node.parents.isEmpty()){
+					node.splitChildrenSubnodes();
+					leftChild=node.childrenSubnodes.get(0);
+					midChild=node.childrenSubnodes.get(1);
+					rightChild=node.childrenSubnodes.get(2);
+				}else{
+					midChild = new Node();
+					leftChild= node.parents.get(0).findLeftChild(midChild);
+					for(int i=1;i<node.parents.size()-2;i++){
+						node.parents.get(i).addChildSupernode(midChild);
+					}
+					rightChild = node.parents.get(node.parents.size()-1).findRightChild(midChild);
+				}
+			}else{
+				leftChild=node.childrenSubnodes.get(0);
+				midChild=node.childrenSubnodes.get(1);
+				rightChild=node.childrenSubnodes.get(2);
 			}
-			for(int i=0;i<node.childrenSubnodes.size();i++){
-				definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i));	
-				expandedToDefinition.put(node.childrenSubnodes.get(i),definitionNode.childrenSubnodes.get(i));
-			}
-			for(int i=0;i<node.childrenSubnodes.size();i++){
-				mapSubnodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i),definitionToInstanceNodes);
-			}
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(0),leftChild);	
+			expandedToDefinition.put(leftChild,definitionNode.childrenSubnodes.get(0));
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(1),midChild);	
+			expandedToDefinition.put(midChild,definitionNode.childrenSubnodes.get(1));
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(2),rightChild);	
+			expandedToDefinition.put(rightChild,definitionNode.childrenSubnodes.get(2));
+			mapSubnodeChildren(leftChild, definitionNode.childrenSubnodes.get(0),definitionToInstanceNodes);
+			mapSubnodeChildren(midChild, definitionNode.childrenSubnodes.get(1),definitionToInstanceNodes);
+			mapSubnodeChildren(rightChild, definitionNode.childrenSubnodes.get(2),definitionToInstanceNodes);
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {

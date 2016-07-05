@@ -1,6 +1,8 @@
 ﻿TODO
+-fix expandInstancesMapping to prevent redundant subnodes 
+-fix childrenFission to prevent redundant subnodes 
+-fix nodeFission
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
--fix nodeFission:fix childrenFission to removeRedundantSubnodes
 -fix cost eval 
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
