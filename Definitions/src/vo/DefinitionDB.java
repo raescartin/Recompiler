@@ -138,7 +138,7 @@ public class DefinitionDB {
 
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
-		expandedDefinition.nodeFissionMapping(expandedToDefinition);//fission of nodes to minimum size needed, also removes redundant subnodes
+		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,nodeToNand,addedNodes,recursionInNandNodes,recursionOutNandNodes,nandToNode);//non recursive definition to nandforest
 		for(Node node:originalNodes){

@@ -153,17 +153,28 @@ public class Node {
 			if(!this.childrenSubnodes.isEmpty()){
 				Node parentLeft=this.outOfInstance.in.get(0);
 				Node parentRight=this.outOfInstance.in.get(1);
-				parentLeft.splitChildrenSubnodes();
-				parentRight.splitChildrenSubnodes();
-				for(int i=0; i<3;i++){
-					Node[] nodes={parentLeft.childrenSubnodes.get(i),parentRight.childrenSubnodes.get(i),this.childrenSubnodes.get(i)};
-					this.definition.add(this.outOfInstance.definition, nodes);
-				}
+				ArrayList<Node> childrenSubnodes;
+				childrenSubnodes=parentLeft.getChildrenSubnodes();
+				Node parentLeftLeftChild=childrenSubnodes.get(0);
+				Node parentLeftMidChild=childrenSubnodes.get(1);
+				Node parentLeftRightChild=childrenSubnodes.get(2);
+				childrenSubnodes=parentRight.getChildrenSubnodes();
+				Node parentRightLeftChild=childrenSubnodes.get(0);
+				Node parentRightMidChild=childrenSubnodes.get(1);
+				Node parentRightRightChild=childrenSubnodes.get(2);
+				Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
+				this.definition.add(this.outOfInstance.definition, nodes0);
+				this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
+				Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
+				this.definition.add(this.outOfInstance.definition, nodes1);
+				this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
+				Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
+				this.definition.add(this.outOfInstance.definition, nodes2);
+				this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
 				this.definition.removeInstance(this.outOfInstance);
 				this.outOfInstance=null;
-				for(int i=0; i<3;i++){
-					this.childrenSubnodes.get(i).childrenFission();
-				}
+				this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+				this.childrenSubnodes.get(1).childrenFission();
 			}else{
 				this.outOfInstance.in.get(0).childrenFission();
 				this.outOfInstance.in.get(1).childrenFission();
@@ -175,7 +186,32 @@ public class Node {
 			parent.childrenFission();
 		}
 	}
-//	void splitChildren(ArrayList<Node> childArray) {
+private ArrayList<Node> getChildrenSubnodes() {
+		ArrayList<Node> childrenSubnodes = new ArrayList<Node>();
+		if(this.parents.isEmpty()){
+			this.splitChildrenSubnodes();
+			childrenSubnodes=this.childrenSubnodes;
+		}else{
+			if(this.parents.size()==1){//can't be an indivisible node
+				childrenSubnodes=this.parents.get(0).getChildrenSubnodes().get(1).getChildrenSubnodes();
+			}else{
+				Node leftSubnode;
+				Node midSubnode;
+				Node rightSubnode;
+				midSubnode=new Node();
+				leftSubnode=this.parents.get(0).findLeftChild(midSubnode);
+				for(int i=1;i<this.parents.size()-1;i++){
+					this.parents.get(i).addChildSupernode(midSubnode);
+				}
+				rightSubnode=this.parents.get(this.parents.size()-1).findRightChild(midSubnode);
+				childrenSubnodes.add(leftSubnode);
+				childrenSubnodes.add(midSubnode);
+				childrenSubnodes.add(rightSubnode);
+			}
+		}
+		return childrenSubnodes;
+	}
+	//	void splitChildren(ArrayList<Node> childArray) {
 //		if(this.parents.size()>1){
 //			Node leftParent=this.parents.get(0);
 //			Node rightParent=this.parents.get(this.parents.size()-1);
@@ -1053,41 +1089,51 @@ public class Node {
 	}
 	public Node findLeftChild(Node midChild) {
 		Node leftChild;
-		if(this.parents.size()==1&&(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this)){
-			//indivisible node
-			leftChild=this;
-		}else{
-			if(this.parents.size()<2){
-				this.splitChildrenSubnodes();
-				leftChild=this.childrenSubnodes.get(0);
-				this.childrenSubnodes.get(1).addChildSupernode(midChild);
-				this.childrenSubnodes.get(2).addChildSupernode(midChild);
+		if(this.parents.isEmpty()){
+			this.splitChildrenSubnodes();
+			leftChild=this.childrenSubnodes.get(0);
+			this.childrenSubnodes.get(1).addChildSupernode(midChild);
+			this.childrenSubnodes.get(2).addChildSupernode(midChild);
+		}else if(this.parents.size()==1){
+			if(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this){
+				//indivisible node
+				leftChild=this;
 			}else{
-				leftChild=this.parents.get(0).findLeftChild(midChild);
-				for(int i=1;i<this.parents.size();i++){
-					this.parents.get(i).addChildSupernode(midChild);
-				}
+				ArrayList<Node> childrenSubnodes=this.parents.get(0).getChildrenSubnodes();
+				leftChild=childrenSubnodes.get(0);
+				childrenSubnodes.get(1).addChildSupernode(midChild);
+				childrenSubnodes.get(2).addChildSupernode(midChild);
+			}
+		}else{
+			leftChild=this.parents.get(0).findLeftChild(midChild);
+			for(int i=1;i<this.parents.size();i++){
+				this.parents.get(i).addChildSupernode(midChild);
 			}
 		}
 		return leftChild;
 	}
 	public Node findRightChild(Node midChild) {
 		Node rightChild;
-		if(this.parents.size()==1&&(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this)){
-			//indivisible node
-			rightChild=this;
-		}else{
-			if(this.parents.size()<2){
-				this.splitChildrenSubnodes();
-				this.childrenSubnodes.get(0).addChildSupernode(midChild);
-				this.childrenSubnodes.get(1).addChildSupernode(midChild);
-				rightChild=this.childrenSubnodes.get(2); 
+		if(this.parents.isEmpty()){
+			this.splitChildrenSubnodes();
+			this.childrenSubnodes.get(0).addChildSupernode(midChild);
+			this.childrenSubnodes.get(1).addChildSupernode(midChild);
+			rightChild=this.childrenSubnodes.get(2);
+		}else if(this.parents.size()==1){
+			if(this.parents.get(0).childrenSubnodes.get(0)==this||this.parents.get(0).childrenSubnodes.get(2)==this){
+				//indivisible node
+				rightChild=this;
 			}else{
-				for(int i=0;i<this.parents.size()-1;i++){
-					this.parents.get(i).addChildSupernode(midChild);
-				}
-				rightChild=this.parents.get(this.parents.size()-1).findRightChild(midChild);
+				ArrayList<Node> childrenSubnodes=this.parents.get(0).getChildrenSubnodes();
+				childrenSubnodes.get(0).addChildSupernode(midChild);
+				childrenSubnodes.get(1).addChildSupernode(midChild);
+				rightChild=childrenSubnodes.get(2);
 			}
+		}else{
+			for(int i=0;i<this.parents.size()-1;i++){
+				this.parents.get(i).addChildSupernode(midChild);
+			}
+			rightChild=this.parents.get(this.parents.size()-1).findRightChild(midChild);
 		}
 		return rightChild;
 	}

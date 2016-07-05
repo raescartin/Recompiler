@@ -634,17 +634,19 @@ public class Definition {
 		} 
 	}
 	private void mapSubnodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
-		if(!definitionNode.childrenSubnodes.isEmpty()){
-			if(node.childrenSubnodes.isEmpty()){
-				node.splitChildrenSubnodes();
-			}
-			for(int i=0;i<node.childrenSubnodes.size();i++){
-				definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i));	
-			}
-			for(int i=0;i<node.childrenSubnodes.size();i++){
-				mapSubnodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i),definitionToInstanceNodes);
-			}
-		}
+		HashMap<Node, Node> expandedToDefinition = new HashMap<Node, Node>();
+		mapSubnodeChildrenMapping(node, definitionNode, definitionToInstanceNodes, expandedToDefinition);
+//		if(!definitionNode.childrenSubnodes.isEmpty()){
+//			if(node.childrenSubnodes.isEmpty()){
+//				node.splitChildrenSubnodes();
+//			}
+//			for(int i=0;i<node.childrenSubnodes.size();i++){
+//				definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i));	
+//			}
+//			for(int i=0;i<node.childrenSubnodes.size();i++){
+//				mapSubnodeChildren(node.childrenSubnodes.get(i), definitionNode.childrenSubnodes.get(i),definitionToInstanceNodes);
+//			}
+//		}
 	}
 //	private void mapSupernodeChildren(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes) {
 //		if(!definitionNode.childrenSubnodes.isEmpty()){
@@ -742,16 +744,16 @@ public class Definition {
 		}
 	}
 
-	public void nodeFission() {
-		this.removeRedundantSubnodes();
-		this.flattenParents();
-		this.childrenFission();
-		this.removeRedundantSubnodes();
-		this.breakSubnodes();
-//		this.update();//why is it needed?
-		this.parentsFission();
-//		this.update();
-	}
+//	public void nodeFission() {
+//		this.removeRedundantSubnodes();
+//		this.flattenParents();
+//		this.childrenFission();
+//		this.removeRedundantSubnodes();
+//		this.breakSubnodes();
+////		this.update();//why is it needed?
+//		this.parentsFission();
+////		this.update();
+//	}
 	public void toNandInstances() {
 		//PRE:definition is not recursive nor self recursive
 		HashSet<Node> expandedNodes = new HashSet<Node>();
@@ -1133,12 +1135,10 @@ public class Definition {
 			outNode.flattenParents();
 		}
 	}
-	public void nodeFissionMapping(HashMap<Node, Node> expandedToSelf) {
-				this.removeRedundantSubnodesMapping(expandedToSelf);
+	public void nodeFission() {
 				this.flattenParents();
 				this.childrenFission();
-				this.removeRedundantSubnodesMapping(expandedToSelf);
-				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
+//				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
@@ -1375,11 +1375,8 @@ public class Definition {
 					rightChild=node.childrenSubnodes.get(2);
 				}else{
 					midChild = new Node();
-					leftChild= node.parents.get(0).findLeftChild(midChild);
-					for(int i=1;i<node.parents.size()-2;i++){
-						node.parents.get(i).addChildSupernode(midChild);
-					}
-					rightChild = node.parents.get(node.parents.size()-1).findRightChild(midChild);
+					leftChild= node.findLeftChild(midChild);
+					rightChild = node.findRightChild(midChild);
 				}
 			}else{
 				leftChild=node.childrenSubnodes.get(0);
@@ -1392,9 +1389,7 @@ public class Definition {
 			expandedToDefinition.put(midChild,definitionNode.childrenSubnodes.get(1));
 			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(2),rightChild);	
 			expandedToDefinition.put(rightChild,definitionNode.childrenSubnodes.get(2));
-			mapSubnodeChildren(leftChild, definitionNode.childrenSubnodes.get(0),definitionToInstanceNodes);
-			mapSubnodeChildren(midChild, definitionNode.childrenSubnodes.get(1),definitionToInstanceNodes);
-			mapSubnodeChildren(rightChild, definitionNode.childrenSubnodes.get(2),definitionToInstanceNodes);
+			mapSubnodeChildrenMapping(midChild, definitionNode.childrenSubnodes.get(1),definitionToInstanceNodes, expandedToDefinition);
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
