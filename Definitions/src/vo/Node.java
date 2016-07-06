@@ -150,34 +150,18 @@ public class Node {
 		//if out of nand has  children subnodes, separate in multiple nands
 		//TODO: check best recursion
 		if(this.outOfInstance!=null){
+			Node parentLeftIn=this.outOfInstance.in.get(0);
+			Node parentRightIn=this.outOfInstance.in.get(1);
 			if(!this.childrenSubnodes.isEmpty()){
-				Node parentLeft=this.outOfInstance.in.get(0);
-				Node parentRight=this.outOfInstance.in.get(1);
-				ArrayList<Node> childrenSubnodes;
-				childrenSubnodes=parentLeft.getChildrenSubnodes();
-				Node parentLeftLeftChild=childrenSubnodes.get(0);
-				Node parentLeftMidChild=childrenSubnodes.get(1);
-				Node parentLeftRightChild=childrenSubnodes.get(2);
-				childrenSubnodes=parentRight.getChildrenSubnodes();
-				Node parentRightLeftChild=childrenSubnodes.get(0);
-				Node parentRightMidChild=childrenSubnodes.get(1);
-				Node parentRightRightChild=childrenSubnodes.get(2);
-				Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
-				this.definition.add(this.outOfInstance.definition, nodes0);
-				this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
-				Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
-				this.definition.add(this.outOfInstance.definition, nodes1);
-				this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
-				Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
-				this.definition.add(this.outOfInstance.definition, nodes2);
-				this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
-				this.definition.removeInstance(this.outOfInstance);
-				this.outOfInstance=null;
-				this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
-				this.childrenSubnodes.get(1).childrenFission();
+				this.nandInsFission();
+				parentLeftIn.childrenFission();
+				if(parentLeftIn!=parentRightIn)parentRightIn.childrenFission();
 			}else{
-				this.outOfInstance.in.get(0).childrenFission();
-				this.outOfInstance.in.get(1).childrenFission();
+				parentLeftIn.childrenFission();
+				if(parentLeftIn!=parentRightIn)parentRightIn.childrenFission();
+				if(!parentLeftIn.childrenSubnodes.isEmpty()&&!parentRightIn.childrenSubnodes.isEmpty()){
+					this.nandOutFission();
+				}
 			}
 		}
 		ArrayList<Node> parentNodes = new ArrayList<Node>();
@@ -186,6 +170,60 @@ public class Node {
 			parent.childrenFission();
 		}
 	}
+private void nandInsFission() {
+		Node parentLeftIn=this.outOfInstance.in.get(0);
+		Node parentRightIn=this.outOfInstance.in.get(1);
+		ArrayList<Node> childrenSubnodes;
+		childrenSubnodes=parentLeftIn.getChildrenSubnodes();
+		Node parentLeftLeftChild=childrenSubnodes.get(0);
+		Node parentLeftMidChild=childrenSubnodes.get(1);
+		Node parentLeftRightChild=childrenSubnodes.get(2);
+		childrenSubnodes=parentRightIn.getChildrenSubnodes();
+		Node parentRightLeftChild=childrenSubnodes.get(0);
+		Node parentRightMidChild=childrenSubnodes.get(1);
+		Node parentRightRightChild=childrenSubnodes.get(2);
+		Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
+		this.definition.add(this.outOfInstance.definition, nodes0);
+		this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
+		Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
+		this.definition.add(this.outOfInstance.definition, nodes1);
+		this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
+		Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
+		this.definition.add(this.outOfInstance.definition, nodes2);
+		this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
+		this.definition.removeInstance(this.outOfInstance);
+		this.outOfInstance=null;
+		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+		if(!this.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
+			this.childrenSubnodes.get(1).nandInsFission();
+		}
+	}
+private void nandOutFission() {
+	Node parentLeftIn=this.outOfInstance.in.get(0);
+	Node parentRightIn=this.outOfInstance.in.get(1);
+	Node parentLeftLeftChild=parentLeftIn.childrenSubnodes.get(0);
+	Node parentLeftMidChild=parentLeftIn.childrenSubnodes.get(1);
+	Node parentLeftRightChild=parentLeftIn.childrenSubnodes.get(2);
+	Node parentRightLeftChild=parentRightIn.childrenSubnodes.get(0);
+	Node parentRightMidChild=parentRightIn.childrenSubnodes.get(1);
+	Node parentRightRightChild=parentRightIn.childrenSubnodes.get(2);
+	this.splitChildrenSubnodes();
+	Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
+	this.definition.add(this.outOfInstance.definition, nodes0);
+	this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
+	Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
+	this.definition.add(this.outOfInstance.definition, nodes1);
+	this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
+	Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
+	this.definition.add(this.outOfInstance.definition, nodes2);
+	this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
+	this.definition.removeInstance(this.outOfInstance);
+	this.outOfInstance=null;
+	this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+	if(!parentLeftIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()&&!parentRightIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
+		this.childrenSubnodes.get(1).nandOutFission();
+	}
+}
 private ArrayList<Node> getChildrenSubnodes() {
 		ArrayList<Node> childrenSubnodes = new ArrayList<Node>();
 		if(this.parents.isEmpty()){
@@ -193,7 +231,13 @@ private ArrayList<Node> getChildrenSubnodes() {
 			childrenSubnodes=this.childrenSubnodes;
 		}else{
 			if(this.parents.size()==1){//can't be an indivisible node
-				childrenSubnodes=this.parents.get(0).getChildrenSubnodes().get(1).getChildrenSubnodes();
+				Node parentMidNode = this.parents.get(0).getChildrenSubnodes().get(1);
+				if(parentMidNode==this){
+					this.splitChildrenSubnodes();
+					childrenSubnodes=this.childrenSubnodes;
+				}else{
+					childrenSubnodes=parentMidNode.getChildrenSubnodes();
+				}
 			}else{
 				Node leftSubnode;
 				Node midSubnode;
@@ -1099,10 +1143,10 @@ private ArrayList<Node> getChildrenSubnodes() {
 				//indivisible node
 				leftChild=this;
 			}else{
-				ArrayList<Node> childrenSubnodes=this.parents.get(0).getChildrenSubnodes();
-				leftChild=childrenSubnodes.get(0);
-				childrenSubnodes.get(1).addChildSupernode(midChild);
-				childrenSubnodes.get(2).addChildSupernode(midChild);
+				this.childrenSubnodes=this.getChildrenSubnodes();
+				leftChild=this.childrenSubnodes.get(0);
+				this.childrenSubnodes.get(1).addChildSupernode(midChild);
+				this.childrenSubnodes.get(2).addChildSupernode(midChild);
 			}
 		}else{
 			leftChild=this.parents.get(0).findLeftChild(midChild);
@@ -1124,10 +1168,10 @@ private ArrayList<Node> getChildrenSubnodes() {
 				//indivisible node
 				rightChild=this;
 			}else{
-				ArrayList<Node> childrenSubnodes=this.parents.get(0).getChildrenSubnodes();
-				childrenSubnodes.get(0).addChildSupernode(midChild);
-				childrenSubnodes.get(1).addChildSupernode(midChild);
-				rightChild=childrenSubnodes.get(2);
+				this.childrenSubnodes=this.getChildrenSubnodes();
+				this.childrenSubnodes.get(0).addChildSupernode(midChild);
+				this.childrenSubnodes.get(1).addChildSupernode(midChild);
+				rightChild=this.childrenSubnodes.get(2);
 			}
 		}else{
 			for(int i=0;i<this.parents.size()-1;i++){
