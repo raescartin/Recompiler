@@ -1,7 +1,7 @@
 ﻿TODO
--fix childrenFission to break subnodes
--fix childrenFission to prevent redundant subnodes 
+-fix parentFission
 -fix nodeFission
+-remove need to break subnodes in nodeFission
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
 -fix cost eval 
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
@@ -12,6 +12,8 @@
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-fix childrenFission to break subnodes
+-fix childrenFission to prevent redundant subnodes 
 -fix expandInstancesMapping to prevent redundant subnodes 
 -fix subnodes depth, now in instance eval is recursive on subnodes
 -bug in intersection optimization, recursive definition keeps interesction (even if it's not needed)

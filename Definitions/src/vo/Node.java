@@ -184,13 +184,13 @@ private void nandInsFission() {
 		Node parentRightRightChild=childrenSubnodes.get(2);
 		Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
 		this.definition.add(this.outOfInstance.definition, nodes0);
-		this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
+//		this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
 		Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
 		this.definition.add(this.outOfInstance.definition, nodes1);
-		this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
+//		this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
 		Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
 		this.definition.add(this.outOfInstance.definition, nodes2);
-		this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
+//		this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
 		this.definition.removeInstance(this.outOfInstance);
 		this.outOfInstance=null;
 		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
@@ -210,13 +210,13 @@ private void nandOutFission() {
 	this.splitChildrenSubnodes();
 	Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
 	this.definition.add(this.outOfInstance.definition, nodes0);
-	this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
+//	this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
 	Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
 	this.definition.add(this.outOfInstance.definition, nodes1);
-	this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
+//	this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
 	Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
 	this.definition.add(this.outOfInstance.definition, nodes2);
-	this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
+//	this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
 	this.definition.removeInstance(this.outOfInstance);
 	this.outOfInstance=null;
 	this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes

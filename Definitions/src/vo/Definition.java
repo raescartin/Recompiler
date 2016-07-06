@@ -1138,7 +1138,7 @@ public class Definition {
 	public void nodeFission() {
 				this.flattenParents();
 				this.childrenFission();
-//				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
+				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
