@@ -813,16 +813,20 @@ public class Definition {
 //		}
 //	}
 	public void fusion() {
-		HashMap<Node,HashSet<Instance>> inOfNandInstances = new HashMap<Node,HashSet<Instance>>();
+//		HashMap<Node,HashSet<Instance>> inOfNandInstances = new HashMap<Node,HashSet<Instance>>();
+//		for(Node outNode:this.out){
+//			outNode.mapInsOfNandInstances(inOfNandInstances);
+//		}
+//		for(Node inNode:this.in){
+//			inNode.triFusion(inOfNandInstances);
+//		}
+		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){
-			outNode.mapInsOfNandInstances(inOfNandInstances);
+			outNode.fusion(expandedNodes);
 		}
-		for(Node inNode:this.in){
-			inNode.triFusion(inOfNandInstances);
-		}
-		for(Node outNode:this.out){
-			outNode.biFusion();
-		}
+//		for(Node outNode:this.out){
+//			outNode.biFusion();
+//		}
 //		this.update();
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
@@ -1138,7 +1142,7 @@ public class Definition {
 	public void nodeFission() {
 				this.flattenParents();
 				this.childrenFission();
-				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
+//				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances

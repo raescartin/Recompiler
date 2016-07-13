@@ -851,7 +851,6 @@ private ArrayList<Node> getChildrenSubnodes() {
 	}
 	public void biFusion() {
 		//fusion of two nandInstances where outs are consecutive childrenSubnodes of a same node
-		//FIXME checks consecutive?
 		if(this.parents.size()==2&&this.parents.get(0).outOfInstance!=null&&this.parents.get(1).outOfInstance!=null
 				&&this.parents.get(0).outOfInstance.in.get(0).parents.size()==1&&this.parents.get(0).outOfInstance.in.get(1).parents.size()==1
 				&&this.parents.get(1).outOfInstance.in.get(0).parents.size()==1&&this.parents.get(1).outOfInstance.in.get(1).parents.size()==1
@@ -1180,5 +1179,52 @@ private ArrayList<Node> getChildrenSubnodes() {
 			rightChild=this.parents.get(this.parents.size()-1).findRightChild(midChild);
 		}
 		return rightChild;
+	}
+	public void fusion(HashSet<Node> expandedNodes) {
+		//fusion of three nandInstances where outs are the trhee childrenSubnodes of a same node
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+			if(!this.childrenSubnodes.isEmpty()){
+				if(this.childrenSubnodes.get(0).outOfInstance!=null||this.childrenSubnodes.get(1).outOfInstance!=null||this.childrenSubnodes.get(2).outOfInstance!=null){
+					Definition nandDefinition = null;
+					Node nodeLeft = new Node();
+					Node nodeRight= new Node();
+					if(this.childrenSubnodes.get(0).outOfInstance!=null){
+						nandDefinition=this.childrenSubnodes.get(0).outOfInstance.definition;
+						nodeLeft.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(0));
+						nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
+						this.definition.removeInstance(this.childrenSubnodes.get(0).outOfInstance);
+					}else{
+						nodeLeft.addChildSubnode(new Node());
+						nodeRight.addChildSubnode(new Node());
+					}
+					if(this.childrenSubnodes.get(1).outOfInstance!=null){
+						nandDefinition=this.childrenSubnodes.get(1).outOfInstance.definition;
+						nodeLeft.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(0));
+						nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
+						this.definition.removeInstance(this.childrenSubnodes.get(1).outOfInstance);
+					}else{
+						nodeLeft.addChildSubnode(new Node());
+						nodeRight.addChildSubnode(new Node());
+					}
+					if(this.childrenSubnodes.get(2).outOfInstance!=null){
+						nandDefinition=this.childrenSubnodes.get(2).outOfInstance.definition;
+						nodeLeft.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(0));
+						nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
+						this.definition.removeInstance(this.childrenSubnodes.get(2).outOfInstance);
+					}else{
+						nodeLeft.addChildSubnode(new Node());
+						nodeRight.addChildSubnode(new Node());
+					}
+					Node[] nodes={nodeLeft,nodeRight,this};
+					this.definition.add(nandDefinition, nodes);
+					nodeLeft.fusion(expandedNodes);
+					nodeRight.fusion(expandedNodes);
+				}
+			}
+			for(Node parent:this.parents){
+				parent.fusion(expandedNodes);
+			}
+		}
 	}
 }
