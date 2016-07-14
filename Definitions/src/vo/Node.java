@@ -1192,7 +1192,11 @@ private ArrayList<Node> getChildrenSubnodes() {
 					if(this.childrenSubnodes.get(0).outOfInstance!=null){
 						nandDefinition=this.childrenSubnodes.get(0).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(0));
-						nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
+						if(this.childrenSubnodes.get(0).outOfInstance.in.get(0)==this.childrenSubnodes.get(0).outOfInstance.in.get(1)){
+							nodeRight=nodeLeft;
+						}else{
+							nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
+						}
 						this.definition.removeInstance(this.childrenSubnodes.get(0).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
@@ -1201,7 +1205,11 @@ private ArrayList<Node> getChildrenSubnodes() {
 					if(this.childrenSubnodes.get(1).outOfInstance!=null){
 						nandDefinition=this.childrenSubnodes.get(1).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(0));
-						nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
+						if(this.childrenSubnodes.get(1).outOfInstance.in.get(0)==this.childrenSubnodes.get(1).outOfInstance.in.get(1)){
+							nodeRight=nodeLeft;
+						}else{
+							nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
+						}
 						this.definition.removeInstance(this.childrenSubnodes.get(1).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
@@ -1210,7 +1218,11 @@ private ArrayList<Node> getChildrenSubnodes() {
 					if(this.childrenSubnodes.get(2).outOfInstance!=null){
 						nandDefinition=this.childrenSubnodes.get(2).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(0));
-						nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
+						if(this.childrenSubnodes.get(2).outOfInstance.in.get(0)==this.childrenSubnodes.get(2).outOfInstance.in.get(1)){
+							nodeRight=nodeLeft;
+						}else{
+							nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
+						}
 						this.definition.removeInstance(this.childrenSubnodes.get(2).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
