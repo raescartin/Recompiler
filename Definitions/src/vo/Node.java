@@ -7,6 +7,7 @@ package vo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import utils.FixedBitSet;
 //Each node can have 1 or multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
@@ -1184,12 +1185,16 @@ private ArrayList<Node> getChildrenSubnodes() {
 		//fusion of three nandInstances where outs are the trhee childrenSubnodes of a same node
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
+			int realDepth=0;
 			if(!this.childrenSubnodes.isEmpty()){
 				if(this.childrenSubnodes.get(0).outOfInstance!=null||this.childrenSubnodes.get(1).outOfInstance!=null||this.childrenSubnodes.get(2).outOfInstance!=null){
 					Definition nandDefinition = null;
 					Node nodeLeft = new Node();
 					Node nodeRight= new Node();
+					HashSet<Instance> instancesToRemove = new HashSet<Instance>();
 					if(this.childrenSubnodes.get(0).outOfInstance!=null){
+						int instanceDepth=this.childrenSubnodes.get(0).outOfInstance.depth;
+						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(0).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(0));
 						if(this.childrenSubnodes.get(0).outOfInstance.in.get(0)==this.childrenSubnodes.get(0).outOfInstance.in.get(1)){
@@ -1197,12 +1202,14 @@ private ArrayList<Node> getChildrenSubnodes() {
 						}else{
 							nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
 						}
-						this.definition.removeInstance(this.childrenSubnodes.get(0).outOfInstance);
+						instancesToRemove.add(this.childrenSubnodes.get(0).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
 						nodeRight.addChildSubnode(new Node());
 					}
 					if(this.childrenSubnodes.get(1).outOfInstance!=null){
+						int instanceDepth=this.childrenSubnodes.get(1).outOfInstance.depth;
+						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(1).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(0));
 						if(this.childrenSubnodes.get(1).outOfInstance.in.get(0)==this.childrenSubnodes.get(1).outOfInstance.in.get(1)){
@@ -1210,12 +1217,14 @@ private ArrayList<Node> getChildrenSubnodes() {
 						}else{
 							nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
 						}
-						this.definition.removeInstance(this.childrenSubnodes.get(1).outOfInstance);
+						instancesToRemove.add(this.childrenSubnodes.get(1).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
 						nodeRight.addChildSubnode(new Node());
 					}
 					if(this.childrenSubnodes.get(2).outOfInstance!=null){
+						int instanceDepth=this.childrenSubnodes.get(2).outOfInstance.depth;
+						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(2).outOfInstance.definition;
 						nodeLeft.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(0));
 						if(this.childrenSubnodes.get(2).outOfInstance.in.get(0)==this.childrenSubnodes.get(2).outOfInstance.in.get(1)){
@@ -1223,13 +1232,22 @@ private ArrayList<Node> getChildrenSubnodes() {
 						}else{
 							nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
 						}
-						this.definition.removeInstance(this.childrenSubnodes.get(2).outOfInstance);
+						instancesToRemove.add(this.childrenSubnodes.get(2).outOfInstance);
 					}else{
 						nodeLeft.addChildSubnode(new Node());
 						nodeRight.addChildSubnode(new Node());
 					}
 					Node[] nodes={nodeLeft,nodeRight,this};
-					this.definition.add(nandDefinition, nodes);
+					Instance fusedInstance = this.definition.add(nandDefinition, nodes);
+					this.definition.instances.get(fusedInstance.depth).remove(fusedInstance);
+					fusedInstance.depth=realDepth;
+					if(this.definition.instances.size()<realDepth+1){
+						this.definition.instances.add(new TreeSet<Instance>());
+					}
+					this.definition.instances.get(realDepth).add(fusedInstance);
+					for(Instance instanceToRemove:instancesToRemove){
+						this.definition.removeInstance(instanceToRemove);
+					}
 					nodeLeft.fusion(expandedNodes);
 					nodeRight.fusion(expandedNodes);
 				}
