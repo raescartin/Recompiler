@@ -824,9 +824,9 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.fusion(expandedNodes);
 		}
-//		for(Node outNode:this.out){
-//			outNode.biFusion();
-//		}
+		for(Node outNode:this.out){
+			outNode.biFusion();
+		}
 //		this.update();
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {

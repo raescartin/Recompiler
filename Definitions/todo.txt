@@ -1,6 +1,5 @@
 ﻿TODO
--remove need to break subnodes in nodeFission
--eval if find new recursive definition ins/outs in definitions or nandForest
+-decide if it's better to find new recursive definition ins/outs in definitions or nandForest
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
 -fix cost eval 
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
@@ -11,6 +10,7 @@
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-remove need to break subnodes in nodeFission
 -fix parentFission
 -fix nodeFission
 -fix childrenFission to break subnodes

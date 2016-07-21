@@ -356,7 +356,9 @@ private ArrayList<Node> getChildrenSubnodes() {
 					Node newNode = new Node();
 					Node[] nodes={in0.parents.get(i),in1.parents.get(i),newNode};
 					this.definition.add(this.outOfInstance.definition, nodes);
-//					this.parents.clear();
+					if(this.parents.size()==1&&this.parents.get(0).childrenSubnodes.contains(this)){
+						this.parents.clear();
+					}
 					newNode.addChildSupernode(this);
 					newNode.nandParentFission();
 				}
@@ -863,8 +865,12 @@ private ArrayList<Node> getChildrenSubnodes() {
 				Node nodeRight= new Node();
 				this.parents.get(0).outOfInstance.in.get(0).addChildSupernode(nodeLeft);
 				this.parents.get(1).outOfInstance.in.get(0).addChildSupernode(nodeLeft);
-				this.parents.get(0).outOfInstance.in.get(1).addChildSupernode(nodeRight);
-				this.parents.get(1).outOfInstance.in.get(1).addChildSupernode(nodeRight);
+				if(this.parents.get(0).outOfInstance.in.get(0)==this.parents.get(0).outOfInstance.in.get(1)){
+					nodeRight=nodeLeft;
+				}else{
+					this.parents.get(0).outOfInstance.in.get(1).addChildSupernode(nodeRight);
+					this.parents.get(1).outOfInstance.in.get(1).addChildSupernode(nodeRight);
+				}
 				Node[] nodes={nodeLeft,nodeRight,this};
 				this.definition.add(this.parents.get(0).outOfInstance.definition, nodes);
 				this.definition.removeInstance(this.parents.get(0).outOfInstance);
@@ -1196,11 +1202,19 @@ private ArrayList<Node> getChildrenSubnodes() {
 						int instanceDepth=this.childrenSubnodes.get(0).outOfInstance.depth;
 						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(0).outOfInstance.definition;
-						nodeLeft.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(0));
+						if(this.childrenSubnodes.get(0).outOfInstance.in.get(0).parents.size()==1){
+							nodeLeft=this.childrenSubnodes.get(0).outOfInstance.in.get(0).parents.get(0);
+						}else{
+							nodeLeft.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(0));
+						}
 						if(this.childrenSubnodes.get(0).outOfInstance.in.get(0)==this.childrenSubnodes.get(0).outOfInstance.in.get(1)){
 							nodeRight=nodeLeft;
 						}else{
-							nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
+							if(this.childrenSubnodes.get(0).outOfInstance.in.get(1).parents.size()==1){
+								nodeRight=this.childrenSubnodes.get(0).outOfInstance.in.get(1).parents.get(0);
+							}else{
+								nodeRight.addChildSubnode(this.childrenSubnodes.get(0).outOfInstance.in.get(1));
+							}
 						}
 						instancesToRemove.add(this.childrenSubnodes.get(0).outOfInstance);
 					}else{
@@ -1211,11 +1225,19 @@ private ArrayList<Node> getChildrenSubnodes() {
 						int instanceDepth=this.childrenSubnodes.get(1).outOfInstance.depth;
 						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(1).outOfInstance.definition;
-						nodeLeft.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(0));
+						if(this.childrenSubnodes.get(1).outOfInstance.in.get(0).parents.size()==1){
+							nodeLeft=this.childrenSubnodes.get(1).outOfInstance.in.get(0).parents.get(0);
+						}else{
+							nodeLeft.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(0));
+						}
 						if(this.childrenSubnodes.get(1).outOfInstance.in.get(0)==this.childrenSubnodes.get(1).outOfInstance.in.get(1)){
 							nodeRight=nodeLeft;
 						}else{
-							nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
+							if(this.childrenSubnodes.get(1).outOfInstance.in.get(1).parents.size()==1){
+								nodeRight=this.childrenSubnodes.get(1).outOfInstance.in.get(1).parents.get(0);
+							}else{
+								nodeRight.addChildSubnode(this.childrenSubnodes.get(1).outOfInstance.in.get(1));
+							}
 						}
 						instancesToRemove.add(this.childrenSubnodes.get(1).outOfInstance);
 					}else{
@@ -1226,11 +1248,19 @@ private ArrayList<Node> getChildrenSubnodes() {
 						int instanceDepth=this.childrenSubnodes.get(2).outOfInstance.depth;
 						if(instanceDepth>realDepth) realDepth=instanceDepth;
 						nandDefinition=this.childrenSubnodes.get(2).outOfInstance.definition;
-						nodeLeft.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(0));
+						if(this.childrenSubnodes.get(2).outOfInstance.in.get(0).parents.size()==1){
+							nodeLeft=this.childrenSubnodes.get(2).outOfInstance.in.get(0).parents.get(0);
+						}else{
+							nodeLeft.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(0));
+						}
 						if(this.childrenSubnodes.get(2).outOfInstance.in.get(0)==this.childrenSubnodes.get(2).outOfInstance.in.get(1)){
 							nodeRight=nodeLeft;
 						}else{
-							nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
+							if(this.childrenSubnodes.get(2).outOfInstance.in.get(1).parents.size()==1){
+								nodeRight=this.childrenSubnodes.get(2).outOfInstance.in.get(1).parents.get(0);
+							}else{
+								nodeRight.addChildSubnode(this.childrenSubnodes.get(2).outOfInstance.in.get(1));
+							}
 						}
 						instancesToRemove.add(this.childrenSubnodes.get(2).outOfInstance);
 					}else{
