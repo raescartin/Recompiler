@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
 
 import utils.AddedNodes;
 
@@ -123,15 +124,13 @@ public class DefinitionDB {
 		HashMap <NandNode,Node> nandToNewNode = new HashMap <NandNode,Node>();
 		HashMap<Node, NandNode> newNodeToNand = new HashMap<Node, NandNode>();
 		HashSet<Node> originalNodes = new HashSet<Node>();
-		HashSet<NandNode> originalNandNodes = new HashSet<NandNode>();
+		HashSet<Node> originalNewNodes = new HashSet<Node>();
 		ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
 		ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
 		HashSet<Instance> removedInstances = new HashSet<Instance>();
 		AddedNodes addedNodes = new AddedNodes();
 		ArrayList<NandNode> recursionInNandNodes = new ArrayList<NandNode>();
 		ArrayList<NandNode> recursionOutNandNodes = new ArrayList<NandNode>();
-		ArrayList<NandNode> newRecursiveDefinitionNandIn = new ArrayList<NandNode>();
-		ArrayList<NandNode> newRecursiveDefinitionNandOut = new ArrayList<NandNode>();
 		Definition expandedDefinition = definition.copyMapping(definitionToExpanded,expandedToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
@@ -141,20 +140,13 @@ public class DefinitionDB {
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForestMapping(nandToNodeIn,nandToNodeOut,nodeToNand,addedNodes,recursionInNandNodes,recursionOutNandNodes,nandToNode);//non recursive definition to nandforest
-		for(Node node:originalNodes){
-			if(nodeToNand.containsKey(node)){
-				originalNandNodes.add(nodeToNand.get(node));
+		this.fromNandForestMapping(expandedDefinition, expandingDefinitionNandForest, nandToNodeIn, nandToNodeOut,nandToNewNode,newNodeToNand);
+		for(Node originalNode:originalNodes){
+			if(nodeToNand.containsKey(originalNode)){
+				originalNewNodes.add(nandToNewNode.get(nodeToNand.get(originalNode)));
 			}
 		}
-		this.extractNewRecursionNandIO(expandingDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
-		this.addRecursionNodesToNandIO(originalNandNodes,recursionInNandNodes,recursionOutNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);	
-		this.fromNandForestMapping(expandedDefinition, expandingDefinitionNandForest, nandToNodeIn, nandToNodeOut,nandToNewNode,newNodeToNand);
-		for(NandNode nandNode:newRecursiveDefinitionNandIn){
-			recursiveIn.add(nandToNewNode.get(nandNode));
-		}
-		for(NandNode nandNode:newRecursiveDefinitionNandOut){
-			recursiveOut.add(nandToNewNode.get(nandNode));
-		}
+		this.extractNewRecursionIO(recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.nodeInFusion(recursiveIn,expandedToDefinition.keySet());
 		this.nodeOutFusion(recursiveOut,expandedToDefinition.keySet());
@@ -216,6 +208,16 @@ public class DefinitionDB {
 		}
 		definition.add(newRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		definition.update();
+	}
+	private void extractNewRecursionIO(ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
+			Definition expandedDefinition) {
+		for(SortedSet<Instance> instanceSet: expandedDefinition.instances){
+			for(Instance instance: instanceSet){
+				instance.extractNewRecursionIO(recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
+			}
+		}
+		
 	}
 	private Definition fromNandForestMapping(Definition definition, NandForest nandForest, ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut, HashMap <NandNode,Node> nandToNode, HashMap<Node, NandNode> nodeToNand) {
 		//set existing Definition from NandForest without NandNode's repetition	

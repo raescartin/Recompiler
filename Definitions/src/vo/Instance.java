@@ -181,4 +181,27 @@ public class Instance implements Comparable<Instance> {
 		otherBigInt = new BigInteger(otherOutString);
 		return thisBigInt.compareTo(otherBigInt);
 	}
+	public void extractNewRecursionIO(ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes,
+			Definition expandedDefinition) {
+		if(originalNodes.contains(this.out.get(0))){
+			if(!originalNodes.contains(this.in.get(0))||!originalNodes.contains(this.in.get(1))){
+				if(!recursiveOut.contains(this.out.get(0))){
+					recursiveOut.add(this.out.get(0));
+				}
+			}
+		}else{
+			if(originalNodes.contains(this.in.get(0))){
+				if(!recursiveIn.contains(this.in.get(0))){
+					recursiveIn.add(this.in.get(0));
+				}
+			}
+			if(originalNodes.contains(this.in.get(1))){
+				if(!recursiveIn.contains(this.in.get(1))){
+					recursiveIn.add(this.in.get(1));
+				}
+			}
+		}
+		
+	}
 }
