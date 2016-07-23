@@ -1004,4 +1004,16 @@ private ArrayList<Node> getChildrenSubnodes() {
 			}
 		}
 	}
+	public void addOriginalRecursionIn(ArrayList<Node> recursiveIn) {
+		if(this.parents.size()>1){
+			for(Node parent:this.parents){
+				parent.addOriginalRecursionIn(recursiveIn);
+			}
+		}else{
+			if(!recursiveIn.contains(this)) recursiveIn.add(this);
+		}
+	}
+	public void addOriginalRecursionOut(ArrayList<Node> recursiveOut) {
+		if(!recursiveOut.contains(this)) recursiveOut.add(this);
+	}
 }

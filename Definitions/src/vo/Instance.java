@@ -204,4 +204,13 @@ public class Instance implements Comparable<Instance> {
 		}
 		
 	}
+	public void addOriginalRecursionIO(ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut) {
+		for(Node inNode:this.in){
+			inNode.addOriginalRecursionIn(recursiveIn);
+		}
+		for(Node outNode:this.out){
+			outNode.addOriginalRecursionOut(recursiveOut);
+		}
+	}
 }
