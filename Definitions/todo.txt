@@ -1,4 +1,7 @@
-﻿TODO
+﻿FIXME:
+unoptimized xor cost is 7
+
+TODO
 -decide if it's better to find new recursive definition ins/outs in definitions or nandForest
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
 -fix cost eval 

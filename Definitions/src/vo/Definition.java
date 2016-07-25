@@ -109,33 +109,30 @@ public class Definition {
 		this.rootIn = new ArrayList<Definition>();
 		this.nodes = new HashSet<Node> ();
 	}
-	public NandForest toNandForest(ArrayList<Node> nandToNodeIn, ArrayList<Node> nandToNodeOut){
+	public NandForest toNandForest(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand){
 		//PRE: this definition is not recursive and doesn't contain recursive definitions
 		// the nodes have been split to the minimum needed 
 		//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
 		//more efficient thanks to HashMap's of unique nodes
 		//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 		NandForest nandForest = new NandForest(0);
-		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 		///Need to map subnodes of ins and outs to conserve references!!!
-		this.mapIns(nodeToNand,nandForest,nandToNodeIn);
-		this.mapOuts(nodeToNand,nandForest,nandToNodeOut);
+		this.mapIns(nandToNode,nodeToNand,nandForest);
+		this.mapOuts(nandToNode,nodeToNand,nandForest);
 		nandForest.optimize();
 		return nandForest;
 	}
-	void mapIns(HashMap<Node, NandNode> nodeToNand, NandForest nandForest, ArrayList<Node> nandToNodeIn) {
+	void mapIns(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
 		//map input nodes to nandNodes
-		HashSet<Node> inNodes = new HashSet<Node>();
-		inNodes.addAll(this.in);
 		for(Node inNode:this.in){
-			inNode.mapInChildren(nodeToNand, nandForest, nandToNodeIn);
+			inNode.mapInChildren(nandToNode,nodeToNand, nandForest);
 		}
 	}
-	void mapOuts(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeOut) {
+	void mapOuts(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nodeToNand,nandForest, nandToNodeOut);
+			outNode.mapOutParents(nandToNode,nodeToNand,nandForest);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -172,7 +169,8 @@ public class Definition {
 			this.maxNode++;
 			node.definition=this;
 			this.nodes.add(node);
-			for(Node parent:node.parents){
+			if(node.parentSupernode!=null) this.add(node.parentSupernode);
+			for(Node parent:node.parentSubnodes){
 				this.add(parent);
 			}
 			for(Node child:node.childrenSubnodes){
@@ -294,52 +292,52 @@ public class Definition {
 //		}
 //		return true;
 //	}
-	private boolean expandNodes(Node appliedNode, Node node,
-			HashMap<Node, Node> nodeMap, HashMap<Instance, Instance> instanceMap, HashSet<Instance> toExpand) {
-		if(appliedNode.outOfInstance!=null){
-			if(instanceMap.containsKey(appliedNode.outOfInstance)){//already added instance
-				if(instanceMap.get(appliedNode.outOfInstance)!=node.outOfInstance){//added as instance to different definition
-					return false;
-				}
-			}else{//non-added instance
-				if(node.outOfInstance==null){
-					return false;
-				}else{
-					instanceMap.put(appliedNode.outOfInstance,node.outOfInstance);
-					toExpand.add(appliedNode.outOfInstance);
-				}
-			}
-		}
-		if(nodeMap.containsKey(appliedNode)){//already added node
-			if(nodeMap.get(appliedNode)!=node){
-				return false;
-			}
-		}else{//non-added node
-			nodeMap.put(appliedNode,node);//expand node
-			if(!appliedNode.childrenSupernodes.isEmpty()||!appliedNode.childrenSubnodes.isEmpty()||!appliedNode.parents.isEmpty()){
-				if(node.parents.size()!=appliedNode.parents.size()){
-					return false;
-				}
-//				for(int i=0;i<appliedNode.parents.size();i++){
-//					if(!expandNodes(appliedNode.parents.get(i),node.parents.get(i),nodeMap,instanceMap, toExpand)){
-//						return false;
-//					}
+//	private boolean expandNodes(Node appliedNode, Node node,
+//			HashMap<Node, Node> nodeMap, HashMap<Instance, Instance> instanceMap, HashSet<Instance> toExpand) {
+//		if(appliedNode.outOfInstance!=null){
+//			if(instanceMap.containsKey(appliedNode.outOfInstance)){//already added instance
+//				if(instanceMap.get(appliedNode.outOfInstance)!=node.outOfInstance){//added as instance to different definition
+//					return false;
 //				}
-				if(node.childrenSubnodes.size()!=appliedNode.childrenSubnodes.size()){
-					return false;
-				}
-				if(node.childrenSupernodes.size()!=appliedNode.childrenSupernodes.size()){
-					return false;
-				}
-//				for(int i=0;i<appliedNode.childrenSubnodes.size();i++){
-//					if(!expandNodes(appliedNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i),nodeMap,instanceMap, toExpand)){
-//						return false;
-//					}
+//			}else{//non-added instance
+//				if(node.outOfInstance==null){
+//					return false;
+//				}else{
+//					instanceMap.put(appliedNode.outOfInstance,node.outOfInstance);
+//					toExpand.add(appliedNode.outOfInstance);
 //				}
-			}
-		}
-		return true;
-	}
+//			}
+//		}
+//		if(nodeMap.containsKey(appliedNode)){//already added node
+//			if(nodeMap.get(appliedNode)!=node){
+//				return false;
+//			}
+//		}else{//non-added node
+//			nodeMap.put(appliedNode,node);//expand node
+//			if(!appliedNode.childrenSupernodes.isEmpty()||!appliedNode.childrenSubnodes.isEmpty()||!appliedNode.parents.isEmpty()){
+//				if(node.parents.size()!=appliedNode.parents.size()){
+//					return false;
+//				}
+////				for(int i=0;i<appliedNode.parents.size();i++){
+////					if(!expandNodes(appliedNode.parents.get(i),node.parents.get(i),nodeMap,instanceMap, toExpand)){
+////						return false;
+////					}
+////				}
+//				if(node.childrenSubnodes.size()!=appliedNode.childrenSubnodes.size()){
+//					return false;
+//				}
+//				if(node.childrenSupernodes.size()!=appliedNode.childrenSupernodes.size()){
+//					return false;
+//				}
+////				for(int i=0;i<appliedNode.childrenSubnodes.size();i++){
+////					if(!expandNodes(appliedNode.childrenSubnodes.get(i),node.childrenSubnodes.get(i),nodeMap,instanceMap, toExpand)){
+////						return false;
+////					}
+////				}
+//			}
+//		}
+//		return true;
+//	}
 	public void printCost(){
 		String strCost=this.cost();
 		System.out.println("Definition cost in nands: "+strCost);
@@ -738,78 +736,78 @@ public class Definition {
 		HashMap<Node,Node> copyToNode = new HashMap<Node,Node>();
 		return copyMapping(nodeToCopy,copyToNode);
 	}
-	private Node copyNode(Node node,
-			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
-		Node copyNode;
-		if(!nodeToCopy.containsKey(node)){
-			copyNode=new Node();
-			nodeToCopy.put(node, copyNode);
-			if(!node.parents.isEmpty()){
-				if(node.parents.size()==1){
-						Node parent=node.parents.get(0);
-						Node copyParent;
-						if(!nodeToCopy.containsKey(parent)){
-							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef);
-						}else{
-							copyParent = nodeToCopy.get(parent);
-						}
-						for(int i=0;i<parent.childrenSubnodes.size();i++){
-							if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
-								Node copyChildren = new Node();
-								copyParent.addChildSubnode(copyChildren);
-								nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
-							}else{
-								copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
-							}
-						}
-				}else{
-					for(int i=0;i<node.parents.size();i++){
-						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
-							copyParent.addChildSupernode(copyNode);
-						}else{
-							nodeToCopy.get(node.parents.get(i)).addChildSupernode(copyNode);
-						}
-					}
-				}
-			}
-			if(node.outOfInstance!=null){
-				this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
-			}
-		}else{
-			copyNode=nodeToCopy.get(node);
-		}
-		return copyNode;
-	}
-	private void copyInstance(Instance instance,
-			HashMap<Node, Node> nodeToCopy,
-			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
-		ArrayList<Node> nodes = new ArrayList<Node>();
-		
-		for(int i=0;i<instance.in.size();i++){
-			if(nodeToCopy.containsKey(instance.in.get(i))){
-				nodes.add(nodeToCopy.get(instance.in.get(i)));
-			}else{
-				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef));
-			}
-		}
-		for(int i=0;i<instance.out.size();i++){
-			if(nodeToCopy.containsKey(instance.out.get(i))){
-				nodes.add(nodeToCopy.get(instance.out.get(i)));
-			}else{
-				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef));
-			}
-		}
-//		if(instance.definition!=this){
-
-		if(!instanceToCopy.containsKey(instance)){
-			instanceToCopy.put(instance,copyDef.add(instance.definition,nodes.toArray(new Node[nodes.size()])));
-		}
+//	private Node copyNode(Node node,
+//			HashMap<Node, Node> nodeToCopy,
+//			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+//		Node copyNode;
+//		if(!nodeToCopy.containsKey(node)){
+//			copyNode=new Node();
+//			nodeToCopy.put(node, copyNode);
+//			if(!node.parents.isEmpty()){
+//				if(node.parents.size()==1){
+//						Node parent=node.parents.get(0);
+//						Node copyParent;
+//						if(!nodeToCopy.containsKey(parent)){
+//							copyParent = this.copyNode(parent,nodeToCopy, instanceToCopy, copyDef);
+//						}else{
+//							copyParent = nodeToCopy.get(parent);
+//						}
+//						for(int i=0;i<parent.childrenSubnodes.size();i++){
+//							if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
+//								Node copyChildren = new Node();
+//								copyParent.addChildSubnode(copyChildren);
+//								nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
+//							}else{
+//								copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
+//							}
+//						}
+//				}else{
+//					for(int i=0;i<node.parents.size();i++){
+//						if(!nodeToCopy.containsKey(node.parents.get(i))){
+//							Node copyParent = this.copyNode(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef);
+//							copyParent.addChildSupernode(copyNode);
+//						}else{
+//							nodeToCopy.get(node.parents.get(i)).addChildSupernode(copyNode);
+//						}
+//					}
+//				}
+//			}
+//			if(node.outOfInstance!=null){
+//				this.copyInstance(node.outOfInstance,nodeToCopy,instanceToCopy,copyDef);
+//			}
 //		}else{
-//			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
+//			copyNode=nodeToCopy.get(node);
 //		}
-	}
+//		return copyNode;
+//	}
+//	private void copyInstance(Instance instance,
+//			HashMap<Node, Node> nodeToCopy,
+//			HashMap<Instance, Instance> instanceToCopy, Definition copyDef) {
+//		ArrayList<Node> nodes = new ArrayList<Node>();
+//		
+//		for(int i=0;i<instance.in.size();i++){
+//			if(nodeToCopy.containsKey(instance.in.get(i))){
+//				nodes.add(nodeToCopy.get(instance.in.get(i)));
+//			}else{
+//				nodes.add(this.copyNode(instance.in.get(i), nodeToCopy, instanceToCopy, copyDef));
+//			}
+//		}
+//		for(int i=0;i<instance.out.size();i++){
+//			if(nodeToCopy.containsKey(instance.out.get(i))){
+//				nodes.add(nodeToCopy.get(instance.out.get(i)));
+//			}else{
+//				nodes.add(this.copyNode(instance.out.get(i), nodeToCopy, instanceToCopy, copyDef));
+//			}
+//		}
+////		if(instance.definition!=this){
+//
+//		if(!instanceToCopy.containsKey(instance)){
+//			instanceToCopy.put(instance,copyDef.add(instance.definition,nodes.toArray(new Node[nodes.size()])));
+//		}
+////		}else{
+////			instanceToCopy.put(instance,copyDef.add(copyDef,nodes.toArray(new Node[nodes.size()])));
+////		}
+//	}
 //	public void expandInstance(Instance instance) {
 //		this.removeInstance(instance);
 //		this.expandInstanceInstances(instance);
@@ -882,20 +880,20 @@ public class Definition {
 		}
 		
 	}
-	public void locateUnchangedNodes(Definition tempDef,
-			ArrayList<Node> newRecursiveDefinitionIn,
-			ArrayList<Node> newRecursiveDefinitionOut) {
-		HashMap<Node,Node> definitionToTempDefNodes = new HashMap<Node,Node>();
-		this.locateUnchangedIns(tempDef,newRecursiveDefinitionIn,definitionToTempDefNodes);
-		this.locateUnchangedOuts(tempDef,newRecursiveDefinitionOut,definitionToTempDefNodes);
-	}
-	private void locateUnchangedIns(Definition tempDef,
-			ArrayList<Node> newRecursiveDefinitionIn,
-			HashMap<Node, Node> definitionToTempDefNodes) {
-		for(int i=0;i<this.in.size();i++){
-			this.mapUnchangedIns(this.in.get(i), tempDef.in.get(i),newRecursiveDefinitionIn,definitionToTempDefNodes);
-		}
-	}
+//	public void locateUnchangedNodes(Definition tempDef,
+//			ArrayList<Node> newRecursiveDefinitionIn,
+//			ArrayList<Node> newRecursiveDefinitionOut) {
+//		HashMap<Node,Node> definitionToTempDefNodes = new HashMap<Node,Node>();
+//		this.locateUnchangedIns(tempDef,newRecursiveDefinitionIn,definitionToTempDefNodes);
+//		this.locateUnchangedOuts(tempDef,newRecursiveDefinitionOut,definitionToTempDefNodes);
+//	}
+//	private void locateUnchangedIns(Definition tempDef,
+//			ArrayList<Node> newRecursiveDefinitionIn,
+//			HashMap<Node, Node> definitionToTempDefNodes) {
+//		for(int i=0;i<this.in.size();i++){
+//			this.mapUnchangedIns(this.in.get(i), tempDef.in.get(i),newRecursiveDefinitionIn,definitionToTempDefNodes);
+//		}
+//	}
 	private void mapUnchangedIns(Node node, Node tempNode,
 			ArrayList<Node> newRecursiveDefinitionIn,
 			HashMap<Node, Node> definitionToTempDefNodes) {
@@ -904,33 +902,33 @@ public class Definition {
 		}
 		
 	}
-	private void locateUnchangedOuts(Definition tempDef,
-			ArrayList<Node> newRecursiveDefinitionOut,
-			HashMap<Node, Node> definitionToTempDefNodes) {
-		for(int i=0;i<this.out.size();i++){
-			this.mapUnchangedOuts(this.out.get(i), tempDef.out.get(i),newRecursiveDefinitionOut,definitionToTempDefNodes);
-		}
-		
-	}
-	private void mapUnchangedOuts(Node node, Node tempNode,
-			ArrayList<Node> newRecursiveDefinitionOut,
-			HashMap<Node, Node> definitionToTempDefNodes) {
-		if(!definitionToTempDefNodes.containsKey(node)){
-			definitionToTempDefNodes.put(node,tempNode);
-			if(node.parents.size()!=tempNode.parents.size()||(node.outOfInstance==null&&tempNode.outOfInstance!=null)||(node.outOfInstance!=null&&tempNode.outOfInstance==null)){
-				newRecursiveDefinitionOut.add(node);
-			}else{
-				for(int i=0;i<node.parents.size();i++){
-					this.mapUnchangedOuts(node.parents.get(i), tempNode.parents.get(i), newRecursiveDefinitionOut, definitionToTempDefNodes);
-				}
-				if(node.outOfInstance==null){
-					this.mapUnchangedOuts(node.outOfInstance.in.get(0), tempNode.outOfInstance.in.get(0), newRecursiveDefinitionOut, definitionToTempDefNodes);
-					this.mapUnchangedOuts(node.outOfInstance.in.get(1), tempNode.outOfInstance.in.get(1), newRecursiveDefinitionOut, definitionToTempDefNodes);
-				}
-			}
-		}
-		
-	}
+//	private void locateUnchangedOuts(Definition tempDef,
+//			ArrayList<Node> newRecursiveDefinitionOut,
+//			HashMap<Node, Node> definitionToTempDefNodes) {
+//		for(int i=0;i<this.out.size();i++){
+//			this.mapUnchangedOuts(this.out.get(i), tempDef.out.get(i),newRecursiveDefinitionOut,definitionToTempDefNodes);
+//		}
+//		
+//	}
+//	private void mapUnchangedOuts(Node node, Node tempNode,
+//			ArrayList<Node> newRecursiveDefinitionOut,
+//			HashMap<Node, Node> definitionToTempDefNodes) {
+//		if(!definitionToTempDefNodes.containsKey(node)){
+//			definitionToTempDefNodes.put(node,tempNode);
+//			if(node.parents.size()!=tempNode.parents.size()||(node.outOfInstance==null&&tempNode.outOfInstance!=null)||(node.outOfInstance!=null&&tempNode.outOfInstance==null)){
+//				newRecursiveDefinitionOut.add(node);
+//			}else{
+//				for(int i=0;i<node.parents.size();i++){
+//					this.mapUnchangedOuts(node.parents.get(i), tempNode.parents.get(i), newRecursiveDefinitionOut, definitionToTempDefNodes);
+//				}
+//				if(node.outOfInstance==null){
+//					this.mapUnchangedOuts(node.outOfInstance.in.get(0), tempNode.outOfInstance.in.get(0), newRecursiveDefinitionOut, definitionToTempDefNodes);
+//					this.mapUnchangedOuts(node.outOfInstance.in.get(1), tempNode.outOfInstance.in.get(1), newRecursiveDefinitionOut, definitionToTempDefNodes);
+//				}
+//			}
+//		}
+//		
+//	}
 //	public void expandInstances(Definition definition) {
 //		ArrayList<Instance> instances = new ArrayList<Instance>();
 //		for(SortedSet<Instance> setOfInstances:this.instances){
@@ -945,53 +943,52 @@ public class Definition {
 	public void mapNodes(HashSet<Node> originalNodes) {
 		originalNodes.addAll(this.nodes);	
 	}
-	NandForest toNandForestMapping(ArrayList<Node> nandToNodeIn,
-			ArrayList<Node> nandToNodeOut, HashMap<Node, NandNode> nodeToNand, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
-			//PRE: this definition is not recursive and doesn't contain recursive definitions
-				// the nodes have been split to the minimum needed 
-				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
-				//more efficient thanks to HashMap's of unique nodes
-				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
-				NandForest nandForest = new NandForest(0);
-				
-				///Need to map subnodes of ins and outs to conserve references!!!
-				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes,nandToNode);
-				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes,nandToNode);
-				//IN and OUTS mapped and in nandForest
-				//can't optimize nandForest here since Maps will lose references
-				return nandForest;
-	}
-	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeOut, int out,
-			ArrayList<NandNode> recursionInNandNodes, HashMap<NandNode, Node> nandToNode) {
-		int nandOut = 0;
-		for(int i=0;i<this.out.size();i++){
-			if(i==this.out.size()-out){
-				nandOut=nandForest.out.size();
-			}
-			this.out.get(i).mapOutParentsMapping(nodeToNand,nandForest, nandToNodeOut,nandToNode);
-		}
-		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
-	}
-	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
-			ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
-		int nandIn = 0;
-		for(int i=0;i<this.in.size();i++){
-			if(i==this.in.size()-in){
-				nandIn=nandForest.in.size();
-			}
-			this.in.get(i).mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn,nandToNode);
-		}
-		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
-	}
-	void mapFission(HashSet<Node> originalNodes) {
-		ArrayList <Node> nodes = new ArrayList<Node>();
-		nodes.addAll(originalNodes);
-		for(Node node:nodes){
-			node.nodeMapFission(this,originalNodes);
-		}
-	}
+//	NandForest toNandForestMapping(HashMap<Node, NandNode> nodeToNand, AddedNodes addedNodes, ArrayList<NandNode> recursionInNandNodes, ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
+//			//PRE: this definition is not recursive and doesn't contain recursive definitions
+//				// the nodes have been split to the minimum needed 
+//				//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
+//				//more efficient thanks to HashMap's of unique nodes
+//				//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
+//				NandForest nandForest = new NandForest(0);
+//				
+//				///Need to map subnodes of ins and outs to conserve references!!!
+//				this.mapInsMapping(nodeToNand,nandForest,nandToNodeIn,addedNodes.in,recursionOutNandNodes,nandToNode);
+//				this.mapOutsMapping(nodeToNand,nandForest,nandToNodeOut,addedNodes.out,recursionInNandNodes,nandToNode);
+//				//IN and OUTS mapped and in nandForest
+//				//can't optimize nandForest here since Maps will lose references
+//				return nandForest;
+//	}
+//	private void mapOutsMapping(HashMap<Node, NandNode> nodeToNand,
+//			NandForest nandForest, ArrayList<Node> nandToNodeOut, int out,
+//			ArrayList<NandNode> recursionInNandNodes, HashMap<NandNode, Node> nandToNode) {
+//		int nandOut = 0;
+//		for(int i=0;i<this.out.size();i++){
+//			if(i==this.out.size()-out){
+//				nandOut=nandForest.out.size();
+//			}
+//			this.out.get(i).mapOutParentsMapping(nodeToNand,nandForest, nandToNodeOut,nandToNode);
+//		}
+//		recursionInNandNodes.addAll(nandForest.out.subList(nandOut, nandForest.out.size()));
+//	}
+//	private void mapInsMapping(HashMap<Node, NandNode> nodeToNand,
+//			NandForest nandForest, ArrayList<Node> nandToNodeIn, int in,
+//			ArrayList<NandNode> recursionOutNandNodes, HashMap<NandNode, Node> nandToNode) {
+//		int nandIn = 0;
+//		for(int i=0;i<this.in.size();i++){
+//			if(i==this.in.size()-in){
+//				nandIn=nandForest.in.size();
+//			}
+//			this.in.get(i).mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn,nandToNode);
+//		}
+//		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
+//	}
+//	void mapFission(HashSet<Node> originalNodes) {
+//		ArrayList <Node> nodes = new ArrayList<Node>();
+//		nodes.addAll(originalNodes);
+//		for(Node node:nodes){
+//			node.nodeMapFission(this,originalNodes);
+//		}
+//	}
 	public void update() {
 		//POST: resets every node id for this definition
 		//update definition nodes and instances
@@ -1016,14 +1013,14 @@ public class Definition {
 		}
 		
 	}
-	public void flattenParents() {
-		//POST: flattenParents remove nodes
-		for(Node outNode:this.out){
-			outNode.flattenParents();
-		}
-	}
+//	public void flattenParents() {
+//		//POST: flattenParents remove nodes
+//		for(Node outNode:this.out){
+//			outNode.flattenParents();
+//		}
+//	}
 	public void nodeFission() {
-				this.flattenParents();
+//				this.flattenParents();
 				this.childrenFission();
 //				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
@@ -1033,11 +1030,11 @@ public class Definition {
 			outNode.parentsFission();
 		}
 	}
-	private void breakSubnodes() {
-		for(Node outNode:this.out){
-			outNode.breakSubnodes();
-		}
-	}
+//	private void breakSubnodes() {
+//		for(Node outNode:this.out){
+//			outNode.breakSubnodes();
+//		}
+//	}
 	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
 		for(Node outNode:this.out){
 			outNode.childrenFission();
@@ -1077,33 +1074,32 @@ public class Definition {
 			copyNode=new Node();
 			nodeToCopy.put(node, copyNode);
 			copyToNode.put(copyNode,node);
-			if(!node.parents.isEmpty()){
-				if(node.parents.size()==1){
-						Node parent=node.parents.get(0);
-						Node copyParent;
-						if(!nodeToCopy.containsKey(parent)){
-							copyParent = this.copyNodeMapping(parent,nodeToCopy, instanceToCopy, copyDef,copyToNode);
-						}else{
-							copyParent = nodeToCopy.get(parent);
-						}
-						for(int i=0;i<parent.childrenSubnodes.size();i++){
-							if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
-								Node copyChildren = new Node();
-								copyParent.addChildSubnode(copyChildren);
-								nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
-								copyToNode.put(copyChildren, parent.childrenSubnodes.get(i));
-							}else{
-								copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
-							}
-						}
+			if(node.parentSupernode!=null){
+				Node parent=node.parentSupernode;
+				Node copyParent;
+				if(!nodeToCopy.containsKey(parent)){
+					copyParent = this.copyNodeMapping(parent,nodeToCopy, instanceToCopy, copyDef,copyToNode);
 				}else{
-					for(int i=0;i<node.parents.size();i++){
-						if(!nodeToCopy.containsKey(node.parents.get(i))){
-							Node copyParent = this.copyNodeMapping(node.parents.get(i), nodeToCopy, instanceToCopy, copyDef, copyToNode);
-							copyParent.addChildSupernode(copyNode);
-						}else{
-							nodeToCopy.get(node.parents.get(i)).addChildSupernode(copyNode);
-						}
+					copyParent = nodeToCopy.get(parent);
+				}
+				for(int i=0;i<parent.childrenSubnodes.size();i++){
+					if(!nodeToCopy.containsKey(parent.childrenSubnodes.get(i))){
+						Node copyChildren = new Node();
+						copyParent.addChildSubnode(copyChildren);
+						nodeToCopy.put(parent.childrenSubnodes.get(i),copyChildren);
+						copyToNode.put(copyChildren, parent.childrenSubnodes.get(i));
+					}else{
+						copyParent.addChildSubnode(nodeToCopy.get(parent.childrenSubnodes.get(i)));
+					}
+				}
+			}
+			if(!node.parentSubnodes.isEmpty()){
+				for(int i=0;i<node.parentSubnodes.size();i++){
+					if(!nodeToCopy.containsKey(node.parentSubnodes.get(i))){
+						Node copyParent = this.copyNodeMapping(node.parentSubnodes.get(i), nodeToCopy, instanceToCopy, copyDef, copyToNode);
+						copyParent.addChildSupernode(copyNode);
+					}else{
+						nodeToCopy.get(node.parentSubnodes.get(i)).addChildSupernode(copyNode);
 					}
 				}
 			}
@@ -1209,18 +1205,18 @@ public class Definition {
 			Node midChild;
 			Node rightChild;
 			if(node.childrenSubnodes.isEmpty()){
-				if(node.parents.isEmpty()){
+				if(node.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
 					node.splitChildrenSubnodes();
 					leftChild=node.childrenSubnodes.get(0);
 					midChild=node.childrenSubnodes.get(1);
 					rightChild=node.childrenSubnodes.get(2);
 				}else{
 					midChild = new Node();
-					leftChild= node.parents.get(0).findLeftChild(midChild);
-					for(int i=1;i<node.parents.size()-1;i++){
-						node.parents.get(i).addChildSupernode(midChild);
+					leftChild= node.parentSubnodes.get(0).findLeftChild(midChild);
+					for(int i=1;i<node.parentSubnodes.size()-1;i++){
+						node.parentSubnodes.get(i).addChildSupernode(midChild);
 					}
-					rightChild = node.parents.get(node.parents.size()-1).findRightChild(midChild);
+					rightChild = node.parentSubnodes.get(node.parentSubnodes.size()-1).findRightChild(midChild);
 				}
 			}else{
 				leftChild=node.childrenSubnodes.get(0);
@@ -1237,8 +1233,8 @@ public class Definition {
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
-		if(definitionNode.parents.size()>1){
-			for(Node parent:definitionNode.parents){
+		if(!definitionNode.parentSubnodes.isEmpty()){
+			for(Node parent:definitionNode.parentSubnodes){
 				if(definitionToInstanceNodes.containsKey(parent)){
 					definitionToInstanceNodes.get(parent).addChildSupernode(node);
 				}else{
@@ -1251,19 +1247,19 @@ public class Definition {
 			}
 		} 
 	}
-	public void removeRedundantSubnodes() {
-		for(int i=0;i<this.out.size();i++){
-			this.out.set(i, out.get(i).removeRedundantSubnodes());
-		}
-		
-	}
-	public void removeRedundantSubnodesMapping(
-			HashMap<Node, Node> expandedToSelf) {
-		for(int i=0;i<this.out.size();i++){
-			this.out.set(i, out.get(i).removeRedundantSubnodesMapping(expandedToSelf));
-		}
-		
-	}
+//	public void removeRedundantSubnodes() {
+//		for(int i=0;i<this.out.size();i++){
+//			this.out.set(i, out.get(i).removeRedundantSubnodes());
+//		}
+//		
+//	}
+//	public void removeRedundantSubnodesMapping(
+//			HashMap<Node, Node> expandedToSelf) {
+//		for(int i=0;i<this.out.size();i++){
+//			this.out.set(i, out.get(i).removeRedundantSubnodesMapping(expandedToSelf));
+//		}
+//		
+//	}
 	public void addNandInstances(Node definitionNode, Node instanceNode,
 			HashMap<Node, Node> definitionToInstanceNodes) {
 		if(!definitionToInstanceNodes.containsKey(definitionNode)){
@@ -1287,32 +1283,32 @@ public class Definition {
 				this.add(definitionNode.outOfInstance.definition,nodes);
 			}else{
 				Node instanceNodeParent;
-				if(definitionNode.parents.size()==1){
-					if(definitionToInstanceNodes.containsKey(definitionNode.parents.get(0))){
-						instanceNodeParent=definitionToInstanceNodes.get(definitionNode.parents.get(0));
+				if(definitionNode.parentSupernode!=null){
+					if(definitionToInstanceNodes.containsKey(definitionNode.parentSupernode)){
+						instanceNodeParent=definitionToInstanceNodes.get(definitionNode.parentSupernode);
 					}else{
 						instanceNodeParent= new Node();
 					}
-					for(int i=0;i<definitionNode.parents.get(0).childrenSubnodes.size();i++){
+					for(int i=0;i<definitionNode.parentSupernode.childrenSubnodes.size();i++){
 						Node instanceChildNode;
-						if(definitionToInstanceNodes.containsKey(definitionNode.parents.get(0).childrenSubnodes.get(i))){//needed because instanceNode may be instanceChildNode 
-							instanceChildNode=definitionToInstanceNodes.get(definitionNode.parents.get(0).childrenSubnodes.get(i));
+						if(definitionToInstanceNodes.containsKey(definitionNode.parentSupernode.childrenSubnodes.get(i))){//needed because instanceNode may be instanceChildNode 
+							instanceChildNode=definitionToInstanceNodes.get(definitionNode.parentSupernode.childrenSubnodes.get(i));
 						}else{
 							instanceChildNode=new Node();
-							definitionToInstanceNodes.put(definitionNode.parents.get(0).childrenSubnodes.get(i), instanceChildNode);
+							definitionToInstanceNodes.put(definitionNode.parentSupernode.childrenSubnodes.get(i), instanceChildNode);
 						}
 						instanceNodeParent.addChildSubnode(instanceChildNode);
 					}
-					this.addNandInstances(definitionNode.parents.get(0), instanceNodeParent, definitionToInstanceNodes);
+					this.addNandInstances(definitionNode.parentSupernode, instanceNodeParent, definitionToInstanceNodes);
 				}else{
-					for(int i=0;i<definitionNode.parents.size();i++){
-						if(definitionToInstanceNodes.containsKey(definitionNode.parents.get(i))){
+					for(int i=0;i<definitionNode.parentSubnodes.size();i++){
+						if(definitionToInstanceNodes.containsKey(definitionNode.parentSubnodes.get(i))){
 							instanceNodeParent=definitionToInstanceNodes.get(definitionNode.outOfInstance.in.get(0));
 						}else{
 							instanceNodeParent=new Node();
 						}
 						instanceNodeParent.addChildSupernode(instanceNode);
-						this.addNandInstances(definitionNode.parents.get(i), instanceNodeParent, definitionToInstanceNodes);
+						this.addNandInstances(definitionNode.parentSubnodes.get(i), instanceNodeParent, definitionToInstanceNodes);
 					}
 				}
 			}
