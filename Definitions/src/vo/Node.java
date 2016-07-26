@@ -59,7 +59,7 @@ public class Node {
 			NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest);
 			nandNode=nandForest.add(nandNode1,nandNode2);
 			nodeToNand.put(this, nandNode);
-			nandToNode.put(nandNode, this);
+			if(!nandToNode.containsKey(nandNode))nandToNode.put(nandNode,this);
 		}
 		return nandNode;
 	}
