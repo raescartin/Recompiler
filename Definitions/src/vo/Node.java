@@ -30,8 +30,8 @@ public class Node {
 		this.childrenSubnodes = new ArrayList<Node>();
 		this.childrenSupernodes = new ArrayList<Node>();
 	}
-	public Node addChildSupernode(Node childSuperNode) {//add children supernode to node		
-		childSuperNode.parentSupernode=this;
+	public Node addChildSupernode(Node childSuperNode) {//add children supernode to node	
+		childSuperNode.parentSubnodes.add(this);
 		this.childrenSupernodes.add(childSuperNode);
 		if(this.definition!=null){
 			this.definition.add(childSuperNode);
@@ -65,15 +65,13 @@ public class Node {
 	}
 	public String toString() {
 		String string = new String();
-		
-		string+=this.idForDefinition;
 		if(this.parentSupernode!=null){
-			string+="[";
 			string+=this.parentSupernode.idForDefinition;//string+=this.parentSupernode.toString(); if more detail needed
 			string+="{";
 			string+=this.parentSupernode.childrenSubnodes.indexOf(this);
 			string+="}";
-			string+="]";
+		}else{
+			string+=this.idForDefinition;
 		}
 		if(!this.parentSubnodes.isEmpty()){
 			string+="(";
@@ -534,7 +532,37 @@ private ArrayList<Node> getChildrenSubnodes() {
 	}
 	public void eval(HashMap<Node, FixedBitSet> valueMap, int depth) {
 		if(!valueMap.containsKey(this)){
-			if(!this.parentSubnodes.isEmpty()){//deal with subnodes and supernodes
+			if(this.outOfInstance!=null){
+				boolean emptyIn=false;
+				for (Node nodeIn : this.outOfInstance.in) {
+					nodeIn.eval(valueMap, depth);
+					if(valueMap.containsKey(nodeIn)){
+						if(valueMap.get(nodeIn).length()==0){
+							emptyIn=true;
+						}
+					}
+				}
+				if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()&&emptyIn){//recursive instance with empty ins
+					for (Node nodeOut : this.outOfInstance.out) {
+						valueMap.put(nodeOut, new FixedBitSet());
+					}
+				}else{
+					if(emptyIn||depth>0){
+						HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
+						for(int i=0;i<this.outOfInstance.in.size();i++){//copy forward
+							if(valueMap.containsKey(this.outOfInstance.in.get(i))){
+								newValueMap.put(this.outOfInstance.definition.in.get(i), valueMap.get(this.outOfInstance.in.get(i)));
+							}
+						}
+						this.outOfInstance.definition.eval(newValueMap,depth-1);			
+						for(int i=0;i<this.outOfInstance.out.size();i++){//copy back
+							if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
+								valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
+							} 
+						}
+					}
+				}
+			}else if(!this.parentSubnodes.isEmpty()){//deal with subnodes and supernodes
 				if(this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).parentSupernode!=null&&this.parentSubnodes.get(1).parentSupernode!=null&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode){// "rest" selection
 					this.parentSubnodes.get(0).parentSupernode.eval(valueMap, depth);
 					if(valueMap.containsKey(this.parentSubnodes.get(0).parentSupernode)){
@@ -559,48 +587,16 @@ private ArrayList<Node> getChildrenSubnodes() {
 						valueMap.put(this, fixedBitSet);
 					}
 				}
-			}else{
-				if(this.outOfInstance!=null){
-					boolean emptyIn=false;
-					for (Node nodeIn : this.outOfInstance.in) {
-						nodeIn.eval(valueMap, depth);
-						if(valueMap.containsKey(nodeIn)){
-							if(valueMap.get(nodeIn).length()==0){
-								emptyIn=true;
-							}
-						}
+			}else if(this.parentSupernode!=null){
+				this.parentSupernode.eval(valueMap, depth);
+				if(valueMap.containsKey(this.parentSupernode)){
+					if(parentSupernode.childrenSubnodes.get(0)==this){
+						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,0));
+					}else if(parentSupernode.childrenSubnodes.get(1)==this){
+						valueMap.put(this,valueMap.get(this.parentSupernode).get(1,valueMap.get(this.parentSupernode).length()-2));
+					}else if(parentSupernode.childrenSubnodes.get(2)==this){
+						valueMap.put(this,valueMap.get(this.parentSupernode).get(valueMap.get(this.parentSupernode).length()-1,valueMap.get(this.parentSupernode).length()-1));
 					}
-					if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()&&emptyIn){//recursive instance with empty ins
-						for (Node nodeOut : this.outOfInstance.out) {
-							valueMap.put(nodeOut, new FixedBitSet());
-						}
-					}else{
-						if(emptyIn||depth>0){
-							HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
-							for(int i=0;i<this.outOfInstance.in.size();i++){//copy forward
-								if(valueMap.containsKey(this.outOfInstance.in.get(i))){
-									newValueMap.put(this.outOfInstance.definition.in.get(i), valueMap.get(this.outOfInstance.in.get(i)));
-								}
-							}
-							this.outOfInstance.definition.eval(newValueMap,depth-1);			
-							for(int i=0;i<this.outOfInstance.out.size();i++){//copy back
-								if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
-									valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
-								} 
-							}
-						}
-					}
-				}
-			}
-		}else if(this.parentSupernode!=null){
-			this.parentSupernode.eval(valueMap, depth);
-			if(valueMap.containsKey(this.parentSupernode)){
-				if(parentSupernode.childrenSubnodes.get(0)==this){
-					valueMap.put(this,valueMap.get(this.parentSupernode).get(0,0));
-				}else if(parentSupernode.childrenSubnodes.get(1)==this){
-					valueMap.put(this,valueMap.get(this.parentSupernode).get(1,valueMap.get(this.parentSupernode).length()-2));
-				}else if(parentSupernode.childrenSubnodes.get(2)==this){
-					valueMap.put(this,valueMap.get(this.parentSupernode).get(valueMap.get(this.parentSupernode).length()-1,valueMap.get(this.parentSupernode).length()-1));
 				}
 			}
 		}
