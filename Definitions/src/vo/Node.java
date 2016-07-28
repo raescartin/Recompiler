@@ -41,7 +41,7 @@ public class Node {
 		}
 		return childSuperNode;
 	}
-	public NandNode toNands(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
+	public NandNode toNands(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
 		//PRE: Node fission
 		//Nodes are mapped up to down
 		//tree is traversed down to up (so recursive calls needed)
@@ -55,18 +55,25 @@ public class Node {
 		}else{//node is out of an instance of NAND definition
 			Node node1=this.outOfInstance.in.get(0);
 			Node node2=this.outOfInstance.in.get(1);
-			NandNode nandNode1=node1.toNands(nandToNode,nodeToNand,nandForest);
-			NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest);
+			NandNode nandNode1=node1.toNands(nandToNodes,nodeToNand,nandForest);
+			NandNode nandNode2=node2.toNands(nandToNodes,nodeToNand,nandForest);
 			nandNode=nandForest.add(nandNode1,nandNode2);
 			nodeToNand.put(this, nandNode);
-			if(!nandToNode.containsKey(nandNode))nandToNode.put(nandNode,this);
+			if(nandToNodes.containsKey(nandNode)){
+				HashSet<Node> nodes = nandToNodes.get(nandNode);
+				nodes.add(this);
+			}else{
+				HashSet<Node> nodes = new HashSet<Node>();
+				nodes.add(this);
+				nandToNodes.put(nandNode, nodes);
+			}
 		}
 		return nandNode;
 	}
 	public String toString() {
 		String string = new String();
 		if(this.parentSupernode!=null){
-			string+=this.parentSupernode.idForDefinition;//string+=this.parentSupernode.toString(); if more detail needed
+			string+=this.parentSupernode.toString();
 			string+="{";
 			string+=this.parentSupernode.childrenSubnodes.indexOf(this);
 			string+="}";
@@ -85,16 +92,19 @@ public class Node {
 			
 		return string;
 	}
-	public void mapInChildren(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {		
+	public void mapInChildren(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest, HashSet<Node> nodeIO) {		
 		if(this.childrenSubnodes.isEmpty()){
 			if(!nodeToNand.containsKey(this)){
 				NandNode nandNode = nandForest.addIn();
-				nandToNode.put(nandNode,this);
+				nodeIO.add(this);
+				HashSet<Node> nodes = new HashSet<Node>();
+				nodes.add(this);
+				nandToNodes.put(nandNode, nodes);
 				nodeToNand.put(this, nandNode);
 			}
 		}else{
 			for(Node child:this.childrenSubnodes){
-				child.mapInChildren(nandToNode,nodeToNand, nandForest);
+				child.mapInChildren(nandToNodes,nodeToNand, nandForest, nodeIO);
 			}
 		}
 	}
@@ -116,16 +126,17 @@ public class Node {
 			nandToNode.put(nandNode,this);
 		}
 	}
-	public void mapOutParents(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest) {
+	public void mapOutParents(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, HashSet<Node> nodeIO) {
 		NandNode nandNode;
 		if(nodeToNand.containsKey(this)){
 			nandNode = nandForest.setOut(nodeToNand.get(this));
 		}else if(this.outOfInstance!=null){
-			nandNode = nandForest.setOut(this.toNands(nandToNode,nodeToNand,nandForest));
+			nodeIO.add(this);
+			nandNode = nandForest.setOut(this.toNands(nandToNodes,nodeToNand,nandForest));
 		}else{
 			for(Node parent:this.parentSubnodes){
-				parent.mapOutParents(nandToNode,nodeToNand, nandForest);
+				parent.mapOutParents(nandToNodes,nodeToNand, nandForest, nodeIO);
 			}
 		}
 	}
@@ -408,22 +419,22 @@ private ArrayList<Node> getChildrenSubnodes() {
 		}
 		return instance;
 	}
-//	public void nodeMapFission(Definition definition,
-//			HashSet<Node> originalNodes) {
-//		for(Node parent:this.parents){
-//			if(!originalNodes.contains(parent)){
-//				originalNodes.add(parent);
-//				parent.nodeMapFission(definition,originalNodes);
-//			}
-//		}
-//		for(Node child:this.childrenSubnodes){
-//			if(!originalNodes.contains(child)){
-//				originalNodes.add(child);
-//			}
-//			child.nodeMapFission(definition,originalNodes);
-//		}
-//		
-//	}
+	public void nodeMapFission(Definition definition,
+		HashSet<Node> originalNodes) {
+		for(Node parent:this.parentSubnodes){
+			if(!originalNodes.contains(parent)){
+				originalNodes.add(parent);
+				parent.nodeMapFission(definition,originalNodes);
+			}
+		}
+		for(Node child:this.childrenSubnodes){
+			if(!originalNodes.contains(child)){
+				originalNodes.add(child);
+				child.nodeMapFission(definition,originalNodes);
+			}
+		}
+		
+	}
 //	public void findInsMapping(HashSet<Node> inNodes,
 //			HashMap<Node, NandNode> nodeToNand, NandForest nandForest,
 //			ArrayList<Node> nandToNodeIn, HashSet<Node> inOutNodes,

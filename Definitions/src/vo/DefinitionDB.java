@@ -80,11 +80,14 @@ public class DefinitionDB {
 		
 		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
+				HashMap <NandNode,HashSet<Node>> nandToNodes = new HashMap <NandNode,HashSet<Node>>();
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
+				HashSet<Node> nodeIO = new HashSet<Node>();
 				definition.toNandInstances();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand);//non recursive definition to nandforest
+				NandForest nandForest = definition.toNandForest(nandToNodes,nodeToNand,nodeIO);//non recursive definition to nandforest
+				definition.fuseEquivalentNodes(nandToNodes,nandToNode,nodeIO);
 				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 //				definition.update();
 				definition.fusion();//fusion of nodes 
@@ -110,62 +113,48 @@ public class DefinitionDB {
 		//3 compare nodes in definition and copy, keep the nodes that are unchanged
 		//4 create new definition of the recursive part without intersections (using the unchanged nodes as inputs/outputs)	
 		//FIXME: map fusion of nodes
+		HashMap<Node,Node> definitionToCopy = new HashMap<Node,Node>();
+		HashMap<Node,Node> copyToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
-		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
-		HashMap<Node,Node> definitionToExpanded = new HashMap<Node,Node>();
+		HashSet<Node> originalNodes = new HashSet<Node>();
+		HashSet<Node> nodeIO = new HashSet<Node>();
+		HashSet<Instance> removedInstances = new HashSet<Instance>();
+		AddedNodes addedNodes = new AddedNodes();
+		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
+		HashMap <NandNode,HashSet<Node>> nandToNodes = new HashMap <NandNode,HashSet<Node>>();
+		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		ArrayList <Node> recursiveIn1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveIn0 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut0 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveInInstance = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOutInstance = new ArrayList <Node>();
-		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
-		HashMap <NandNode,Node> nandToNewNode = new HashMap <NandNode,Node>();//not needed
-		HashMap<Node, NandNode> newNodeToNand = new HashMap<Node, NandNode>();//not needed
-		HashMap<Node,Node> nodes1to0 = new HashMap<Node,Node>();
-		HashSet<Node> originalNodes = new HashSet<Node>();
-		HashSet<Node> originalCopyNodes = new HashSet<Node>();
-		ArrayList <Node> nandToNodeIn = new ArrayList <Node>(); //map of input nandnodes to nodes
-		ArrayList <Node> nandToNodeOut = new ArrayList <Node>(); //map of output nandnodes to nodes
-		HashSet<Instance> removedInstances = new HashSet<Instance>();
-		AddedNodes addedNodes = new AddedNodes();
-		ArrayList<NandNode> recursionInNandNodes = new ArrayList<NandNode>();
-		ArrayList<NandNode> recursionOutNandNodes = new ArrayList<NandNode>();
-		Definition expandedDefinition = definition.copyMapping(definitionToExpanded,expandedToDefinition);//freeze original for expansion
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		Definition expandedDefinition = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
-
+		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-//		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
-		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand);//non recursive definition to nandforest
-		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
-		for(Node originalNode:originalNodes){
-			if(nodeToNand.containsKey(originalNode)){
-				originalCopyNodes.add(nandToNewNode.get(nodeToNand.get(originalNode)));
+		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNodes,nodeToNand,nodeIO);//non recursive definition to nandforest
+		for(NandNode nandNode:nandToNodes.keySet()){
+			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
+			for(Node node:equivalentNodes){
+				if(originalNodes.contains(node)){
+					originalNodes.addAll(equivalentNodes);
+				}
 			}
 		}
-		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalCopyNodes,expandedDefinition);
+		definition.fuseEquivalentNodes(nandToNodes,nandToNode, nodeIO);
+		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
+		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.addOriginalRecursionIO(removedInstances,recursiveIn1,recursiveOut1);
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-//		this.nodeInFusion(recursiveIn1,expandedToDefinition.keySet());
-//		this.nodeOutFusion(recursiveOut1,expandedToDefinition.keySet());
-		expandedDefinition.update();//needed?
-		for(Node node:expandedToDefinition.keySet()){
-			nodes1to0.put(nandToNewNode.get(nodeToNand.get(node)), expandedToDefinition.get(nandToNewNode.get(nodeToNand.get(node))));//Fusion Mapping needed
-		}
-		for(Node node:recursiveIn1){
-			recursiveIn0.add(nodes1to0.get(node));
-		}
-		for(Node node:recursiveOut1){
-			recursiveOut0.add(nodes1to0.get(node));
-		}
-		ArrayList<Node> nodes = new ArrayList<Node>();
-		//-apply to original definition the new outs (instance of newRecursiveDefinition) mapping outs from newRecursiveDefinition
-		//-apply to newRecursiveDefinition the new ins mapping form original definition
-		Definition tempRecursiveDefinition= new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
+		this.nodeInFusion(recursiveIn1,expandedToDefinition.keySet());
+		this.nodeOutFusion(recursiveOut1,expandedToDefinition.keySet());
+		Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
 		nodes.clear();
 		nodes.addAll(recursiveIn1);
 		nodes.addAll(recursiveOut1);
@@ -173,20 +162,22 @@ public class DefinitionDB {
 			out.parentSubnodes.clear();
 			out.outOfInstance=null;
 		}
-		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
-		expandedDefinition.update();//needed?
-		expandedDefinition.in=recursiveIn0;
-		expandedDefinition.out=recursiveOut0;
-		expandedDefinition.name=definition.name+"Recur";
-		expandedDefinition.replaceDefinition(tempRecursiveDefinition, expandedDefinition);
-		expandedDefinition.update();
-		this.definitions.put(expandedDefinition.name, expandedDefinition);
-		
-		for(Node nodeIn:recursiveIn0){
-			recursiveInInstance.add(nandToNode.get(newNodeToNand.get(nodeIn)));
+		for(Node node:recursiveIn1){
+			recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
 		}
-		for(Node nodeOut:recursiveOut0){
-			recursiveOutInstance.add(nandToNode.get(newNodeToNand.get(nodeOut)));
+		for(Node node:recursiveOut1){
+			recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+		}
+		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		tempRecursiveDefinition.in=recursiveIn0;
+		tempRecursiveDefinition.out=recursiveOut0;
+		Definition recursiveDefinition=tempRecursiveDefinition.copy();
+		recursiveDefinition.replaceDefinition(tempRecursiveDefinition, expandedDefinition);
+		for(Node node:recursiveIn1){
+			recursiveInInstance.add(expandedToDefinition.get(node));
+		}
+		for(Node node:recursiveOut1){
+			recursiveOutInstance.add(expandedToDefinition.get(node));
 		}
 		nodes.clear();
 		nodes.addAll(recursiveInInstance);
@@ -195,8 +186,8 @@ public class DefinitionDB {
 			out.parentSubnodes.clear();
 			out.outOfInstance=null;
 		}
-		definition.add(expandedDefinition, nodes.toArray(new Node[nodes.size()]));
-		definition.update();
+		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
 	}
 	private void addOriginalRecursionIO(HashSet<Instance> removedInstances,
 			ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut) {
@@ -235,50 +226,50 @@ public class DefinitionDB {
 			def.add(this.get("nand"),nodes);
 		}
 	}
-//	private void nodeOutFusion(ArrayList<Node> nodes, Set<Node> set) {
-//		int i=0;
-//		while(i<nodes.size()){
-//			this.outFusion(i,nodes,set);
-//			i++;
-//		}
-//		
-//	}
-//	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
-//		//TODO: test
-//		Node node = nodes.get(i);
-//		if(!node.childrenSupernodes.isEmpty()){
-//			for(Node supernodeChildCandidate:set){
-//				if(!supernodeChildCandidate.parents.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parents)){
-//					for(Node childrenSupernode:nodes.get(i).childrenSupernodes){
-//						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parents.isEmpty()&&childrenSupernode.parents.containsAll(supernodeChildCandidate.parents)){
-//							childrenSupernode.parents.set(childrenSupernode.parents.indexOf(nodes.get(i)), supernodeChildCandidate);
-//							childrenSupernode.parents.removeAll(supernodeChildCandidate.parents);
-//						}
-//					}
-//					nodes.set(i, supernodeChildCandidate);
-//					nodes.removeAll(supernodeChildCandidate.parents);
-//				}
-//			}
-//		}
-//		
-//	}
-//	private void nodeInFusion(ArrayList<Node> nodes, Set<Node> set) {
-//		int i=0;
-//		while(i<nodes.size()){
-//			this.trifusion(i,nodes);
-//			i++;
-//		}
+	private void nodeOutFusion(ArrayList<Node> nodes, Set<Node> set) {
+		int i=0;
+		while(i<nodes.size()){
+			this.outFusion(i,nodes,set);
+			i++;
+		}
+		
+	}
+	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
+		//TODO: test
+		Node node = nodes.get(i);
+		if(!node.childrenSupernodes.isEmpty()){
+			for(Node supernodeChildCandidate:set){
+				if(!supernodeChildCandidate.parentSubnodes.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parentSubnodes)){
+					for(Node childrenSupernode:nodes.get(i).childrenSupernodes){
+						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parentSubnodes.isEmpty()&&childrenSupernode.parentSubnodes.containsAll(supernodeChildCandidate.parentSubnodes)){
+							childrenSupernode.parentSubnodes.set(childrenSupernode.parentSubnodes.indexOf(nodes.get(i)), supernodeChildCandidate);
+							childrenSupernode.parentSubnodes.removeAll(supernodeChildCandidate.parentSubnodes);
+						}
+					}
+					nodes.set(i, supernodeChildCandidate);
+					nodes.removeAll(supernodeChildCandidate.parentSubnodes);
+				}
+			}
+		}
+		
+	}
+	private void nodeInFusion(ArrayList<Node> nodes, Set<Node> set) {
+		int i=0;
+		while(i<nodes.size()){
+			this.trifusion(i,nodes);
+			i++;
+		}
+		i=0;
+		while(i<nodes.size()){
+			this.bifusion(i,nodes,set);
+			i++;
+		}
 //		i=0;
 //		while(i<nodes.size()){
-//			this.bifusion(i,nodes,set);
+//			this.endfusion(i,nodes);
 //			i++;
 //		}
-////		i=0;
-////		while(i<nodes.size()){
-////			this.endfusion(i,nodes);
-////			i++;
-////		}
-//	}
+	}
 //	private void endfusion(int i, ArrayList<Node> nodes) {
 //		if(nodes.get(i).parents.size()==2&&nodes.get(i).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0)
 //				&&nodes.get(i).parents.get(0).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(1).parents.get(0).parents.size()==1&&nodes.get(i).parents.get(0).parents.get(0).parents.get(0)==nodes.get(i).parents.get(1).parents.get(0).parents.get(0)){
@@ -303,53 +294,50 @@ public class DefinitionDB {
 //			}
 //		}
 //	}
-//	private void bifusion(int i, ArrayList<Node> nodes, Set<Node> set) {
-//		//if there's two consecutive children of a node on the array of nodes, fuse them
-//		Node node = nodes.get(i);
-//		if(node.parents.size()==1){
-//			Node parent = node.parents.get(0);
-//			if(nodes.contains(parent.childrenSubnodes.get(0))&&nodes.contains(parent.childrenSubnodes.get(1))){
-//				Node childSupernode=null;
-//				for(Node supernodeCandidate:set){
-//					if(supernodeCandidate.parents.size()==2){
-//						if(supernodeCandidate.parents.get(0)==parent.childrenSubnodes.get(0)&&supernodeCandidate.parents.get(1)==parent.childrenSubnodes.get(1)){
-//							childSupernode=supernodeCandidate;
-//						}
-//					}
-//				}
-//				parent.childrenSubnodes.get(0).childrenSupernodes.add(childSupernode);
-//				parent.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
-//				nodes.set(i, childSupernode);
-//				nodes.removeAll(parent.childrenSubnodes);
-//			}else if(nodes.contains(parent.childrenSubnodes.get(1))&&nodes.contains(parent.childrenSubnodes.get(2))){
-//				Node childSupernode=null;
-//				for(Node supernodeCandidate:set){
-//					if(supernodeCandidate.parents.size()==2){
-//						if(supernodeCandidate.parents.get(0)==parent.childrenSubnodes.get(1)&&supernodeCandidate.parents.get(1)==parent.childrenSubnodes.get(2)){
-//							childSupernode=supernodeCandidate;
-//						}
-//					}
-//				}
-//				parent.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
-//				parent.childrenSubnodes.get(2).childrenSupernodes.add(childSupernode);
-//				nodes.set(i, childSupernode);
-//				nodes.removeAll(parent.childrenSubnodes);
-//			}
-//		}
-//	}
-//	private void trifusion(int i, ArrayList<Node> nodes) {
-//		if(nodes.get(i).parents.size()==1&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(0))&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(1))&&nodes.contains(nodes.get(i).parents.get(0).childrenSubnodes.get(2))){
-//			Node node=nodes.get(i);
-//			Node parent=node.parents.get(0);
-//			Node childLeft = parent.childrenSubnodes.get(0);
-//			Node childMid = parent.childrenSubnodes.get(1);
-//			Node childRight = parent.childrenSubnodes.get(2);
-//			nodes.set(i, parent);
-//			nodes.remove(childLeft);
-//			nodes.remove(childMid);
-//			nodes.remove(childRight);
-//		}
-//	}
+	private void bifusion(int i, ArrayList<Node> nodes, Set<Node> set) {
+		//if there's two consecutive children of a node on the array of nodes, fuse them
+		Node node = nodes.get(i);
+		if(node.parentSupernode!=null){
+			if(nodes.contains(node.parentSupernode.childrenSubnodes.get(0))&&nodes.contains(node.parentSupernode.childrenSubnodes.get(1))){
+				Node childSupernode=null;
+				for(Node supernodeCandidate:set){
+					if(supernodeCandidate.parentSubnodes.size()==2){
+						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childrenSubnodes.get(0)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childrenSubnodes.get(1)){
+							childSupernode=supernodeCandidate;
+						}
+					}
+				}
+				node.parentSupernode.childrenSubnodes.get(0).childrenSupernodes.add(childSupernode);
+				node.parentSupernode.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
+				nodes.set(i, childSupernode);
+				nodes.removeAll(node.parentSupernode.childrenSubnodes);
+			}else if(nodes.contains(node.parentSupernode.childrenSubnodes.get(1))&&nodes.contains(node.parentSupernode.childrenSubnodes.get(2))){
+				Node childSupernode=null;
+				for(Node supernodeCandidate:set){
+					if(supernodeCandidate.parentSubnodes.size()==2){
+						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childrenSubnodes.get(1)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childrenSubnodes.get(2)){
+							childSupernode=supernodeCandidate;
+						}
+					}
+				}
+				node.parentSupernode.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
+				node.parentSupernode.childrenSubnodes.get(2).childrenSupernodes.add(childSupernode);
+				nodes.set(i, childSupernode);
+				nodes.removeAll(node.parentSupernode.childrenSubnodes);
+			}
+		}
+	}
+	private void trifusion(int i, ArrayList<Node> nodes) {
+		if(nodes.get(i).parentSupernode!=null&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(0))&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(1))&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(2))){
+			Node childLeft = nodes.get(i).parentSupernode.childrenSubnodes.get(0);
+			Node childMid = nodes.get(i).parentSupernode.childrenSubnodes.get(1);
+			Node childRight = nodes.get(i).parentSupernode.childrenSubnodes.get(2);
+			nodes.set(i, nodes.get(i).parentSupernode);
+			nodes.remove(childLeft);
+			nodes.remove(childMid);
+			nodes.remove(childRight);
+		}
+	}
 	
 //	private void addRecursionNodesToNandIO(
 //			HashSet<NandNode> originalNandNodes,

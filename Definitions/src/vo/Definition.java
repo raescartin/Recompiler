@@ -109,7 +109,7 @@ public class Definition {
 		this.rootIn = new ArrayList<Definition>();
 		this.nodes = new HashSet<Node> ();
 	}
-	public NandForest toNandForest(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand){
+	public NandForest toNandForest(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, HashSet<Node> nodeIO){
 		//PRE: this definition is not recursive and doesn't contain recursive definitions
 		// the nodes have been split to the minimum needed 
 		//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -117,22 +117,22 @@ public class Definition {
 		//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 		NandForest nandForest = new NandForest(0);
 		///Need to map subnodes of ins and outs to conserve references!!!
-		this.mapIns(nandToNode,nodeToNand,nandForest);
-		this.mapOuts(nandToNode,nodeToNand,nandForest);
+		this.mapIns(nandToNodes,nodeToNand,nandForest,nodeIO);
+		this.mapOuts(nandToNodes,nodeToNand,nandForest,nodeIO);
 		nandForest.optimize();
 		return nandForest;
 	}
-	void mapIns(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
+	void mapIns(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest, HashSet<Node> nodeIO) {
 		//map input nodes to nandNodes
 		for(Node inNode:this.in){
-			inNode.mapInChildren(nandToNode,nodeToNand, nandForest);
+			inNode.mapInChildren(nandToNodes,nodeToNand, nandForest,nodeIO);
 		}
 	}
-	void mapOuts(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest) {
+	void mapOuts(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, HashSet<Node> nodeIO) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nandToNode,nodeToNand,nandForest);
+			outNode.mapOutParents(nandToNodes,nodeToNand,nandForest,nodeIO);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -982,13 +982,13 @@ public class Definition {
 //		}
 //		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
 //	}
-//	void mapFission(HashSet<Node> originalNodes) {
-//		ArrayList <Node> nodes = new ArrayList<Node>();
-//		nodes.addAll(originalNodes);
-//		for(Node node:nodes){
-//			node.nodeMapFission(this,originalNodes);
-//		}
-//	}
+	void mapFission(HashSet<Node> originalNodes) {
+		ArrayList <Node> nodes = new ArrayList<Node>();
+		nodes.addAll(originalNodes);
+		for(Node node:nodes){
+			node.nodeMapFission(this,originalNodes);
+		}
+	}
 	public void update() {
 		//POST: resets every node id for this definition
 		//update definition nodes and instances
@@ -1165,10 +1165,12 @@ public class Definition {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
+			expandedToDefinition.put(instance.in.get(i),instance.definition.in.get(i));
 			mapSubnodeChildrenMapping(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes,expandedToDefinition);	
 		}
 		for (int i = 0; i < instance.out.size(); i++) {//map out nodes
 			definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
+			expandedToDefinition.put(instance.out.get(i),instance.definition.out.get(i));
 			instance.out.get(i).outOfInstance=null;
 			mapParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
 		}
@@ -1181,6 +1183,7 @@ public class Definition {
 					}else{
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
+						expandedToDefinition.put(newNode,node);
 						nodes.add(newNode);
 						mapParentsMapping(newNode,node,definitionToInstanceNodes,expandedToDefinition);
 					}
@@ -1191,6 +1194,7 @@ public class Definition {
 					}else{
 						Node newNode = new Node();
 						definitionToInstanceNodes.put(node, newNode);
+						expandedToDefinition.put(newNode,node);
 						nodes.add(newNode);
 						mapSubnodeChildrenMapping(newNode,node,definitionToInstanceNodes,expandedToDefinition);
 					}
@@ -1313,6 +1317,23 @@ public class Definition {
 				}
 			}
 			
+		}
+	}
+	public void fuseEquivalentNodes(
+			HashMap<NandNode, HashSet<Node>> nandToNodes,
+			HashMap<NandNode, Node> nandToNode, HashSet<Node> nodeIO) {
+		for(NandNode nandNode:nandToNodes.keySet()){
+			HashSet<Node> nodes=nandToNodes.get(nandNode);
+			if(nodes.size()==1){
+				nandToNode.put(nandNode, nodes.iterator().next());
+			}else{
+				nandToNode.put(nandNode, nodes.iterator().next());
+				for(Node node: nodes){
+					if(nodeIO.contains(node)){
+						nandToNode.put(nandNode, node);
+					}
+				}
+			}
 		}
 	}
 }
