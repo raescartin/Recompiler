@@ -162,17 +162,20 @@ public class DefinitionDB {
 			out.parentSubnodes.clear();
 			out.outOfInstance=null;
 		}
+		
+		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		for(Node node:recursiveIn1){
 			recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
 		}
 		for(Node node:recursiveOut1){
 			recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
 		}
-		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		tempRecursiveDefinition.in=recursiveIn0;
 		tempRecursiveDefinition.out=recursiveOut0;
 		Definition recursiveDefinition=tempRecursiveDefinition.copy();
-		recursiveDefinition.replaceDefinition(tempRecursiveDefinition, expandedDefinition);
+		recursiveDefinition.replaceDefinition(tempRecursiveDefinition, recursiveDefinition);
+		recursiveDefinition.name=definition.name+"Recur";
+		recursiveDefinition.update();
 		for(Node node:recursiveIn1){
 			recursiveInInstance.add(expandedToDefinition.get(node));
 		}
@@ -187,6 +190,7 @@ public class DefinitionDB {
 			out.outOfInstance=null;
 		}
 		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+		definition.update();
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
 	}
 	private void addOriginalRecursionIO(HashSet<Instance> removedInstances,
