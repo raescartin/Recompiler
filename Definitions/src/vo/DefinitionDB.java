@@ -147,7 +147,7 @@ public class DefinitionDB {
 				}
 			}
 		}
-		definition.fuseEquivalentNodes(nandToNodes,nandToNode, nodeIO);
+		definition.fuseEquivalentNodes(nandToNodes,nandToNode, originalNodes);
 		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
 		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.addOriginalRecursionIO(removedInstances,recursiveIn1,recursiveOut1);
@@ -164,11 +164,20 @@ public class DefinitionDB {
 		}
 		
 		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+//		expandedDefinition.update();
 		for(Node node:recursiveIn1){
-			recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+			if(expandedToDefinition.containsKey(node)){
+				recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+			}else{
+				recursiveIn0.add(node);
+			}
 		}
 		for(Node node:recursiveOut1){
-			recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+			if(expandedToDefinition.containsKey(node)){
+				recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+			}else{
+				recursiveOut0.add(node);
+			}
 		}
 		tempRecursiveDefinition.in=recursiveIn0;
 		tempRecursiveDefinition.out=recursiveOut0;
@@ -177,10 +186,18 @@ public class DefinitionDB {
 		recursiveDefinition.name=definition.name+"Recur";
 		recursiveDefinition.update();
 		for(Node node:recursiveIn1){
-			recursiveInInstance.add(expandedToDefinition.get(node));
+			if(expandedToDefinition.containsKey(node)){
+				recursiveInInstance.add(expandedToDefinition.get(node));
+			}else{
+				recursiveInInstance.add(copyToDefinition.get(node));
+			}
 		}
 		for(Node node:recursiveOut1){
-			recursiveOutInstance.add(expandedToDefinition.get(node));
+			if(expandedToDefinition.containsKey(node)){
+				recursiveOutInstance.add(expandedToDefinition.get(node));
+			}else{
+				recursiveInInstance.add(copyToDefinition.get(node));
+			}
 		}
 		nodes.clear();
 		nodes.addAll(recursiveInInstance);
