@@ -92,11 +92,10 @@ public class Node {
 			
 		return string;
 	}
-	public void mapInChildren(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest, HashSet<Node> nodeIO) {		
+	public void mapInChildren(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {		
 		if(this.childrenSubnodes.isEmpty()){
 			if(!nodeToNand.containsKey(this)){
 				NandNode nandNode = nandForest.addIn();
-				nodeIO.add(this);
 				HashSet<Node> nodes = new HashSet<Node>();
 				nodes.add(this);
 				nandToNodes.put(nandNode, nodes);
@@ -104,7 +103,7 @@ public class Node {
 			}
 		}else{
 			for(Node child:this.childrenSubnodes){
-				child.mapInChildren(nandToNodes,nodeToNand, nandForest, nodeIO);
+				child.mapInChildren(nandToNodes,nodeToNand, nandForest);
 			}
 		}
 	}
@@ -127,16 +126,15 @@ public class Node {
 		}
 	}
 	public void mapOutParents(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, HashSet<Node> nodeIO) {
+			NandForest nandForest) {
 		NandNode nandNode;
 		if(nodeToNand.containsKey(this)){
 			nandNode = nandForest.setOut(nodeToNand.get(this));
 		}else if(this.outOfInstance!=null){
-			nodeIO.add(this);
 			nandNode = nandForest.setOut(this.toNands(nandToNodes,nodeToNand,nandForest));
 		}else{
 			for(Node parent:this.parentSubnodes){
-				parent.mapOutParents(nandToNodes,nodeToNand, nandForest, nodeIO);
+				parent.mapOutParents(nandToNodes,nodeToNand, nandForest);
 			}
 		}
 	}

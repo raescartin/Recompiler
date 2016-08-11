@@ -109,7 +109,7 @@ public class Definition {
 		this.rootIn = new ArrayList<Definition>();
 		this.nodes = new HashSet<Node> ();
 	}
-	public NandForest toNandForest(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, HashSet<Node> nodeIO){
+	public NandForest toNandForest(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand){
 		//PRE: this definition is not recursive and doesn't contain recursive definitions
 		// the nodes have been split to the minimum needed 
 		//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -117,22 +117,22 @@ public class Definition {
 		//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 		NandForest nandForest = new NandForest(0);
 		///Need to map subnodes of ins and outs to conserve references!!!
-		this.mapIns(nandToNodes,nodeToNand,nandForest,nodeIO);
-		this.mapOuts(nandToNodes,nodeToNand,nandForest,nodeIO);
+		this.mapIns(nandToNodes,nodeToNand,nandForest);
+		this.mapOuts(nandToNodes,nodeToNand,nandForest);
 		nandForest.optimize();
 		return nandForest;
 	}
-	void mapIns(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest, HashSet<Node> nodeIO) {
+	void mapIns(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
 		//map input nodes to nandNodes
 		for(Node inNode:this.in){
-			inNode.mapInChildren(nandToNodes,nodeToNand, nandForest,nodeIO);
+			inNode.mapInChildren(nandToNodes,nodeToNand, nandForest);
 		}
 	}
 	void mapOuts(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest, HashSet<Node> nodeIO) {
+			NandForest nandForest) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nandToNodes,nodeToNand,nandForest,nodeIO);
+			outNode.mapOutParents(nandToNodes,nodeToNand,nandForest);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -1249,21 +1249,36 @@ public class Definition {
 					mapParentsMapping(newParent,parent,definitionToInstanceNodes,expandedToDefinition);
 				}
 			}
-		} 
+		}else if(definitionNode.parentSupernode!=null){
+			if(!definitionToInstanceNodes.containsKey(definitionNode.parentSupernode)){
+				Node newParent= new Node();
+				definitionToInstanceNodes.put(definitionNode.parentSupernode, newParent);
+				expandedToDefinition.put(newParent, definitionNode.parentSupernode);
+				mapParentsMapping(newParent,definitionNode.parentSupernode,definitionToInstanceNodes,expandedToDefinition);
+			}
+//			if(definitionToInstanceNodes.get(definitionNode.parentSupernode).childrenSubnodes.isEmpty()){
+				for(Node childSubnode:definitionNode.parentSupernode.childrenSubnodes){
+					if(definitionToInstanceNodes.containsKey(childSubnode)){
+						definitionToInstanceNodes.get(definitionNode.parentSupernode).addChildSubnode(definitionToInstanceNodes.get(childSubnode));
+					}else{
+						Node newChildSubnode= new Node();
+						definitionToInstanceNodes.get(definitionNode.parentSupernode).addChildSubnode(newChildSubnode);
+						definitionToInstanceNodes.put(childSubnode, newChildSubnode);
+						expandedToDefinition.put(newChildSubnode, childSubnode);
+//						mapParentsMapping(newChildSubnode,childSubnode,definitionToInstanceNodes,expandedToDefinition);
+					}
+				}
+//			}else{
+//				for(Node childSubnode:definitionNode.parentSupernode.childrenSubnodes){
+//					if(!definitionToInstanceNodes.containsKey(childSubnode)){
+//						definitionToInstanceNodes.put(childSubnode, newChildSubnode);
+//						expandedToDefinition.put(newChildSubnode, childSubnode);
+//						mapParentsMapping(newChildSubnode,childSubnode,definitionToInstanceNodes,expandedToDefinition);
+//					}
+//				}
+//			}
+		}
 	}
-//	public void removeRedundantSubnodes() {
-//		for(int i=0;i<this.out.size();i++){
-//			this.out.set(i, out.get(i).removeRedundantSubnodes());
-//		}
-//		
-//	}
-//	public void removeRedundantSubnodesMapping(
-//			HashMap<Node, Node> expandedToSelf) {
-//		for(int i=0;i<this.out.size();i++){
-//			this.out.set(i, out.get(i).removeRedundantSubnodesMapping(expandedToSelf));
-//		}
-//		
-//	}
 	public void addNandInstances(Node definitionNode, Node instanceNode,
 			HashMap<Node, Node> definitionToInstanceNodes) {
 		if(!definitionToInstanceNodes.containsKey(definitionNode)){

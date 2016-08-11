@@ -84,9 +84,12 @@ public class DefinitionDB {
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 				HashSet<Node> nodeIO = new HashSet<Node>();
+				nodeIO.addAll(definition.in);
+				nodeIO.addAll(definition.out);
 				definition.toNandInstances();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-				NandForest nandForest = definition.toNandForest(nandToNodes,nodeToNand,nodeIO);//non recursive definition to nandforest
+				definition.mapFission(nodeIO);
+				NandForest nandForest = definition.toNandForest(nandToNodes,nodeToNand);//non recursive definition to nandforest
 				definition.fuseEquivalentNodes(nandToNodes,nandToNode,nodeIO);
 				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 //				definition.update();
@@ -117,7 +120,6 @@ public class DefinitionDB {
 		HashMap<Node,Node> copyToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
 		HashSet<Node> originalNodes = new HashSet<Node>();
-		HashSet<Node> nodeIO = new HashSet<Node>();
 		HashSet<Instance> removedInstances = new HashSet<Instance>();
 		AddedNodes addedNodes = new AddedNodes();
 		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
@@ -138,7 +140,7 @@ public class DefinitionDB {
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
-		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNodes,nodeToNand,nodeIO);//non recursive definition to nandforest
+		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNodes,nodeToNand);//non recursive definition to nandforest
 		for(NandNode nandNode:nandToNodes.keySet()){
 			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
 			for(Node node:equivalentNodes){
