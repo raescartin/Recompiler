@@ -90,10 +90,10 @@ public class DefinitionDB {
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				definition.mapFission(nodeIO);
 				NandForest nandForest = definition.toNandForest(nandToNodes,nodeToNand);//non recursive definition to nandforest
-				definition.fuseEquivalentNodes(nandToNodes,nandToNode,nodeIO);
+				definition.chooseFromEquivalentNodes(nandToNodes,nandToNode,nodeIO);
 				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
-//				definition.update();
 				definition.fusion();//fusion of nodes 
+				definition.update();
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -149,7 +149,7 @@ public class DefinitionDB {
 				}
 			}
 		}
-		definition.fuseEquivalentNodes(nandToNodes,nandToNode, originalNodes);
+		definition.chooseFromEquivalentNodes(nandToNodes,nandToNode, originalNodes);
 		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
 		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.addOriginalRecursionIO(removedInstances,recursiveIn1,recursiveOut1);

@@ -152,7 +152,7 @@ public class Definition {
 			outNode.outOfInstance=instance;
 		}
 		for(Node nodeIn:instance.in){
-			int nodeDepth=nodeIn.getDepth();
+			int nodeDepth=nodeIn.getDepth(new HashSet<Node>());
 			if(nodeDepth+1>instance.depth){
 				instance.depth=nodeDepth+1;
 			}
@@ -1334,7 +1334,7 @@ public class Definition {
 			
 		}
 	}
-	public void fuseEquivalentNodes(
+	public void chooseFromEquivalentNodes(
 			HashMap<NandNode, HashSet<Node>> nandToNodes,
 			HashMap<NandNode, Node> nandToNode, HashSet<Node> nodeIO) {
 		for(NandNode nandNode:nandToNodes.keySet()){
@@ -1343,6 +1343,11 @@ public class Definition {
 				nandToNode.put(nandNode, nodes.iterator().next());
 			}else{
 				nandToNode.put(nandNode, nodes.iterator().next());
+				for(Node node: nodes){
+					if(node.parentSupernode!=null){
+						nandToNode.put(nandNode, node);
+					}
+				}
 				for(Node node: nodes){
 					if(nodeIO.contains(node)){
 						nandToNode.put(nandNode, node);

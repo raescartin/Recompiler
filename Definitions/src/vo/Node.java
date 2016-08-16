@@ -200,7 +200,7 @@ private void nandInsFission() {
 //		this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
 		this.definition.removeInstance(this.outOfInstance);
 		this.outOfInstance=null;
-		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+//		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
 		if(!this.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
 			this.childrenSubnodes.get(1).nandInsFission();
 		}
@@ -226,7 +226,7 @@ private void nandOutFission() {
 //	this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
 	this.definition.removeInstance(this.outOfInstance);
 	this.outOfInstance=null;
-	this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+//	this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
 	if(!parentLeftIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()&&!parentRightIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
 		this.childrenSubnodes.get(1).nandOutFission();
 	}
@@ -263,17 +263,19 @@ private ArrayList<Node> getChildrenSubnodes() {
 		return childrenSubnodes;
 	}
 	public void parentsFission() {
-		if(!this.parentSubnodes.isEmpty()){
-		//if in of nand has  multiple parents, separate in multiple nands
-			for(Node parent:this.parentSubnodes){
-				parent.parentsFission();
-			}
-		}else if(this.parentSupernode!=null){
-			this.parentSupernode.parentsFission();
-		}
 		if(this.outOfInstance!=null){//out of nand
 			this.nandParentFission();
+		}else{
+			if(!this.parentSubnodes.isEmpty()){
+			//if in of nand has  multiple parents, separate in multiple nands
+				for(Node parent:this.parentSubnodes){
+					parent.parentsFission();
+				}
+			}else if(this.parentSupernode!=null){
+				this.parentSupernode.parentsFission();
+			}
 		}
+		
 	}
 	private void nandParentFission() {
 		Node in0=this.outOfInstance.in.get(0);
@@ -518,6 +520,8 @@ private ArrayList<Node> getChildrenSubnodes() {
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
 			if(this.outOfInstance!=null){
+				this.parentSubnodes.clear();
+//				this.parentSupernode=null;
 				this.outOfInstance.updateInstance(definition, expandedNodes);
 			}else{
 				if(!this.parentSubnodes.isEmpty()){
@@ -859,25 +863,35 @@ private ArrayList<Node> getChildrenSubnodes() {
 			this.definition.addNandInstances(instanceDefinition.out.get(i), instance.out.get(i),definitionToInstanceNodes);
 		}
 	}
-	public int getDepth() {
+	public int getDepth(HashSet<Node> evaluatedNodes) {
 		int depth=-1;
-		if(this.outOfInstance!=null){
-			depth=this.outOfInstance.depth;
-		}else{
-			if(!this.parentSubnodes.isEmpty()){
-				for(Node parent:this.parentSubnodes){
-					int parentDepth=parent.getDepth();
+		if(!evaluatedNodes.contains(this)){
+			evaluatedNodes.add(this);
+			if(this.outOfInstance!=null){
+				depth=this.outOfInstance.depth;
+			}else{
+				if(!this.parentSubnodes.isEmpty()){
+					for(Node parent:this.parentSubnodes){
+						int parentDepth=parent.getDepth(evaluatedNodes);
+						if(parentDepth>depth){
+							depth=parentDepth;
+						}
+					}
+				}else if(this.parentSupernode!=null){
+					int parentDepth=this.parentSupernode.getDepth(evaluatedNodes);
 					if(parentDepth>depth){
 						depth=parentDepth;
 					}
+				}else if(!this.childrenSubnodes.isEmpty()){
+					for(Node child:this.childrenSubnodes){
+						int childrenDepth=child.getDepth(evaluatedNodes);
+						if(childrenDepth>depth){
+							depth=childrenDepth;
+						}
+					}
 				}
-			}else if(this.parentSupernode!=null){
-				int parentDepth=this.parentSupernode.getDepth();
-				if(parentDepth>depth){
-					depth=parentDepth;
-				}
+				
 			}
-			
 		}
 		return depth;
 	}
@@ -936,16 +950,12 @@ private ArrayList<Node> getChildrenSubnodes() {
 		//TODO: simplify
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
-			int realDepth=0;
-			int instanceDepth;
 			if(!this.childrenSubnodes.isEmpty()){
 				if(this.childrenSubnodes.get(0).outOfInstance!=null&&this.childrenSubnodes.get(1).outOfInstance!=null&&this.childrenSubnodes.get(2).outOfInstance!=null){
 					Definition nandDefinition = null;
 					Node nodeLeft = new Node();
 					Node nodeRight= new Node();
 					HashSet<Instance> instancesToRemove = new HashSet<Instance>();
-					instanceDepth=this.childrenSubnodes.get(0).outOfInstance.depth;
-					if(instanceDepth>realDepth) realDepth=instanceDepth;
 					nandDefinition=this.childrenSubnodes.get(0).outOfInstance.definition;
 					if(this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode!=null){
 						nodeLeft=this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode;
@@ -962,8 +972,6 @@ private ArrayList<Node> getChildrenSubnodes() {
 						}
 					}
 					instancesToRemove.add(this.childrenSubnodes.get(0).outOfInstance);
-					instanceDepth=this.childrenSubnodes.get(1).outOfInstance.depth;
-					if(instanceDepth>realDepth) realDepth=instanceDepth;
 					nandDefinition=this.childrenSubnodes.get(1).outOfInstance.definition;
 					if(this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode!=null){
 						nodeLeft=this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode;
@@ -980,8 +988,6 @@ private ArrayList<Node> getChildrenSubnodes() {
 						}
 					}
 					instancesToRemove.add(this.childrenSubnodes.get(1).outOfInstance);
-					instanceDepth=this.childrenSubnodes.get(2).outOfInstance.depth;
-					if(instanceDepth>realDepth) realDepth=instanceDepth;
 					nandDefinition=this.childrenSubnodes.get(2).outOfInstance.definition;
 					if(this.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode!=null){
 						nodeLeft=this.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode;
@@ -1000,12 +1006,6 @@ private ArrayList<Node> getChildrenSubnodes() {
 					instancesToRemove.add(this.childrenSubnodes.get(2).outOfInstance);
 					Node[] nodes={nodeLeft,nodeRight,this};
 					Instance fusedInstance = this.definition.add(nandDefinition, nodes);
-					this.definition.instances.get(fusedInstance.depth).remove(fusedInstance);
-					fusedInstance.depth=realDepth;
-					if(this.definition.instances.size()<realDepth+1){
-						this.definition.instances.add(new TreeSet<Instance>());
-					}
-					this.definition.instances.get(realDepth).add(fusedInstance);
 					for(Instance instanceToRemove:instancesToRemove){
 						this.definition.removeInstance(instanceToRemove);
 					}

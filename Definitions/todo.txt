@@ -1,10 +1,7 @@
-﻿FIXME:
-unoptimized xor cost is 7
-
-TODO
--decide if it's better to find new recursive definition ins/outs in definitions or nandForest
+﻿TODO
+-need to childrensubnodes AND childrenIndexes{0,1,2}?
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
--fix cost eval 
+-fix cost eval,  unoptimized xor cost is 7
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
 -add arrays of nodes to definition/try to implement algorithms with arrays
@@ -13,6 +10,7 @@ TODO
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-decide if it's better to find new recursive definition ins/outs in definitions or nandForest BETTER IN DEFINITION
 -remove need to break subnodes in nodeFission
 -fix parentFission
 -fix nodeFission
