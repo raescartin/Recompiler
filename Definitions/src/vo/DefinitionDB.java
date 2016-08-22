@@ -151,6 +151,7 @@ public class DefinitionDB {
 		}
 		definition.chooseFromEquivalentNodes(nandToNodes,nandToNode, originalNodes);
 		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
+		expandedDefinition.fusion();//fusion of nodes 
 		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.addOriginalRecursionIO(removedInstances,recursiveIn1,recursiveOut1);
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
@@ -218,13 +219,22 @@ public class DefinitionDB {
 			instance.addOriginalRecursionIO(recursiveIn,recursiveOut);
 		}
 	}
+//	private void extractNewRecursionIO(ArrayList<Node> recursiveIn,
+//			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
+//			Definition expandedDefinition) {
+//		for(SortedSet<Instance> instanceSet: expandedDefinition.instances){
+//			for(Instance instance: instanceSet){
+//				instance.extractNewRecursionIO(recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
+//			}
+//		}
+//		
+//	}
 	private void extractNewRecursionIO(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
 			Definition expandedDefinition) {
-		for(SortedSet<Instance> instanceSet: expandedDefinition.instances){
-			for(Instance instance: instanceSet){
-				instance.extractNewRecursionIO(recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
-			}
+		HashSet<Node> evaluatedNodes= new HashSet<Node>();
+		for(Node outNode: expandedDefinition.out){
+			outNode.extractIO(evaluatedNodes, recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
 		}
 		
 	}

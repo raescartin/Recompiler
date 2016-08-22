@@ -1,6 +1,6 @@
 ﻿TODO
--need to childrensubnodes AND childrenIndexes{0,1,2}?
--recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?)
+-fix IO finding in intersection
+-fix fission eval priority so no need to remove out node parents=> fix order of all evaluations everywhere
 -fix cost eval,  unoptimized xor cost is 7
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
@@ -10,6 +10,8 @@
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?) => all nodes are kept
+-need to childrensubnodes AND childrenIndexes{0,1,2}? NO
 -decide if it's better to find new recursive definition ins/outs in definitions or nandForest BETTER IN DEFINITION
 -remove need to break subnodes in nodeFission
 -fix parentFission

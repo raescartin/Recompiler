@@ -1034,4 +1034,41 @@ private ArrayList<Node> getChildrenSubnodes() {
 	public void addOriginalRecursionOut(ArrayList<Node> recursiveOut) {
 		if(!recursiveOut.contains(this)) recursiveOut.add(this);
 	}
+	public void extractIO(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
+			Definition expandedDefinition) {
+		if(!evaluatedNodes.contains(this)){
+			evaluatedNodes.add(this);
+			if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
+				if(originalNewNodes.contains(this)){
+					if(!originalNewNodes.contains(this.outOfInstance.in.get(0))||!originalNewNodes.contains(this.outOfInstance.in.get(1))){
+						recursiveOut.add(this);
+						if(originalNewNodes.contains(this.outOfInstance.in.get(0))) recursiveIn.add(this.outOfInstance.in.get(0));
+						if(originalNewNodes.contains(this.outOfInstance.in.get(1))) recursiveIn.add(this.outOfInstance.in.get(1));
+					}
+				}else{//new out node
+					if(originalNewNodes.contains(this.outOfInstance.in.get(0))) recursiveIn.add(this.outOfInstance.in.get(0));
+					if(originalNewNodes.contains(this.outOfInstance.in.get(1))) recursiveIn.add(this.outOfInstance.in.get(1));
+				}
+				this.outOfInstance.in.get(0).extractIO(evaluatedNodes, recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
+				this.outOfInstance.in.get(1).extractIO(evaluatedNodes, recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
+			}else if(!this.parentSubnodes.isEmpty()){
+				for(Node parentSubnode:this.parentSubnodes){
+					parentSubnode.extractIO(evaluatedNodes,recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
+				}
+				if(recursiveIn.containsAll(this.parentSubnodes)){
+					recursiveIn.removeAll(this.parentSubnodes);
+					recursiveIn.add(this);
+				}
+			}else if(this.parentSupernode!=null){
+				for(Node childSubnode:this.parentSupernode.childrenSubnodes){
+					childSubnode.extractIO(evaluatedNodes,recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
+					if(recursiveOut.containsAll(this.parentSupernode.childrenSubnodes)){
+						recursiveIn.removeAll(this.parentSupernode.childrenSubnodes);
+						recursiveIn.add(this.parentSupernode);
+					}
+				}
+			}
+		}
+	}
 }
