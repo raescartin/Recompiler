@@ -702,8 +702,11 @@ public class Definition {
 //			inNode.triFusion(inOfNandInstances);
 //		}
 		HashSet<Node> expandedNodes = new HashSet<Node>();
+//		for(Node outNode:this.out){
+//			outNode.fusion(expandedNodes);
+//		}
 		for(Node outNode:this.out){
-			outNode.fusion(expandedNodes);
+			outNode.recoverParentSupernodes(expandedNodes);
 		}
 		for(Node outNode:this.out){
 			outNode.biFusion();
@@ -1140,7 +1143,7 @@ public class Definition {
 //		}
 	}
 	public void expandInstancesMapping(Definition definition,
-			HashMap<Node, Node> expandedToDefinition) {
+			HashMap<Node, Node> expandedToDefinition, ArrayList<Instance> expandedInstances) {
 		//TODO: FIXME if multiple recursive instances of definition
 		ArrayList<Instance> instances = new ArrayList<Instance>();
 		for(SortedSet<Instance> setOfInstances:this.instances){
@@ -1148,6 +1151,7 @@ public class Definition {
 		}
 		for(Instance instance : instances){
 			if(instance.definition==definition){//need to expand on previous definition
+				expandedInstances.add(instance);
 				this.expandInstanceMapping(instance,expandedToDefinition);				
 			}
 		}

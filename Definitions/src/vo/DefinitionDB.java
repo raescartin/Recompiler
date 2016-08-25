@@ -132,9 +132,10 @@ public class DefinitionDB {
 		ArrayList <Node> recursiveInInstance = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOutInstance = new ArrayList <Node>();
 		ArrayList<Node> nodes = new ArrayList<Node>();
+		ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
 		Definition expandedDefinition = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
-		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition);
+		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances);
 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		//to nand
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
@@ -152,11 +153,10 @@ public class DefinitionDB {
 		definition.chooseFromEquivalentNodes(nandToNodes,nandToNode, originalNodes);
 		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
 		expandedDefinition.fusion();//fusion of nodes 
-		this.extractNewRecursionIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
-		this.addOriginalRecursionIO(removedInstances,recursiveIn1,recursiveOut1);
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-		this.nodeInFusion(recursiveIn1,expandedToDefinition.keySet());
-		this.nodeOutFusion(recursiveOut1,expandedToDefinition.keySet());
+		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
+		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
+		this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
 		Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
 		nodes.clear();
 		nodes.addAll(recursiveIn1);
@@ -213,12 +213,44 @@ public class DefinitionDB {
 		definition.update();
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
 	}
-	private void addOriginalRecursionIO(HashSet<Instance> removedInstances,
-			ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut) {
-		for(Instance instance:removedInstances){
-			instance.addOriginalRecursionIO(recursiveIn,recursiveOut);
-		}
+	private void extractIOparentSupernodes(ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut) {
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		boolean posibleSupernodes;
+		do{
+			posibleSupernodes=false;
+			nodes.addAll(recursiveIn);
+			for(Node node:nodes){
+				posibleSupernodes=posibleSupernodes||node.extractIOparentSupernodes(recursiveIn);
+			}
+		}while(posibleSupernodes);
+		do{
+			posibleSupernodes=false;
+			nodes.clear();
+			nodes.addAll(recursiveOut);
+			for(Node node:nodes){
+				node.extractIOparentSupernodes(recursiveOut);
+			}
+		}while(posibleSupernodes);
 	}
+	private void extractIOchildrenSupernodes(ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes, Definition expandedDefinition, ArrayList<Instance> expandedInstances) {
+		HashSet<Node> evaluatedNodes = new HashSet<Node>();
+		for(Node outNode:expandedDefinition.out){
+			outNode.extractIOchildrenSupernodes(evaluatedNodes,recursiveIn,recursiveOut,originalNodes);
+		}
+		for(Instance instance:expandedInstances){
+			for(Node inNode:instance.in){
+				inNode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+			}
+		}
+		
+	}
+//	private void addOriginalRecursionIO(HashSet<Instance> removedInstances,
+//			ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut) {
+//		for(Instance instance:removedInstances){
+//			instance.addOriginalRecursionIO(recursiveIn,recursiveOut);
+//		}
+//	}
 //	private void extractNewRecursionIO(ArrayList<Node> recursiveIn,
 //			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
 //			Definition expandedDefinition) {
@@ -229,12 +261,12 @@ public class DefinitionDB {
 //		}
 //		
 //	}
-	private void extractNewRecursionIO(ArrayList<Node> recursiveIn,
-			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
+	private void extractIOsubnodes(ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes,
 			Definition expandedDefinition) {
 		HashSet<Node> evaluatedNodes= new HashSet<Node>();
 		for(Node outNode: expandedDefinition.out){
-			outNode.extractIO(evaluatedNodes, recursiveIn,recursiveOut,originalNewNodes,expandedDefinition);
+			outNode.extractIOsubnodes(evaluatedNodes, recursiveIn,recursiveOut,originalNodes);
 		}
 		
 	}

@@ -1034,41 +1034,157 @@ private ArrayList<Node> getChildrenSubnodes() {
 	public void addOriginalRecursionOut(ArrayList<Node> recursiveOut) {
 		if(!recursiveOut.contains(this)) recursiveOut.add(this);
 	}
-	public void extractIO(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
-			ArrayList<Node> recursiveOut, HashSet<Node> originalNewNodes,
-			Definition expandedDefinition) {
+	public void extractIOsubnodes(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
 		if(!evaluatedNodes.contains(this)){
 			evaluatedNodes.add(this);
 			if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
-				if(originalNewNodes.contains(this)){
-					if(!originalNewNodes.contains(this.outOfInstance.in.get(0))||!originalNewNodes.contains(this.outOfInstance.in.get(1))){
-						recursiveOut.add(this);
-						if(originalNewNodes.contains(this.outOfInstance.in.get(0))) recursiveIn.add(this.outOfInstance.in.get(0));
-						if(originalNewNodes.contains(this.outOfInstance.in.get(1))) recursiveIn.add(this.outOfInstance.in.get(1));
+				if(this.outOfInstance.definition.name=="nand"){
+					if(originalNodes.contains(this)){
+						if(!originalNodes.contains(this.outOfInstance.in.get(0))||!originalNodes.contains(this.outOfInstance.in.get(1))){
+							recursiveOut.add(this);
+							this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
+							this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
+						}
+					}else{//new out node
+						this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
+						this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
 					}
-				}else{//new out node
-					if(originalNewNodes.contains(this.outOfInstance.in.get(0))) recursiveIn.add(this.outOfInstance.in.get(0));
-					if(originalNewNodes.contains(this.outOfInstance.in.get(1))) recursiveIn.add(this.outOfInstance.in.get(1));
+					this.outOfInstance.in.get(0).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+					this.outOfInstance.in.get(1).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+				}else{
+					if(originalNodes.contains(this)) recursiveOut.add(this);
+					for(Node inNode:this.outOfInstance.in){
+						inNode.extractIn(recursiveIn, originalNodes);
+						inNode.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+					}
 				}
-				this.outOfInstance.in.get(0).extractIO(evaluatedNodes, recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
-				this.outOfInstance.in.get(1).extractIO(evaluatedNodes, recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
 			}else if(!this.parentSubnodes.isEmpty()){
 				for(Node parentSubnode:this.parentSubnodes){
-					parentSubnode.extractIO(evaluatedNodes,recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
+					parentSubnode.extractIOsubnodes(evaluatedNodes,recursiveIn, recursiveOut, originalNodes);
+				}
+			}else if(this.parentSupernode!=null){
+				for(Node childSubnode:this.parentSupernode.childrenSubnodes){
+					childSubnode.extractIOsubnodes(evaluatedNodes,recursiveIn, recursiveOut, originalNodes);
+				}
+			}
+		}
+	}
+	private void extractIn(ArrayList<Node> recursiveIn, HashSet<Node> originalNodes) {
+		//test
+		if(originalNodes.contains(this)){
+			if(!recursiveIn.contains(this)) recursiveIn.add(this);
+		}else{
+			for(Node parentSubnode:this.parentSubnodes){
+				parentSubnode.extractIn(recursiveIn, originalNodes);
+			}
+		}
+	}
+	public void extractIOchildrenSupernodes(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
+			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
+		if(!evaluatedNodes.contains(this)){
+			evaluatedNodes.add(this);
+			if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
+				for(Node inNode:this.outOfInstance.in){
+					inNode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+				}
+			}else if(!this.parentSubnodes.isEmpty()){
+				for(Node parentSubnode:this.parentSubnodes){
+					parentSubnode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
 				}
 				if(recursiveIn.containsAll(this.parentSubnodes)){
 					recursiveIn.removeAll(this.parentSubnodes);
 					recursiveIn.add(this);
+				}else if(recursiveOut.containsAll(this.parentSubnodes)){
+					recursiveOut.removeAll(this.parentSubnodes);
+					recursiveOut.add(this);
 				}
 			}else if(this.parentSupernode!=null){
 				for(Node childSubnode:this.parentSupernode.childrenSubnodes){
-					childSubnode.extractIO(evaluatedNodes,recursiveIn, recursiveOut, originalNewNodes, expandedDefinition);
-					if(recursiveOut.containsAll(this.parentSupernode.childrenSubnodes)){
-						recursiveIn.removeAll(this.parentSupernode.childrenSubnodes);
-						recursiveIn.add(this.parentSupernode);
-					}
+					childSubnode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
 				}
 			}
 		}
+	}
+	public boolean extractIOparentSupernodes(ArrayList<Node> recursiveIn) {
+		if(this.parentSupernode!=null){
+			if(recursiveIn.containsAll(this.parentSupernode.childrenSubnodes)){
+				recursiveIn.removeAll(this.parentSupernode.childrenSubnodes);
+				recursiveIn.add(this.parentSupernode);
+				return true;
+			}
+		}
+		return false;
+	}
+	public void recoverParentSupernodes(HashSet<Node> expandedNodes) {
+		//fuse 3 nands to recover parentSupernode
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+			if(!this.childrenSubnodes.isEmpty()){
+				if(this.childrenSubnodes.get(0).outOfInstance!=null&&this.childrenSubnodes.get(2).outOfInstance!=null
+					&&this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode!=null&&this.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode!=null
+					&&this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode==this.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode
+					&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode!=null&&this.childrenSubnodes.get(2).outOfInstance.in.get(1).parentSupernode!=null
+					&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.childrenSubnodes.get(2).outOfInstance.in.get(1).parentSupernode){
+					Node nodeLeft = this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode;
+					Node nodeRight= this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode;
+					this.childrenSubnodes.get(1).fusion(nodeLeft.childrenSubnodes.get(1),nodeRight.childrenSubnodes.get(1));
+					if(this.childrenSubnodes.get(1).outOfInstance!=null
+						&&this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode!=null
+						&&this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode==this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode
+						&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode!=null
+						&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.childrenSubnodes.get(1).outOfInstance.in.get(1).parentSupernode){
+						Definition nandDefinition = this.childrenSubnodes.get(0).outOfInstance.definition;
+						
+						HashSet<Instance> instancesToRemove = new HashSet<Instance>();
+						instancesToRemove.add(this.childrenSubnodes.get(0).outOfInstance);
+						instancesToRemove.add(this.childrenSubnodes.get(1).outOfInstance);
+						instancesToRemove.add(this.childrenSubnodes.get(2).outOfInstance);
+						Node[] nodes={nodeLeft,nodeRight,this};
+						this.definition.add(nandDefinition, nodes);
+						for(Instance instanceToRemove:instancesToRemove){
+							this.definition.removeInstance(instanceToRemove);
+						}
+						nodeLeft.fusion(expandedNodes);
+						nodeRight.fusion(expandedNodes);
+					}
+				}
+			}
+			if(this.parentSupernode!=null){
+				this.parentSupernode.fusion(expandedNodes);
+			}else if(!this.parentSubnodes.isEmpty()){
+				for(Node parent:this.parentSubnodes){
+					parent.fusion(expandedNodes);
+				}
+			}
+		}
+		
+	}
+	private void fusion(Node nodeLeft, Node nodeRight) {
+		if(this.parentSubnodes.size()==nodeLeft.parentSubnodes.size()&&this.parentSubnodes.size()==nodeRight.parentSubnodes.size()){
+			HashSet<Instance> instancesToRemove = new HashSet<Instance>();
+			boolean allSupernodes=true;
+			for(int i=0;i<this.parentSubnodes.size();i++){
+				if(this.parentSubnodes.get(i).outOfInstance!=null
+						&&this.parentSubnodes.get(i).outOfInstance.in.get(0).parentSupernode!=null
+						&&this.parentSubnodes.get(i).outOfInstance.in.get(0).parentSupernode==nodeLeft.parentSubnodes.get(i)
+						&&this.parentSubnodes.get(i).outOfInstance.in.get(1).parentSupernode!=null
+						&&this.parentSubnodes.get(i).outOfInstance.in.get(1).parentSupernode==nodeRight.parentSubnodes.get(i)){
+					instancesToRemove.add(this.parentSubnodes.get(i).outOfInstance);
+				}else{
+					allSupernodes=false;
+				}
+			}
+			if(allSupernodes){
+				Definition nandDefinition = this.parentSubnodes.get(0).outOfInstance.definition;
+				Node[] nodes={nodeLeft,nodeRight,this};
+				this.definition.add(nandDefinition, nodes);
+				for(Instance instanceToRemove:instancesToRemove){
+					this.definition.removeInstance(instanceToRemove);
+				}
+			}
+			
+		}
+		
 	}
 }
