@@ -1,6 +1,10 @@
 ﻿TODO
--fix IO finding in intersection
+-need to keep the fissed instance instead of removing
+-fix fusion
 -fix fission eval priority so no need to remove out node parents=> fix order of all evaluations everywhere
+-merge bifusion and trifusion (generelization)
+-fix IO finding in intersection
+-check duplicate selection, may be more complex
 -fix cost eval,  unoptimized xor cost is 7
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt

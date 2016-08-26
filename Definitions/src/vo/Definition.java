@@ -109,7 +109,7 @@ public class Definition {
 		this.rootIn = new ArrayList<Definition>();
 		this.nodes = new HashSet<Node> ();
 	}
-	public NandForest toNandForest(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand){
+	public NandForest toNandForest(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, HashMap<Node, Node> equivalentNode){
 		//PRE: this definition is not recursive and doesn't contain recursive definitions
 		// the nodes have been split to the minimum needed 
 		//POST: returns a NandForest equivalent to this definition, map of in and map of out nandnodes to nodes
@@ -117,22 +117,22 @@ public class Definition {
 		//TOPDOWN OR DOWNUP? DOWNUP less branches, UPDOWN less memory? -> DOWNUP needed to optimize and instance
 		NandForest nandForest = new NandForest(0);
 		///Need to map subnodes of ins and outs to conserve references!!!
-		this.mapIns(nandToNodes,nodeToNand,nandForest);
-		this.mapOuts(nandToNodes,nodeToNand,nandForest);
+		this.mapIns(nandToNode,nodeToNand,nandForest);
+		this.mapOuts(nandToNode,nodeToNand,nandForest,equivalentNode);
 		nandForest.optimize();
 		return nandForest;
 	}
-	void mapIns(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
+	void mapIns(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
 		//map input nodes to nandNodes
 		for(Node inNode:this.in){
-			inNode.mapInChildren(nandToNodes,nodeToNand, nandForest);
+			inNode.mapInChildren(nandToNode,nodeToNand, nandForest);
 		}
 	}
-	void mapOuts(HashMap<NandNode, HashSet<Node>> nandToNodes,HashMap<Node, NandNode> nodeToNand,
-			NandForest nandForest) {
+	void mapOuts(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand,
+			NandForest nandForest, HashMap<Node, Node> equivalentNode) {
 		//map output nodes to nandNodes
 		for(Node outNode:this.out){
-			outNode.mapOutParents(nandToNodes,nodeToNand,nandForest);
+			outNode.mapOutParents(nandToNode,nodeToNand,nandForest,equivalentNode);
 		}	
 	}
 	public Instance add(Definition def,Node ... nodes){
@@ -1340,24 +1340,31 @@ public class Definition {
 	}
 	public void chooseFromEquivalentNodes(
 			HashMap<NandNode, HashSet<Node>> nandToNodes,
-			HashMap<NandNode, Node> nandToNode, HashSet<Node> nodeIO) {
+			HashMap<Node, Node> equivalentNode, HashSet<Node> nodeIO) {
 		for(NandNode nandNode:nandToNodes.keySet()){
 			HashSet<Node> nodes=nandToNodes.get(nandNode);
-			if(nodes.size()==1){
-				nandToNode.put(nandNode, nodes.iterator().next());
-			}else{
-				nandToNode.put(nandNode, nodes.iterator().next());
+			if(nodes.size()>1){
+				Node selectedNode=nodes.iterator().next();
 				for(Node node: nodes){
 					if(node.parentSupernode!=null){
-						nandToNode.put(nandNode, node);
+						selectedNode=node;
 					}
 				}
 				for(Node node: nodes){
 					if(nodeIO.contains(node)){
-						nandToNode.put(nandNode, node);
+						selectedNode=node;
 					}
+				}
+				for(Node node: nodes){
+					equivalentNode.put(node, selectedNode);
 				}
 			}
 		}
+	}
+	public void replaceNodes(HashMap<Node, Node> equivalentNode) {
+		for(Node outNode:this.out){
+			outNode.replaceNodes(equivalentNode);
+		}
+		
 	}
 }

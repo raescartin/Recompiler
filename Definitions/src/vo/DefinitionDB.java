@@ -80,8 +80,8 @@ public class DefinitionDB {
 		
 		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
-				HashMap <NandNode,HashSet<Node>> nandToNodes = new HashMap <NandNode,HashSet<Node>>();
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
+				HashMap <Node,Node> equivalentNode = new HashMap <Node,Node>();
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 				HashSet<Node> nodeIO = new HashSet<Node>();
 				nodeIO.addAll(definition.in);
@@ -89,9 +89,10 @@ public class DefinitionDB {
 				definition.toNandInstances();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 				definition.mapFission(nodeIO);
-				NandForest nandForest = definition.toNandForest(nandToNodes,nodeToNand);//non recursive definition to nandforest
-				definition.chooseFromEquivalentNodes(nandToNodes,nandToNode,nodeIO);
-				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
+				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
+//				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
+				definition.replaceNodes(equivalentNode);
+//				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 				definition.fusion();//fusion of nodes 
 				definition.update();
 			}	
@@ -122,9 +123,9 @@ public class DefinitionDB {
 		HashSet<Node> originalNodes = new HashSet<Node>();
 		HashSet<Instance> removedInstances = new HashSet<Instance>();
 		AddedNodes addedNodes = new AddedNodes();
-		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-		HashMap <NandNode,HashSet<Node>> nandToNodes = new HashMap <NandNode,HashSet<Node>>();
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
+		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
+		HashMap <Node,Node> equivalentNode = new HashMap <Node,Node>();
 		ArrayList <Node> recursiveIn1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveIn0 = new ArrayList <Node>(); 
@@ -141,17 +142,18 @@ public class DefinitionDB {
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
-		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNodes,nodeToNand);//non recursive definition to nandforest
-		for(NandNode nandNode:nandToNodes.keySet()){
-			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
-			for(Node node:equivalentNodes){
-				if(originalNodes.contains(node)){
-					originalNodes.addAll(equivalentNodes);
-				}
-			}
-		}
-		definition.chooseFromEquivalentNodes(nandToNodes,nandToNode, originalNodes);
-		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
+		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNode);//non recursive definition to nandforest
+//		for(NandNode nandNode:nandToNodes.keySet()){
+//			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
+//			for(Node node:equivalentNodes){
+//				if(originalNodes.contains(node)){
+//					originalNodes.addAll(equivalentNodes);
+//				}
+//			}
+//		}
+//		definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode, originalNodes);
+		definition.replaceNodes(equivalentNode);
+//		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
 		expandedDefinition.fusion();//fusion of nodes 
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
@@ -272,23 +274,21 @@ public class DefinitionDB {
 	}
 	private Definition fromNandForest(Definition definition, NandForest nandForest, HashMap <NandNode,Node> nandToNode) {
 		//set existing Definition from NandForest without NandNode's repetition	
-		definition.clearInstances();
 		for (int i=0;i<nandForest.out.size();i++) {//node can be out node of definition OR a subnode from one
-				this.addNandsMapping(nandForest.out.get(i),definition,nandToNode);
+				this.recorverNandInstances(nandForest.out.get(i),definition,nandToNode);
 		}
 		return definition;
 		
 	}
-	private void addNandsMapping(NandNode nandNode, Definition def, HashMap<NandNode, Node> nandToNode) {
-		Node in1;
-		Node in2;
+	private void recorverNandInstances(NandNode nandNode, Definition def, HashMap<NandNode, Node> nandToNode) {
 		if(nandNode.in1!=null&&nandNode.in2!=null){
-			in1=nandToNode.get(nandNode.in1);
-			addNandsMapping(nandNode.in1,def,nandToNode);
-			in2 = nandToNode.get(nandNode.in2);
-			addNandsMapping(nandNode.in2,def,nandToNode);
-			Node[] nodes = new Node[]{in1,in2,nandToNode.get(nandNode)};
-			def.add(this.get("nand"),nodes);
+			Node in1=nandToNode.get(nandNode.in1);
+			recorverNandInstances(nandNode.in1,def,nandToNode);
+			Node in2 = nandToNode.get(nandNode.in2);
+			recorverNandInstances(nandNode.in2,def,nandToNode);
+			Node out = nandToNode.get(nandNode);
+			out.outOfInstance.in.set(0, in1);
+			out.outOfInstance.in.set(1, in2);
 		}
 	}
 	private void nodeOutFusion(ArrayList<Node> nodes, Set<Node> set) {
