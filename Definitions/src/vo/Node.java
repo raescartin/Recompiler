@@ -1144,14 +1144,10 @@ private ArrayList<Node> getChildrenSubnodes() {
 						&&this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode==this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode
 						&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode!=null
 						&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.childrenSubnodes.get(1).outOfInstance.in.get(1).parentSupernode){
-						Definition nandDefinition = this.childrenSubnodes.get(0).outOfInstance.definition;
-						
 						HashSet<Instance> instancesToRemove = new HashSet<Instance>();
 						instancesToRemove.add(this.childrenSubnodes.get(0).outOfInstance);
 						instancesToRemove.add(this.childrenSubnodes.get(1).outOfInstance);
 						instancesToRemove.add(this.childrenSubnodes.get(2).outOfInstance);
-						Node[] nodes={nodeLeft,nodeRight,this};
-						this.definition.add(nandDefinition, nodes);
 						for(Instance instanceToRemove:instancesToRemove){
 							this.definition.removeInstance(instanceToRemove);
 						}
@@ -1193,28 +1189,29 @@ private ArrayList<Node> getChildrenSubnodes() {
 			}
 		}
 	}
-	public void replaceNodes(HashMap<Node, Node> equivalentNode) {
+	public void replaceNodes(HashMap<Node, Node> equivalentNode, HashSet<Instance> usedInstances) {
 		for(int i=0;i<this.parentSubnodes.size();i++){
 			if(equivalentNode.containsKey(this.parentSubnodes.get(i))){
 				this.parentSubnodes.set(i, equivalentNode.get(this.parentSubnodes.get(i)));
 			}
-			this.parentSubnodes.get(i).replaceNodes(equivalentNode);
+			this.parentSubnodes.get(i).replaceNodes(equivalentNode, usedInstances);
 		}
 		if(this.parentSupernode!=null){
 			if(equivalentNode.containsKey(this.parentSupernode)){
 				this.parentSupernode=equivalentNode.get(this.parentSupernode);
 			}
-			this.parentSupernode.replaceNodes(equivalentNode);
+			this.parentSupernode.replaceNodes(equivalentNode, usedInstances);
 		}
 		if(this.outOfInstance!=null){
+			usedInstances.add(this.outOfInstance);
 			if(equivalentNode.containsKey(this.outOfInstance.in.get(0))){
 				this.outOfInstance.in.set(0, equivalentNode.get(this.outOfInstance.in.get(0)));
 			}
-			this.outOfInstance.in.get(0).replaceNodes(equivalentNode);
+			this.outOfInstance.in.get(0).replaceNodes(equivalentNode, usedInstances);
 			if(equivalentNode.containsKey(this.outOfInstance.in.get(1))){
 				this.outOfInstance.in.set(1, equivalentNode.get(this.outOfInstance.in.get(1)));
 			}
-			this.outOfInstance.in.get(1).replaceNodes(equivalentNode);
+			this.outOfInstance.in.get(1).replaceNodes(equivalentNode, usedInstances);
 		}
 	}
 }

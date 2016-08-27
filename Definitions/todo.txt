@@ -1,19 +1,20 @@
 ﻿TODO
--need to keep the fissed instance instead of removing
--fix fusion
--fix fission eval priority so no need to remove out node parents=> fix order of all evaluations everywhere
--merge bifusion and trifusion (generelization)
 -fix IO finding in intersection
 -check duplicate selection, may be more complex
 -fix cost eval,  unoptimized xor cost is 7
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
 -add arrays of nodes to definition/try to implement algorithms with arrays
+-check order of all evaluations everywhere
+-merge bifusion and trifusion (generelization)
 -todo: recursive intersection merge (if/rif)
 -change Definition to Function
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-need to keep the fissed instance instead of removing
+-fix fusion by just removing fissed instances to resurface old fused ones
+-fix fission eval priority so no need to remove out node parents
 -recoverSupernodes after toNand,fromNand fine tunning (need to keep account of fissed nodes?) => all nodes are kept
 -need to childrensubnodes AND childrenIndexes{0,1,2}? NO
 -decide if it's better to find new recursive definition ins/outs in definitions or nandForest BETTER IN DEFINITION

@@ -91,10 +91,10 @@ public class DefinitionDB {
 				definition.mapFission(nodeIO);
 				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
-				definition.replaceNodes(equivalentNode);
+				definition.clean(equivalentNode);
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 				definition.fusion();//fusion of nodes 
-				definition.update();
+//				definition.update();
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
@@ -125,7 +125,7 @@ public class DefinitionDB {
 		AddedNodes addedNodes = new AddedNodes();
 		HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 		HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-		HashMap <Node,Node> equivalentNode = new HashMap <Node,Node>();
+		HashMap <Node,Node> equivalentNodes = new HashMap <Node,Node>();
 		ArrayList <Node> recursiveIn1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOut1 = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveIn0 = new ArrayList <Node>(); 
@@ -142,7 +142,7 @@ public class DefinitionDB {
 		expandedDefinition.removeRecursion(addedNodes, removedInstances);
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
-		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNode);//non recursive definition to nandforest
+		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
 //		for(NandNode nandNode:nandToNodes.keySet()){
 //			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
 //			for(Node node:equivalentNodes){
@@ -152,7 +152,9 @@ public class DefinitionDB {
 //			}
 //		}
 //		definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode, originalNodes);
-		definition.replaceNodes(equivalentNode);
+		this.replaceNodes(originalNodes,equivalentNodes);
+		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
+		expandedDefinition.clean(equivalentNodes);
 //		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
 		expandedDefinition.fusion();//fusion of nodes 
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
@@ -214,6 +216,34 @@ public class DefinitionDB {
 		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		definition.update();
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
+	}
+	private void replaceNodes(HashMap<Node, Node> definitionToCopy,
+			HashMap<Node, Node> copyToDefinition,
+			HashMap<Node, Node> equivalentNodes) {
+		
+			HashSet<Node> nodesCopy = new HashSet<Node>();
+			nodesCopy.addAll(copyToDefinition.keySet());
+			for(Node node:nodesCopy){
+				if(equivalentNodes.containsKey(node)){
+					copyToDefinition.put(equivalentNodes.get(node), copyToDefinition.get(node));
+					definitionToCopy.remove(copyToDefinition.get(node));
+					definitionToCopy.put(copyToDefinition.get(node), equivalentNodes.get(node));
+					copyToDefinition.remove(node);
+				}
+			}
+		
+	}
+	private void replaceNodes(HashSet<Node> originalNodes,
+			HashMap<Node, Node> equivalentNodes) {
+		HashSet<Node> nodesCopy = new HashSet<Node>();
+		nodesCopy.addAll(originalNodes);
+		for(Node node:nodesCopy){
+			if(equivalentNodes.containsKey(node)){
+				originalNodes.remove(node);
+				originalNodes.add(equivalentNodes.get(node));
+			}
+		}
+		
 	}
 	private void extractIOparentSupernodes(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut) {

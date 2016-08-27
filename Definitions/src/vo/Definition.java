@@ -1361,10 +1361,21 @@ public class Definition {
 			}
 		}
 	}
-	public void replaceNodes(HashMap<Node, Node> equivalentNode) {
+	public void clean(HashMap<Node, Node> equivalentNode) {
+		HashSet<Instance> usedInstances = new HashSet<Instance>();
 		for(Node outNode:this.out){
-			outNode.replaceNodes(equivalentNode);
+			outNode.replaceNodes(equivalentNode,usedInstances);
 		}
-		
+		ArrayList<Instance> instancesToRemove = new ArrayList<Instance>();
+		for(SortedSet<Instance> instances:this.instances){
+			for(Instance instance:instances){
+				if(!usedInstances.contains(instance)){
+					instancesToRemove.add(instance);
+				}
+			}
+		}
+		for(Instance instance:instancesToRemove){
+			this.removeInstance(instance);
+		}
 	}
 }
