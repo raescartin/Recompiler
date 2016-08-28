@@ -83,12 +83,12 @@ public class DefinitionDB {
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				HashMap <Node,Node> equivalentNode = new HashMap <Node,Node>();
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
-				HashSet<Node> nodeIO = new HashSet<Node>();
-				nodeIO.addAll(definition.in);
-				nodeIO.addAll(definition.out);
+//				HashSet<Node> nodeIO = new HashSet<Node>();
+//				nodeIO.addAll(definition.in);
+//				nodeIO.addAll(definition.out);
 				definition.toNandInstances();
 				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
-				definition.mapFission(nodeIO);
+//				definition.mapFission(nodeIO);
 				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
 				definition.clean(equivalentNode);

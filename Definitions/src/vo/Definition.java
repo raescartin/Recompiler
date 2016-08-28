@@ -67,7 +67,7 @@ public class Definition {
 	public String name;
 	public ArrayList<Node> in;
 	public ArrayList<Node> out;
-	public ArrayList<SortedSet<Instance>> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
+	public ArrayList<ArrayList<Instance>> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
 	public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
 	public HashSet<Instance> selfRecursiveInstances;//Recursive instances of this definition, contained in this definition
 	public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
@@ -80,7 +80,7 @@ public class Definition {
 		//INITIALIZE VARIABLES
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
-		this.instances = new ArrayList<SortedSet<Instance>>();
+		this.instances = new ArrayList<ArrayList<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
@@ -103,7 +103,7 @@ public class Definition {
 		//INITIALIZE VARIABLES
 		this.in = new ArrayList<Node>();
 		this.out = new ArrayList<Node>();
-		this.instances = new ArrayList<SortedSet<Instance>>();
+		this.instances = new ArrayList<ArrayList<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
 		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
@@ -140,27 +140,10 @@ public class Definition {
 			this.add(node);	
 		}
 		Instance instance = new Instance();//node == instance of a definition
-		if(def==this){
-			def.selfRecursiveInstances.add(instance);
-		}else if(!def.selfRecursiveInstances.isEmpty()||!def.instancesOfRecursiveDefinitions.isEmpty()){
-			this.instancesOfRecursiveDefinitions.add(instance);
-		}
 		instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
 		instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 		instance.definition=def;
-		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
-			outNode.outOfInstance=instance;
-		}
-		for(Node nodeIn:instance.in){
-			int nodeDepth=nodeIn.getDepth(new HashSet<Node>());
-			if(nodeDepth+1>instance.depth){
-				instance.depth=nodeDepth+1;
-			}
-		}
-		if(this.instances.size()<instance.depth+1){
-			this.instances.add(new TreeSet<Instance>());
-		}
-		this.instances.get(instance.depth).add(instance); 
+		this.add(instance);
 		return instance;
 	}
 	public void add(Node node){
@@ -200,7 +183,7 @@ public class Definition {
 		string+=("]");
 		
 		string+=(" =\n");
-		for(SortedSet<Instance> setOfInstances:this.instances){
+		for(ArrayList<Instance> setOfInstances:this.instances){
 			for (Instance instance : setOfInstances) {//print instances
 			    string+=" "+instance.toString(this);
 			}
@@ -394,7 +377,7 @@ public class Definition {
 			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=0;
-			for(SortedSet<Instance> instanceHashSet:this.instances){
+			for(ArrayList<Instance> instanceHashSet:this.instances){
 				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
 					iterationCost++;
 				}
@@ -412,7 +395,7 @@ public class Definition {
 			copyDef.toNandInstances();
 			copyDef.nodeFission();
 			int iterationCost=0;
-			for(SortedSet<Instance> instanceHashSet:this.instances){
+			for(ArrayList<Instance> instanceHashSet:this.instances){
 				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
 					iterationCost++;
 				}
@@ -566,7 +549,7 @@ public class Definition {
 			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
 		ArrayList<Instance> instances = new ArrayList<Instance>();
-		for(SortedSet<Instance> setOfInstances:this.instances){
+		for(ArrayList<Instance> setOfInstances:this.instances){
 			instances.addAll(setOfInstances);
 		}
 		for(Instance definitionInstance:instances){
@@ -657,7 +640,7 @@ public class Definition {
 				mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 			}
 
-			for(SortedSet<Instance> setOfInstances:instance.definition.instances){
+			for(ArrayList<Instance> setOfInstances:instance.definition.instances){
 				for (Instance definitionInstance : setOfInstances) {
 					ArrayList<Node> nodes = new ArrayList<Node>();
 					for (Node node: definitionInstance.in) {//map in nodes
@@ -710,6 +693,9 @@ public class Definition {
 		}
 		for(Node outNode:this.out){
 			outNode.biFusion();
+		}
+		for(Node outNode:this.out){
+			outNode.prune();
 		}
 //		this.update();
 	}
@@ -819,9 +805,9 @@ public class Definition {
 		for (int i = 0; i < instance.out.size(); i++) {//add out nodes to def in
 			instance.out.get(i).outOfInstance=null;
 		}
-		ArrayList<SortedSet<Instance>> instances = new ArrayList<SortedSet<Instance>>();
+		ArrayList<ArrayList<Instance>> instances = new ArrayList<ArrayList<Instance>>();
 		instances.addAll(this.instances);
-		for(SortedSet<Instance> instanceHashSet:instances){
+		for(ArrayList<Instance> instanceHashSet:instances){
 			instanceHashSet.remove(instance);
 			if(instanceHashSet.isEmpty()) this.instances.remove(instanceHashSet);
 		}
@@ -867,7 +853,7 @@ public class Definition {
 //		}
 //	}
 	public void replaceDefinition(Definition definition, Definition newDef) {
-		for(SortedSet<Instance> setOfInstances:this.instances){
+		for(ArrayList<Instance> setOfInstances:this.instances){
 			for (Instance instance : setOfInstances) {
 				if(instance.definition==definition){
 					this.instancesOfRecursiveDefinitions.remove(instance);
@@ -1039,8 +1025,9 @@ public class Definition {
 //		}
 //	}
 	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
+		HashSet<Node> expandedNodes= new HashSet<Node>();
 		for(Node outNode:this.out){
-			outNode.childrenFission();
+			outNode.childrenFission(expandedNodes);
 		}
 	}
 	public Definition copyMapping(
@@ -1146,7 +1133,7 @@ public class Definition {
 			HashMap<Node, Node> expandedToDefinition, ArrayList<Instance> expandedInstances) {
 		//TODO: FIXME if multiple recursive instances of definition
 		ArrayList<Instance> instances = new ArrayList<Instance>();
-		for(SortedSet<Instance> setOfInstances:this.instances){
+		for(ArrayList<Instance> setOfInstances:this.instances){
 			instances.addAll(setOfInstances);
 		}
 		for(Instance instance : instances){
@@ -1178,7 +1165,7 @@ public class Definition {
 			instance.out.get(i).outOfInstance=null;
 			mapParentsMapping(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes,expandedToDefinition);
 		}
-		for(SortedSet<Instance> setOfInstances:instance.definition.instances){
+		for(ArrayList<Instance> setOfInstances:instance.definition.instances){
 			for (Instance definitionInstance : setOfInstances) {
 				ArrayList<Node> nodes = new ArrayList<Node>();
 				for (Node node: definitionInstance.in) {//map in nodes
@@ -1362,20 +1349,44 @@ public class Definition {
 		}
 	}
 	public void clean(HashMap<Node, Node> equivalentNode) {
-		HashSet<Instance> usedInstances = new HashSet<Instance>();
-		for(Node outNode:this.out){
-			outNode.replaceNodes(equivalentNode,usedInstances);
-		}
+//		ArrayList<Instance> usedInstances = new ArrayList<Instance>();//can't be a hashSet since instances are modified
 		ArrayList<Instance> instancesToRemove = new ArrayList<Instance>();
-		for(SortedSet<Instance> instances:this.instances){
-			for(Instance instance:instances){
-				if(!usedInstances.contains(instance)){
-					instancesToRemove.add(instance);
-				}
-			}
+		for(ArrayList<Instance> setOfInstances:this.instances){
+			instancesToRemove.addAll(setOfInstances);
+		}
+		for(Node outNode:this.out){
+			outNode.replaceNodes(equivalentNode,instancesToRemove);
 		}
 		for(Instance instance:instancesToRemove){
 			this.removeInstance(instance);
 		}
+	}
+	public Instance add(Instance instance) {
+		for(Node node:instance.in){
+			this.add(node);	
+		}
+		for(Node node:instance.out){
+			this.add(node);	
+		}
+		if(instance.definition==this){
+			this.selfRecursiveInstances.add(instance);
+		}else if(!instance.definition.selfRecursiveInstances.isEmpty()||!instance.definition.instancesOfRecursiveDefinitions.isEmpty()){
+			this.instancesOfRecursiveDefinitions.add(instance);
+		}
+		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
+			outNode.outOfInstance=instance;
+		}
+		instance.depth=0;
+		for(Node nodeIn:instance.in){
+			int nodeDepth=nodeIn.getDepth(new HashSet<Node>());
+			if(nodeDepth+1>instance.depth){
+				instance.depth=nodeDepth+1;
+			}
+		}
+		if(this.instances.size()<instance.depth+1){
+			this.instances.add(new ArrayList<Instance>());
+		}
+		this.instances.get(instance.depth).add(instance); 
+		return instance;
 	}
 }
