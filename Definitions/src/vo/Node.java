@@ -153,7 +153,7 @@ public class Node {
 				Node parentLeftIn=this.outOfInstance.in.get(0);
 				Node parentRightIn=this.outOfInstance.in.get(1);
 				if(!this.childrenSubnodes.isEmpty()){
-					this.nandInsFission();
+					this.nandInsFission(expandedNodes);
 					parentLeftIn.childrenFission(expandedNodes);
 					if(parentLeftIn!=parentRightIn)parentRightIn.childrenFission(expandedNodes);
 				}else{
@@ -175,7 +175,8 @@ public class Node {
 			}
 		}
 	}
-private void nandInsFission() {
+private void nandInsFission(HashSet<Node> expandedNodes) {
+		expandedNodes.add(this);
 		Node parentLeftIn=this.outOfInstance.in.get(0);
 		Node parentRightIn=this.outOfInstance.in.get(1);
 		ArrayList<Node> childrenSubnodes;
@@ -200,7 +201,7 @@ private void nandInsFission() {
 //		this.outOfInstance=null;
 //		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
 		if(!this.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
-			this.childrenSubnodes.get(1).nandInsFission();
+			this.childrenSubnodes.get(1).nandInsFission(expandedNodes);
 		}
 	}
 private void nandOutFission() {
@@ -1141,6 +1142,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 					&&this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.childrenSubnodes.get(2).outOfInstance.in.get(1).parentSupernode){
 					Node nodeLeft = this.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode;
 					Node nodeRight= this.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode;
+					this.childrenSubnodes.get(1).recoverParentSupernodes(expandedNodes);
 					this.childrenSubnodes.get(1).fusion(nodeLeft.childrenSubnodes.get(1),nodeRight.childrenSubnodes.get(1));
 					if(this.childrenSubnodes.get(1).outOfInstance!=null
 						&&this.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode!=null
