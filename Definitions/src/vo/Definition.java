@@ -688,15 +688,15 @@ public class Definition {
 //		for(Node outNode:this.out){
 //			outNode.fusion(expandedNodes);
 //		}
-		for(Node outNode:this.out){
-			outNode.recoverParentSupernodes(expandedNodes);
-		}
+//		for(Node outNode:this.out){
+//			outNode.recoverParentSupernodes(expandedNodes);
+//		}
 		for(Node outNode:this.out){
 			outNode.biFusion();
 		}
-		for(Node outNode:this.out){
-			outNode.prune();
-		}
+//		for(Node outNode:this.out){
+//			outNode.prune();
+//		}
 //		this.update();
 	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
@@ -1354,8 +1354,9 @@ public class Definition {
 		for(ArrayList<Instance> setOfInstances:this.instances){
 			instancesToRemove.addAll(setOfInstances);
 		}
+		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){
-			outNode.replaceNodes(equivalentNode,instancesToRemove);
+			outNode.replaceNodes(expandedNodes, equivalentNode,instancesToRemove);
 		}
 		for(Instance instance:instancesToRemove){
 			this.removeInstance(instance);

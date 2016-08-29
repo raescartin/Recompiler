@@ -93,7 +93,7 @@ public class DefinitionDB {
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
 				definition.clean(equivalentNode);
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
-				definition.fusion();//fusion of nodes 
+//				definition.fusion();//fusion of nodes 
 //				definition.update();
 			}	
 		}else{//definition has recursion
@@ -156,7 +156,7 @@ public class DefinitionDB {
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
 //		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
-		expandedDefinition.fusion();//fusion of nodes 
+//		expandedDefinition.fusion();//fusion of nodes 
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
