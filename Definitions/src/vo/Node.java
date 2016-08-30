@@ -263,7 +263,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 	}
 	public void parentsFission() {
 		if(this.outOfInstance!=null){//out of nand
-			this.nandParentFission();
+			this.biFission();
 		}else{
 			if(!this.parentSubnodes.isEmpty()){
 			//if in of nand has  multiple parents, separate in multiple nands
@@ -276,6 +276,38 @@ private ArrayList<Node> getChildrenSubnodes() {
 		}
 		
 	}
+	private void biFission() {
+			Node in0=this.outOfInstance.in.get(0);
+			Node in1=this.outOfInstance.in.get(1);
+			in0.parentsFission();
+			in1.parentsFission();
+			if(!in0.parentSubnodes.isEmpty()&&!in1.parentSubnodes.isEmpty()&&in0.parentSubnodes.size()==2
+			&&in1.parentSubnodes.size()==2&&this.parentSubnodes.isEmpty()
+			&&in0.parentSubnodes.get(0).parentSupernode==in0.parentSubnodes.get(1).parentSupernode
+			&&in1.parentSubnodes.get(0).parentSupernode==in1.parentSubnodes.get(1).parentSupernode){//Needed?
+				Node newParentSupernode = new Node();
+				newParentSupernode.splitChildrenSubnodes();
+				if(in0.parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==in0.parentSubnodes.get(0)){
+					Node[] nodes0={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(0)};
+					this.definition.add(this.outOfInstance.definition, nodes0);
+					newParentSupernode.childrenSubnodes.get(0).addChildSupernode(this);
+					newParentSupernode.childrenSubnodes.get(0).biFission();
+					Node[] nodes1={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(1)};
+					this.definition.add(this.outOfInstance.definition, nodes1);
+					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
+					newParentSupernode.childrenSubnodes.get(1).biFission();
+				}else{
+					Node[] nodes0={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(1)};
+					this.definition.add(this.outOfInstance.definition, nodes0);
+					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
+					newParentSupernode.childrenSubnodes.get(1).biFission();
+					Node[] nodes1={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(2)};
+					this.definition.add(this.outOfInstance.definition, nodes1);
+					newParentSupernode.childrenSubnodes.get(2).addChildSupernode(this);
+					newParentSupernode.childrenSubnodes.get(2).biFission();
+				}
+			}
+		}
 	private void nandParentFission() {
 		Node in0=this.outOfInstance.in.get(0);
 		Node in1=this.outOfInstance.in.get(1);
@@ -1176,8 +1208,8 @@ private ArrayList<Node> getChildrenSubnodes() {
 				}
 			}else if(this.outOfInstance!=null&&this.parentSubnodes.size()==2
 			&&this.parentSubnodes.get(0).outOfInstance!=null
-			&&this.parentSubnodes.get(0).outOfInstance.in.get(0).parentSupernode!=null
-			&&this.parentSubnodes.get(0).outOfInstance.in.get(0).parentSupernode.childrenSubnodes.get(0)==this.parentSubnodes.get(0).outOfInstance.in.get(0)
+			&&this.parentSubnodes.get(0).parentSupernode!=null
+			&&this.parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==this.parentSubnodes.get(0)
 			&&this.parentSubnodes.get(1).outOfInstance!=null){
 				instancesToRemove.remove(this.outOfInstance);
 				if(equivalentNodes.containsKey(this.outOfInstance.in.get(0))){
@@ -1200,8 +1232,8 @@ private ArrayList<Node> getChildrenSubnodes() {
 				}
 			}else if(this.outOfInstance!=null&&this.parentSubnodes.size()==2
 			&&this.parentSubnodes.get(1).outOfInstance!=null
-			&&this.parentSubnodes.get(1).outOfInstance.in.get(0).parentSupernode!=null
-			&&this.parentSubnodes.get(1).outOfInstance.in.get(0).parentSupernode.childrenSubnodes.get(2)==this.parentSubnodes.get(1).outOfInstance.in.get(0)
+			&&this.parentSubnodes.get(1).parentSupernode!=null
+			&&this.parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.parentSubnodes.get(1)
 			&&this.parentSubnodes.get(0).outOfInstance!=null){
 				instancesToRemove.remove(this.outOfInstance);
 				if(equivalentNodes.containsKey(this.outOfInstance.in.get(0))){
