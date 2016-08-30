@@ -1230,6 +1230,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 				}else{
 					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
 				}
+				this.parentSubnodes.clear();
 			}else if(this.outOfInstance!=null&&this.parentSubnodes.size()==2
 			&&this.parentSubnodes.get(1).outOfInstance!=null
 			&&this.parentSubnodes.get(1).parentSupernode!=null
@@ -1254,6 +1255,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 				}else{
 					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
 				}
+				this.parentSubnodes.clear();
 			}else if(!this.parentSubnodes.isEmpty()){
 				for(int i=0;i<this.parentSubnodes.size();i++){
 					if(equivalentNodes.containsKey(this.parentSubnodes.get(i))){
@@ -1281,6 +1283,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 				}else{
 					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
 				}
+				this.parentSubnodes.clear();
 			}
 		}
 	}

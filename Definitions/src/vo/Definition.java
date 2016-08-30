@@ -676,29 +676,29 @@ public class Definition {
 //			outNode.carryNodeIndexes(inNodes, in0OfInstances,in1OfInstances);
 //		}
 //	}
-	public void fusion() {
-//		HashMap<Node,HashSet<Instance>> inOfNandInstances = new HashMap<Node,HashSet<Instance>>();
+//	public void fusion() {
+////		HashMap<Node,HashSet<Instance>> inOfNandInstances = new HashMap<Node,HashSet<Instance>>();
+////		for(Node outNode:this.out){
+////			outNode.mapInsOfNandInstances(inOfNandInstances);
+////		}
+////		for(Node inNode:this.in){
+////			inNode.triFusion(inOfNandInstances);
+////		}
+//		HashSet<Node> expandedNodes = new HashSet<Node>();
+////		for(Node outNode:this.out){
+////			outNode.fusion(expandedNodes);
+////		}
+////		for(Node outNode:this.out){
+////			outNode.recoverParentSupernodes(expandedNodes);
+////		}
 //		for(Node outNode:this.out){
-//			outNode.mapInsOfNandInstances(inOfNandInstances);
+//			outNode.biFusion();
 //		}
-//		for(Node inNode:this.in){
-//			inNode.triFusion(inOfNandInstances);
-//		}
-		HashSet<Node> expandedNodes = new HashSet<Node>();
-//		for(Node outNode:this.out){
-//			outNode.fusion(expandedNodes);
-//		}
-//		for(Node outNode:this.out){
-//			outNode.recoverParentSupernodes(expandedNodes);
-//		}
-		for(Node outNode:this.out){
-			outNode.biFusion();
-		}
-//		for(Node outNode:this.out){
-//			outNode.prune();
-//		}
-//		this.update();
-	}
+////		for(Node outNode:this.out){
+////			outNode.prune();
+////		}
+////		this.update();
+//	}
 	void mapSupernodeOuts(HashSet<Node> supernodeParents) {
 		for(Node outNode:this.out){
 			outNode.mapSupernodeParents(supernodeParents);
