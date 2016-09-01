@@ -628,45 +628,45 @@ public class Definition {
 			outNode.toNandDefinitions(expandedNodes);
 		}
 	}
-	void expandInstanceToNandInstances(Instance instance) {
-			HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
-			for (int i = 0; i < instance.in.size(); i++) {//map in nodes
-				definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
-				mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
-			}
-			for (int i = 0; i < instance.out.size(); i++) {//map out nodes
-				definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
-				instance.out.get(i).outOfInstance=null;
-				mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
-			}
-
-			for(ArrayList<Instance> setOfInstances:instance.definition.instances){
-				for (Instance definitionInstance : setOfInstances) {
-					ArrayList<Node> nodes = new ArrayList<Node>();
-					for (Node node: definitionInstance.in) {//map in nodes
-						if(definitionToInstanceNodes.containsKey(node)){
-							nodes.add(definitionToInstanceNodes.get(node));
-						}else{
-							Node newNode = new Node();
-							definitionToInstanceNodes.put(node, newNode);
-							nodes.add(newNode);
-							mapParents(newNode,node,definitionToInstanceNodes);
-						}
-					}
-					for (Node node: definitionInstance.out) {//map out nodes
-						if(definitionToInstanceNodes.containsKey(node)){
-							nodes.add(definitionToInstanceNodes.get(node));
-						}else{
-							Node newNode = new Node();
-							definitionToInstanceNodes.put(node, newNode);
-							nodes.add(newNode);
-							mapSubnodeChildren(newNode,node,definitionToInstanceNodes);
-						}
-					}
-					this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
-				}
-			}
-		}
+//	void expandInstanceToNandInstances(Instance instance) {
+//			HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
+//			for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+//				definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
+//				mapSubnodeChildren(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes);
+//			}
+//			for (int i = 0; i < instance.out.size(); i++) {//map out nodes
+//				definitionToInstanceNodes.put(instance.definition.out.get(i), instance.out.get(i));
+//				instance.out.get(i).outOfInstance=null;
+//				mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
+//			}
+//
+//			for(ArrayList<Instance> setOfInstances:instance.definition.instances){
+//				for (Instance definitionInstance : setOfInstances) {
+//					ArrayList<Node> nodes = new ArrayList<Node>();
+//					for (Node node: definitionInstance.in) {//map in nodes
+//						if(definitionToInstanceNodes.containsKey(node)){
+//							nodes.add(definitionToInstanceNodes.get(node));
+//						}else{
+//							Node newNode = new Node();
+//							definitionToInstanceNodes.put(node, newNode);
+//							nodes.add(newNode);
+//							mapParents(newNode,node,definitionToInstanceNodes);
+//						}
+//					}
+//					for (Node node: definitionInstance.out) {//map out nodes
+//						if(definitionToInstanceNodes.containsKey(node)){
+//							nodes.add(definitionToInstanceNodes.get(node));
+//						}else{
+//							Node newNode = new Node();
+//							definitionToInstanceNodes.put(node, newNode);
+//							nodes.add(newNode);
+//							mapSubnodeChildren(newNode,node,definitionToInstanceNodes);
+//						}
+//					}
+//					this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+//				}
+//			}
+//		}
 //	public void fusion() {
 //		HashSet<Node> inNodes = new HashSet<Node>();
 //		HashMap<Node,ArrayList<Instance>> in0OfInstances = new HashMap<Node,ArrayList<Instance>>();
@@ -1002,28 +1002,15 @@ public class Definition {
 		}
 		
 	}
-//	public void flattenParents() {
-//		//POST: flattenParents remove nodes
-//		for(Node outNode:this.out){
-//			outNode.flattenParents();
-//		}
-//	}
 	public void nodeFission() {
-//				this.flattenParents();
-				this.childrenFission();
-//				this.breakSubnodes();//removes link from childrenSubnodes to parent//why is it needed?
 				this.parentsFission();
+				this.childrenFission();
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 		for(Node outNode:this.out){
 			outNode.parentsFission();
 		}
 	}
-//	private void breakSubnodes() {
-//		for(Node outNode:this.out){
-//			outNode.breakSubnodes();
-//		}
-//	}
 	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
 		HashSet<Node> expandedNodes= new HashSet<Node>();
 		for(Node outNode:this.out){
@@ -1130,31 +1117,35 @@ public class Definition {
 //		}
 	}
 	public void expandInstancesMapping(Definition definition,
-			HashMap<Node, Node> expandedToDefinition, ArrayList<Instance> expandedInstances) {
-		//TODO: FIXME if multiple recursive instances of definition
-		ArrayList<Instance> instances = new ArrayList<Instance>();
+			HashMap<Node, Node> expandedToDefinition, ArrayList<Instance> expandedInstances, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
+		//FIXME: should probably be done from out nodes, in order to go top to bottom
 		for(ArrayList<Instance> setOfInstances:this.instances){
-			instances.addAll(setOfInstances);
-		}
-		for(Instance instance : instances){
-			if(instance.definition==definition){//need to expand on previous definition
-				expandedInstances.add(instance);
-				this.expandInstanceMapping(instance,expandedToDefinition);				
+			for(Instance instance : setOfInstances){
+				if(instance.definition==definition){
+					expandedInstances.add(instance);
+				}
 			}
 		}
-		this.replaceDefinition(definition,this);//replace occurrences of originalDefinition to this, for recursion consistency
-//		this.update();
+		for(Instance instance: expandedInstances){
+			this.removeInstance(instance);
+		}
+		for(Instance instance : expandedInstances){
+			this.expandInstanceInstancesMapping(instance,expandedToDefinition,definition,addedNodes, removedInstances);		
+		}
 	}
-	private void expandInstanceMapping(Instance instance,
-			HashMap<Node, Node> expandedToDefinition) {
-		this.removeInstance(instance);
-		this.expandInstanceInstancesMapping(instance,expandedToDefinition);
-		
-	}
+//	private void expandInstanceMapping(Instance instance,
+//			HashMap<Node, Node> expandedToDefinition) {
+//		this.removeInstance(instance);
+//		this.expandInstanceInstancesMapping(instance,expandedToDefinition);
+//		
+//	}
 	private void expandInstanceInstancesMapping(Instance instance,
-			HashMap<Node, Node> expandedToDefinition) {
+			HashMap<Node, Node> expandedToDefinition, Definition definition, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+			instance.in.get(i).parentsFission();
+//			HashSet<Node> expandedNodes= new HashSet<Node>();
+//			instance.in.get(i).childrenFission(expandedNodes);
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
 			expandedToDefinition.put(instance.in.get(i),instance.definition.in.get(i));
 			mapSubnodeChildrenMapping(instance.in.get(i),instance.definition.in.get(i),definitionToInstanceNodes,expandedToDefinition);	
@@ -1190,9 +1181,20 @@ public class Definition {
 						mapSubnodeChildrenMapping(newNode,node,definitionToInstanceNodes,expandedToDefinition);
 					}
 				}
-				this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+				if(definitionInstance.definition==definition){
+					Instance thisInstance=this.add(this,nodes.toArray(new Node[nodes.size()]));
+					this.removeRecursiveInstance(thisInstance,addedNodes,removedInstances);	
+				}else{
+					Instance thisInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
+					if(!definitionInstance.definition.instancesOfRecursiveDefinitions.isEmpty()){
+						this.removeInstance(instance);
+						this.expandRecursiveInstance(instance, addedNodes, removedInstances);
+					}
+				}
 			}
 		}
+//		this.replaceDefinition(definition,this);//replace occurrences of originalDefinition to this, for recursion consistency
+//		this.removeRecursion(addedNodes, removedInstances);
 	}
 	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
 		if(!definitionNode.childrenSubnodes.isEmpty()){

@@ -133,13 +133,12 @@ public class DefinitionDB {
 		ArrayList <Node> recursiveInInstance = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOutInstance = new ArrayList <Node>();
 		ArrayList<Node> nodes = new ArrayList<Node>();
-		ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
 		Definition expandedDefinition = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
 		expandedDefinition.mapNodes(originalNodes);
-		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances);
+		ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
+ 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances,addedNodes, removedInstances);
 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		//to nand
-		expandedDefinition.removeRecursion(addedNodes, removedInstances);
 		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest

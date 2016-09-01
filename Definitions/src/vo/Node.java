@@ -155,10 +155,10 @@ public class Node {
 				if(!this.childrenSubnodes.isEmpty()){
 					this.nandInsFission(expandedNodes);
 					parentLeftIn.childrenFission(expandedNodes);
-					if(parentLeftIn!=parentRightIn)parentRightIn.childrenFission(expandedNodes);
+					parentRightIn.childrenFission(expandedNodes);
 				}else{
 					parentLeftIn.childrenFission(expandedNodes);
-					if(parentLeftIn!=parentRightIn)parentRightIn.childrenFission(expandedNodes);
+					parentRightIn.childrenFission(expandedNodes);
 					if(!parentLeftIn.childrenSubnodes.isEmpty()&&!parentRightIn.childrenSubnodes.isEmpty()){
 						this.nandOutFission();
 					}
@@ -188,18 +188,22 @@ private void nandInsFission(HashSet<Node> expandedNodes) {
 		Node parentRightLeftChild=childrenSubnodes.get(0);
 		Node parentRightMidChild=childrenSubnodes.get(1);
 		Node parentRightRightChild=childrenSubnodes.get(2);
-		Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
-		this.definition.add(this.outOfInstance.definition, nodes0);
-//		this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
-		Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
-		this.definition.add(this.outOfInstance.definition, nodes1);
-//		this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
-		Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
-		this.definition.add(this.outOfInstance.definition, nodes2);
-//		this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
-//		this.definition.removeInstance(this.outOfInstance);
-//		this.outOfInstance=null;
-//		this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+		ArrayList<Node> childSubnodes = this.mapSubnodeChildren();
+		Node leftChild = childSubnodes.get(0);
+		Node midChild = childSubnodes.get(1);
+		Node rightChild = childSubnodes.get(2);
+		if(leftChild.outOfInstance==null){
+			Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,leftChild};
+			this.definition.add(this.outOfInstance.definition, nodes0);
+		}
+		if(midChild.outOfInstance==null){
+			Node[] nodes1={parentLeftMidChild,parentRightMidChild,midChild};
+			this.definition.add(this.outOfInstance.definition, nodes1);
+		}
+		if(rightChild.outOfInstance==null){
+			Node[] nodes2={parentLeftRightChild,parentRightRightChild,rightChild};
+			this.definition.add(this.outOfInstance.definition, nodes2);
+		}
 		if(!this.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
 			this.childrenSubnodes.get(1).nandInsFission(expandedNodes);
 		}
@@ -213,22 +217,48 @@ private void nandOutFission() {
 	Node parentRightLeftChild=parentRightIn.childrenSubnodes.get(0);
 	Node parentRightMidChild=parentRightIn.childrenSubnodes.get(1);
 	Node parentRightRightChild=parentRightIn.childrenSubnodes.get(2);
-	this.splitChildrenSubnodes();
-	Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,this.childrenSubnodes.get(0)};
-	this.definition.add(this.outOfInstance.definition, nodes0);
-//	this.childrenSubnodes.get(0).parents.clear();// break children subnodes from now non-existant node
-	Node[] nodes1={parentLeftMidChild,parentRightMidChild,this.childrenSubnodes.get(1)};
-	this.definition.add(this.outOfInstance.definition, nodes1);
-//	this.childrenSubnodes.get(1).parents.clear();// break children subnodes from now non-existant node
-	Node[] nodes2={parentLeftRightChild,parentRightRightChild,this.childrenSubnodes.get(2)};
-	this.definition.add(this.outOfInstance.definition, nodes2);
-//	this.childrenSubnodes.get(2).parents.clear();// break children subnodes from now non-existant node
-//	this.definition.removeInstance(this.outOfInstance);
-//	this.outOfInstance=null;
-//	this.definition.nodes.remove(this);//remove node form definition, since instance plsit in subnodes
+	ArrayList<Node> childSubnodes = this.mapSubnodeChildren();
+	Node leftChild = childSubnodes.get(0);
+	Node midChild = childSubnodes.get(1);
+	Node rightChild = childSubnodes.get(2);
+	if(leftChild.outOfInstance==null){
+		Node[] nodes0={parentLeftLeftChild,parentRightLeftChild,leftChild};
+		this.definition.add(this.outOfInstance.definition, nodes0);
+	}
+	if(midChild.outOfInstance==null){
+		Node[] nodes1={parentLeftMidChild,parentRightMidChild,midChild};
+		this.definition.add(this.outOfInstance.definition, nodes1);
+	}
+	if(rightChild.outOfInstance==null){
+		Node[] nodes2={parentLeftRightChild,parentRightRightChild,rightChild};
+		this.definition.add(this.outOfInstance.definition, nodes2);
+	}
 	if(!parentLeftIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()&&!parentRightIn.childrenSubnodes.get(1).childrenSubnodes.isEmpty()){
 		this.childrenSubnodes.get(1).nandOutFission();
 	}
+}
+private ArrayList<Node> mapSubnodeChildren() {
+	Node leftChild;
+	Node midChild;
+	Node rightChild;
+	if(this.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
+		this.splitChildrenSubnodes();
+		leftChild=this.childrenSubnodes.get(0);
+		midChild=this.childrenSubnodes.get(1);
+		rightChild=this.childrenSubnodes.get(2);
+	}else{
+		midChild = new Node();
+		leftChild= this.parentSubnodes.get(0).findLeftChild(midChild);
+		for(int i=1;i<this.parentSubnodes.size()-1;i++){
+			this.parentSubnodes.get(i).addChildSupernode(midChild);
+		}
+		rightChild = this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(midChild);
+	}
+	ArrayList<Node> childSubnodes = new ArrayList<Node>();
+	childSubnodes.add(leftChild);
+	childSubnodes.add(midChild);
+	childSubnodes.add(rightChild);
+	return childSubnodes;
 }
 private ArrayList<Node> getChildrenSubnodes() {
 		//Must return an array of childrenSubnodes, since they are a representation of it's children,
@@ -284,7 +314,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 			if(!in0.parentSubnodes.isEmpty()&&!in1.parentSubnodes.isEmpty()&&in0.parentSubnodes.size()==2
 			&&in1.parentSubnodes.size()==2&&this.parentSubnodes.isEmpty()
 			&&in0.parentSubnodes.get(0).parentSupernode==in0.parentSubnodes.get(1).parentSupernode
-			&&in1.parentSubnodes.get(0).parentSupernode==in1.parentSubnodes.get(1).parentSupernode){//Needed?
+			&&in1.parentSubnodes.get(0).parentSupernode==in1.parentSubnodes.get(1).parentSupernode){
 				Node newParentSupernode = new Node();
 				newParentSupernode.splitChildrenSubnodes();
 				if(in0.parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==in0.parentSubnodes.get(0)){
@@ -292,7 +322,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 					this.definition.add(this.outOfInstance.definition, nodes0);
 					newParentSupernode.childrenSubnodes.get(0).addChildSupernode(this);
 					newParentSupernode.childrenSubnodes.get(0).biFission();
-					Node[] nodes1={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(1)};
+					Node[] nodes1={in0.parentSubnodes.get(1),in1.parentSubnodes.get(1),newParentSupernode.childrenSubnodes.get(1)};
 					this.definition.add(this.outOfInstance.definition, nodes1);
 					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
 					newParentSupernode.childrenSubnodes.get(1).biFission();
@@ -301,31 +331,31 @@ private ArrayList<Node> getChildrenSubnodes() {
 					this.definition.add(this.outOfInstance.definition, nodes0);
 					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
 					newParentSupernode.childrenSubnodes.get(1).biFission();
-					Node[] nodes1={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),newParentSupernode.childrenSubnodes.get(2)};
+					Node[] nodes1={in0.parentSubnodes.get(1),in1.parentSubnodes.get(1),newParentSupernode.childrenSubnodes.get(2)};
 					this.definition.add(this.outOfInstance.definition, nodes1);
 					newParentSupernode.childrenSubnodes.get(2).addChildSupernode(this);
 					newParentSupernode.childrenSubnodes.get(2).biFission();
 				}
 			}
 		}
-	private void nandParentFission() {
-		Node in0=this.outOfInstance.in.get(0);
-		Node in1=this.outOfInstance.in.get(1);
-		in0.parentsFission();
-		in1.parentsFission();
-		if(!in0.parentSubnodes.isEmpty()||!in1.parentSubnodes.isEmpty()){
-			if(in0.parentSubnodes.size()==in1.parentSubnodes.size()&&this.parentSubnodes.isEmpty()){//Needed?
-				for(int i=0;i<in0.parentSubnodes.size();i++){//should be recursive into parents
-					Node newNode = new Node();
-					Node[] nodes={in0.parentSubnodes.get(i),in1.parentSubnodes.get(i),newNode};
-					this.definition.add(this.outOfInstance.definition, nodes);
-					newNode.addChildSupernode(this);
-					newNode.nandParentFission();
-				}
-//				this.definition.removeInstance(this.outOfInstance);
-			}
-		}
-	}
+//	private void nandParentFission() {
+//		Node in0=this.outOfInstance.in.get(0);
+//		Node in1=this.outOfInstance.in.get(1);
+//		in0.parentsFission();
+//		in1.parentsFission();
+//		if(!in0.parentSubnodes.isEmpty()||!in1.parentSubnodes.isEmpty()){
+//			if(in0.parentSubnodes.size()==in1.parentSubnodes.size()&&this.parentSubnodes.isEmpty()){//Needed?
+//				for(int i=0;i<in0.parentSubnodes.size();i++){//should be recursive into parents
+//					Node newNode = new Node();
+//					Node[] nodes={in0.parentSubnodes.get(i),in1.parentSubnodes.get(i),newNode};
+//					this.definition.add(this.outOfInstance.definition, nodes);
+//					newNode.addChildSupernode(this);
+//					newNode.nandParentFission();
+//				}
+////				this.definition.removeInstance(this.outOfInstance);
+//			}
+//		}
+//	}
 //	public ArrayList<Node> flattenParents() {//needed?
 //		ArrayList<Node> nodes = new ArrayList<Node>();
 //		if(this.parents.size()==0){
