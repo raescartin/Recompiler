@@ -1198,35 +1198,21 @@ public class Definition {
 	}
 	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
 		if(!definitionNode.childrenSubnodes.isEmpty()){
-			Node leftChild;
-			Node midChild;
-			Node rightChild;
-			if(node.childrenSubnodes.isEmpty()){
-				if(node.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
-					node.splitChildrenSubnodes();
-					leftChild=node.childrenSubnodes.get(0);
-					midChild=node.childrenSubnodes.get(1);
-					rightChild=node.childrenSubnodes.get(2);
-				}else{
-					midChild = new Node();
-					leftChild= node.parentSubnodes.get(0).findLeftChild(midChild);
-					for(int i=1;i<node.parentSubnodes.size()-1;i++){
-						node.parentSubnodes.get(i).addChildSupernode(midChild);
-					}
-					rightChild = node.parentSubnodes.get(node.parentSubnodes.size()-1).findRightChild(midChild);
+			node.splitChildrenSubnodes();
+			if(!node.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
+				node.parentSubnodes.get(0).findLeftChild(node.childrenSubnodes.get(1)).addChildSupernode(node.childrenSubnodes.get(0));
+				for(int i=1;i<node.parentSubnodes.size()-1;i++){
+					node.parentSubnodes.get(i).addChildSupernode(node.childrenSubnodes.get(1));
 				}
-			}else{
-				leftChild=node.childrenSubnodes.get(0);
-				midChild=node.childrenSubnodes.get(1);
-				rightChild=node.childrenSubnodes.get(2);
+				node.parentSubnodes.get(node.parentSubnodes.size()-1).findRightChild(node.childrenSubnodes.get(1)).addChildSupernode(node.childrenSubnodes.get(2));
 			}
-			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(0),leftChild);	
-			expandedToDefinition.put(leftChild,definitionNode.childrenSubnodes.get(0));
-			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(1),midChild);	
-			expandedToDefinition.put(midChild,definitionNode.childrenSubnodes.get(1));
-			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(2),rightChild);	
-			expandedToDefinition.put(rightChild,definitionNode.childrenSubnodes.get(2));
-			mapSubnodeChildrenMapping(midChild, definitionNode.childrenSubnodes.get(1),definitionToInstanceNodes, expandedToDefinition);
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(0),node.childrenSubnodes.get(0));	
+			expandedToDefinition.put(node.childrenSubnodes.get(0),definitionNode.childrenSubnodes.get(0));
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(1),node.childrenSubnodes.get(1));	
+			expandedToDefinition.put(node.childrenSubnodes.get(1),definitionNode.childrenSubnodes.get(1));
+			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(2),node.childrenSubnodes.get(2));	
+			expandedToDefinition.put(node.childrenSubnodes.get(2),definitionNode.childrenSubnodes.get(2));
+			mapSubnodeChildrenMapping(node.childrenSubnodes.get(1), definitionNode.childrenSubnodes.get(1),definitionToInstanceNodes, expandedToDefinition);
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {

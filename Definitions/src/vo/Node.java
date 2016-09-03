@@ -49,20 +49,25 @@ public class Node {
 		//-if a node is both in and out, there's no need to optimize it, nor take it to nandForest
 		//-nand ins maybe set before toNands
 		//-using "indexOf(this) seems unreliable
+		
 		NandNode nandNode;
-		if(nodeToNand.containsKey(this)){//this map is to keep track of evaluated nodes
-			nandNode=nodeToNand.get(this);//evaluated node
-		}else{//node is out of an instance of NAND definition
-			Node node1=this.outOfInstance.in.get(0);
-			Node node2=this.outOfInstance.in.get(1);
-			NandNode nandNode1=node1.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
-			NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
-			nandNode=nandForest.add(nandNode1,nandNode2);
-			nodeToNand.put(this, nandNode);
-			if(nandToNode.containsKey(nandNode)){
-				equivalentNode.put(this,nandToNode.get(nandNode));
-			}else{
-				nandToNode.put(nandNode, this);
+		if(this.parentSubnodes.size()==1){
+			nandNode=this.parentSubnodes.get(0).toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+		}else{
+			if(nodeToNand.containsKey(this)){//this map is to keep track of evaluated nodes
+				nandNode=nodeToNand.get(this);//evaluated node
+			}else{//node is out of an instance of NAND definition
+				Node node1=this.outOfInstance.in.get(0);
+				Node node2=this.outOfInstance.in.get(1);
+				NandNode nandNode1=node1.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
+				NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
+				nandNode=nandForest.add(nandNode1,nandNode2);
+				nodeToNand.put(this, nandNode);
+				if(nandToNode.containsKey(nandNode)){
+					equivalentNode.put(this,nandToNode.get(nandNode));
+				}else{
+					nandToNode.put(nandNode, this);
+				}
 			}
 		}
 		return nandNode;
@@ -70,7 +75,7 @@ public class Node {
 	public String toString() {
 		String string = new String();
 		if(this.parentSupernode!=null){
-			string+=this.parentSupernode.toString();
+			string+=this.parentSupernode.idForDefinition;//replace with string+=this.parentSupernode.toString(); for more detail
 			string+="{";
 			string+=this.parentSupernode.childrenSubnodes.indexOf(this);
 			string+="}";
