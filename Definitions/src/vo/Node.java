@@ -75,7 +75,7 @@ public class Node {
 	public String toString() {
 		String string = new String();
 		if(this.parentSupernode!=null){
-			string+=this.parentSupernode.idForDefinition;//replace with string+=this.parentSupernode.toString(); for more detail
+			string+=this.parentSupernode.toString();
 			string+="{";
 			string+=this.parentSupernode.childrenSubnodes.indexOf(this);
 			string+="}";
@@ -141,13 +141,20 @@ public class Node {
 	public void splitChildrenSubnodes() {
 		//split in 3 children/subnodes
 		if(this.childrenSubnodes.isEmpty()){
-				Node leftNode = new Node();
-				Node centerNode = new Node();
-				Node rightNode = new Node();
-				this.addChildSubnode(leftNode);
-				this.addChildSubnode(centerNode);
-				this.addChildSubnode(rightNode);
+			Node leftNode = new Node();
+			Node centerNode = new Node();
+			Node rightNode = new Node();
+			this.addChildSubnode(leftNode);
+			this.addChildSubnode(centerNode);
+			this.addChildSubnode(rightNode);
 		}
+		if(!this.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
+			this.parentSubnodes.get(0).findLeftChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(0));
+			for(int i=1;i<this.parentSubnodes.size()-1;i++){
+				this.parentSubnodes.get(i).addChildSupernode(this.childrenSubnodes.get(1));
+			}
+			this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(2));
+		}	
 	}
 	public void childrenFission(HashSet<Node> expandedNodes) {
 		//if out of nand has  children subnodes, separate in multiple nands
@@ -184,15 +191,14 @@ private void nandInsFission(HashSet<Node> expandedNodes) {
 		expandedNodes.add(this);
 		Node parentLeftIn=this.outOfInstance.in.get(0);
 		Node parentRightIn=this.outOfInstance.in.get(1);
-		ArrayList<Node> childrenSubnodes;
-		childrenSubnodes=parentLeftIn.getChildrenSubnodes();
-		Node parentLeftLeftChild=childrenSubnodes.get(0);
-		Node parentLeftMidChild=childrenSubnodes.get(1);
-		Node parentLeftRightChild=childrenSubnodes.get(2);
-		childrenSubnodes=parentRightIn.getChildrenSubnodes();
-		Node parentRightLeftChild=childrenSubnodes.get(0);
-		Node parentRightMidChild=childrenSubnodes.get(1);
-		Node parentRightRightChild=childrenSubnodes.get(2);
+		parentLeftIn.splitChildrenSubnodes();
+		Node parentLeftLeftChild=parentLeftIn.childrenSubnodes.get(0);
+		Node parentLeftMidChild=parentLeftIn.childrenSubnodes.get(1);
+		Node parentLeftRightChild=parentLeftIn.childrenSubnodes.get(2);
+		parentRightIn.splitChildrenSubnodes();
+		Node parentRightLeftChild=parentRightIn.childrenSubnodes.get(0);
+		Node parentRightMidChild=parentRightIn.childrenSubnodes.get(1);
+		Node parentRightRightChild=parentRightIn.childrenSubnodes.get(2);
 		ArrayList<Node> childSubnodes = this.mapSubnodeChildren();
 		Node leftChild = childSubnodes.get(0);
 		Node midChild = childSubnodes.get(1);
@@ -265,37 +271,37 @@ private ArrayList<Node> mapSubnodeChildren() {
 	childSubnodes.add(rightChild);
 	return childSubnodes;
 }
-private ArrayList<Node> getChildrenSubnodes() {
-		//Must return an array of childrenSubnodes, since they are a representation of it's children,
-		//not necessarily it's children
-		ArrayList<Node> childrenSubnodes = new ArrayList<Node>();
-		if(!this.parentSubnodes.isEmpty()){
-			Node leftSubnode;
-			Node midSubnode;
-			Node rightSubnode;
-			midSubnode=new Node();
-			leftSubnode=this.parentSubnodes.get(0).findLeftChild(midSubnode);
-			for(int i=1;i<this.parentSubnodes.size()-1;i++){
-				this.parentSubnodes.get(i).addChildSupernode(midSubnode);
-			}
-			rightSubnode=this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(midSubnode);
-			childrenSubnodes.add(leftSubnode);
-			childrenSubnodes.add(midSubnode);
-			childrenSubnodes.add(rightSubnode);
-		}else if(this.parentSupernode!=null){//can't be an indivisible node //NEEDED?
-			Node parentMidNode = this.parentSupernode.getChildrenSubnodes().get(1);
-			if(parentMidNode==this){
-				this.splitChildrenSubnodes();
-				childrenSubnodes=this.childrenSubnodes;
-			}else{
-				childrenSubnodes=parentMidNode.getChildrenSubnodes();
-			}
-		}else{
-			this.splitChildrenSubnodes();
-			childrenSubnodes=this.childrenSubnodes;
-		}
-		return childrenSubnodes;
-	}
+//private ArrayList<Node> getChildrenSubnodes() {
+//		//Must return an array of childrenSubnodes, since they are a representation of it's children,
+//		//not necessarily it's children
+//		ArrayList<Node> childrenSubnodes = new ArrayList<Node>();
+//		if(!this.parentSubnodes.isEmpty()){
+//			Node leftSubnode;
+//			Node midSubnode;
+//			Node rightSubnode;
+//			midSubnode=new Node();
+//			leftSubnode=this.parentSubnodes.get(0).findLeftChild(midSubnode);
+//			for(int i=1;i<this.parentSubnodes.size()-1;i++){
+//				this.parentSubnodes.get(i).addChildSupernode(midSubnode);
+//			}
+//			rightSubnode=this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(midSubnode);
+//			childrenSubnodes.add(leftSubnode);
+//			childrenSubnodes.add(midSubnode);
+//			childrenSubnodes.add(rightSubnode);
+//		}else if(this.parentSupernode!=null){//can't be an indivisible node //NEEDED?
+//			Node parentMidNode = this.parentSupernode.getChildrenSubnodes().get(1);
+//			if(parentMidNode==this){
+//				this.splitChildrenSubnodes();
+//				childrenSubnodes=this.childrenSubnodes;
+//			}else{
+//				childrenSubnodes=parentMidNode.getChildrenSubnodes();
+//			}
+//		}else{
+//			this.splitChildrenSubnodes();
+//			childrenSubnodes=this.childrenSubnodes;
+//		}
+//		return childrenSubnodes;
+//	}
 	public void parentsFission() {
 		if(this.outOfInstance!=null){//out of nand
 			this.biFission();
@@ -988,7 +994,6 @@ private ArrayList<Node> getChildrenSubnodes() {
 				//indivisible node
 				leftChild=this;
 			}else{
-				this.childrenSubnodes=this.getChildrenSubnodes();
 				leftChild=this.childrenSubnodes.get(0);
 				this.childrenSubnodes.get(1).addChildSupernode(midChild);
 				this.childrenSubnodes.get(2).addChildSupernode(midChild);
@@ -1013,7 +1018,7 @@ private ArrayList<Node> getChildrenSubnodes() {
 				//indivisible node
 				rightChild=this;
 			}else{
-				this.childrenSubnodes=this.getChildrenSubnodes();
+				this.splitChildrenSubnodes();
 				this.childrenSubnodes.get(0).addChildSupernode(midChild);
 				this.childrenSubnodes.get(1).addChildSupernode(midChild);
 				rightChild=this.childrenSubnodes.get(2);

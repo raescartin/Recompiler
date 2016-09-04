@@ -1199,13 +1199,6 @@ public class Definition {
 	private void mapSubnodeChildrenMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
 		if(!definitionNode.childrenSubnodes.isEmpty()){
 			node.splitChildrenSubnodes();
-			if(!node.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
-				node.parentSubnodes.get(0).findLeftChild(node.childrenSubnodes.get(1)).addChildSupernode(node.childrenSubnodes.get(0));
-				for(int i=1;i<node.parentSubnodes.size()-1;i++){
-					node.parentSubnodes.get(i).addChildSupernode(node.childrenSubnodes.get(1));
-				}
-				node.parentSubnodes.get(node.parentSubnodes.size()-1).findRightChild(node.childrenSubnodes.get(1)).addChildSupernode(node.childrenSubnodes.get(2));
-			}
 			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(0),node.childrenSubnodes.get(0));	
 			expandedToDefinition.put(node.childrenSubnodes.get(0),definitionNode.childrenSubnodes.get(0));
 			definitionToInstanceNodes.put(definitionNode.childrenSubnodes.get(1),node.childrenSubnodes.get(1));	
