@@ -149,11 +149,17 @@ public class Node {
 			this.addChildSubnode(rightNode);
 		}
 		if(!this.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
-			this.parentSubnodes.get(0).findLeftChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(0));
-			for(int i=1;i<this.parentSubnodes.size()-1;i++){
-				this.parentSubnodes.get(i).addChildSupernode(this.childrenSubnodes.get(1));
+			if(this.childrenSubnodes.get(0).parentSubnodes.isEmpty()){
+				this.parentSubnodes.get(0).findLeftChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(0));
 			}
-			this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(2));
+			if(this.childrenSubnodes.get(1).parentSubnodes.isEmpty()){
+				for(int i=1;i<this.parentSubnodes.size()-1;i++){
+					this.parentSubnodes.get(i).addChildSupernode(this.childrenSubnodes.get(1));
+				}
+			}
+			if(this.childrenSubnodes.get(2).parentSubnodes.isEmpty()){
+				this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(2));
+			}
 		}	
 	}
 	public void childrenFission(HashSet<Node> expandedNodes) {
@@ -994,6 +1000,7 @@ private ArrayList<Node> mapSubnodeChildren() {
 				//indivisible node
 				leftChild=this;
 			}else{
+				this.splitChildrenSubnodes();
 				leftChild=this.childrenSubnodes.get(0);
 				this.childrenSubnodes.get(1).addChildSupernode(midChild);
 				this.childrenSubnodes.get(2).addChildSupernode(midChild);
