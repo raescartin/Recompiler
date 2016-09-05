@@ -140,27 +140,29 @@ public class Node {
 	}
 	public void splitChildrenSubnodes() {
 		//split in 3 children/subnodes
-		if(this.childrenSubnodes.isEmpty()){
-			Node leftNode = new Node();
-			Node centerNode = new Node();
-			Node rightNode = new Node();
-			this.addChildSubnode(leftNode);
-			this.addChildSubnode(centerNode);
-			this.addChildSubnode(rightNode);
-		}
-		if(!this.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
-			if(this.childrenSubnodes.get(0).parentSubnodes.isEmpty()){
-				this.parentSubnodes.get(0).findLeftChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(0));
+		if((this.parentSupernode!=null&&this.parentSupernode.childrenSubnodes.get(1)==this)||this.parentSupernode==null){//exclude indivisible nodes
+			if(this.childrenSubnodes.isEmpty()){
+				Node leftNode = new Node();
+				Node centerNode = new Node();
+				Node rightNode = new Node();
+				this.addChildSubnode(leftNode);
+				this.addChildSubnode(centerNode);
+				this.addChildSubnode(rightNode);
 			}
-			if(this.childrenSubnodes.get(1).parentSubnodes.isEmpty()){
-				for(int i=1;i<this.parentSubnodes.size()-1;i++){
-					this.parentSubnodes.get(i).addChildSupernode(this.childrenSubnodes.get(1));
+			if(!this.parentSubnodes.isEmpty()){ //if(node.parentSupernode!=null) ok ?
+				if(this.childrenSubnodes.get(0).parentSubnodes.isEmpty()){
+					this.parentSubnodes.get(0).findLeftChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(0));
 				}
-			}
-			if(this.childrenSubnodes.get(2).parentSubnodes.isEmpty()){
-				this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(2));
-			}
-		}	
+				if(this.childrenSubnodes.get(1).parentSubnodes.isEmpty()){
+					for(int i=1;i<this.parentSubnodes.size()-1;i++){
+						this.parentSubnodes.get(i).addChildSupernode(this.childrenSubnodes.get(1));
+					}
+				}
+				if(this.childrenSubnodes.get(2).parentSubnodes.isEmpty()){
+					this.parentSubnodes.get(this.parentSubnodes.size()-1).findRightChild(this.childrenSubnodes.get(1)).addChildSupernode(this.childrenSubnodes.get(2));
+				}
+			}	
+		}
 	}
 	public void childrenFission(HashSet<Node> expandedNodes) {
 		//if out of nand has  children subnodes, separate in multiple nands
@@ -319,6 +321,7 @@ private ArrayList<Node> mapSubnodeChildren() {
 				}
 			}else if(this.parentSupernode!=null){
 				this.parentSupernode.parentsFission();
+				this.parentSupernode.splitChildrenSubnodes();
 			}
 		}
 		
