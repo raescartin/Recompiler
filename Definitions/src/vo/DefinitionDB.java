@@ -87,7 +87,7 @@ public class DefinitionDB {
 //				nodeIO.addAll(definition.in);
 //				nodeIO.addAll(definition.out);
 				definition.toNandInstances();
-				definition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+				definition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 //				definition.mapFission(nodeIO);
 				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
@@ -139,7 +139,7 @@ public class DefinitionDB {
  		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances,addedNodes, removedInstances);
 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		//to nand
-		expandedDefinition.nodeFission();//fission of nodes to minimum size needed, also removes redundant subnodes
+		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
 //		for(NandNode nandNode:nandToNodes.keySet()){

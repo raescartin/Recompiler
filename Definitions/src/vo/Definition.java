@@ -333,7 +333,7 @@ public class Definition {
 		String strCost = new String();
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			copyDef.toNandInstances();
-			copyDef.nodeFission();
+			copyDef.fission();
 			int iterationCost=copyDef.instances.size();
 			strCost=String.valueOf(iterationCost);
 		}else{
@@ -346,7 +346,7 @@ public class Definition {
 			copyDef.instancesOfRecursiveDefinitions.clear();
 			copyDef.removeRecursion(addedNodes, removedInstances);
 			copyDef.toNandInstances();
-			copyDef.nodeFission();
+			copyDef.fission();
 			int iterationCost=copyDef.instances.size();
 			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
 			if(this.selfRecursiveInstances.isEmpty()){
@@ -375,7 +375,7 @@ public class Definition {
 		String strCost = new String();
 		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			copyDef.toNandInstances();
-			copyDef.nodeFission();
+			copyDef.fission();
 			int iterationCost=0;
 			for(ArrayList<Instance> instanceHashSet:this.instances){
 				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
@@ -393,7 +393,7 @@ public class Definition {
 			copyDef.instancesOfRecursiveDefinitions.clear();
 			copyDef.removeRecursion(addedNodes, removedInstances);
 			copyDef.toNandInstances();
-			copyDef.nodeFission();
+			copyDef.fission();
 			int iterationCost=0;
 			for(ArrayList<Instance> instanceHashSet:this.instances){
 				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
@@ -1002,21 +1002,30 @@ public class Definition {
 		}
 		
 	}
-	public void nodeFission() {
-				this.parentsFission();
-				this.childrenFission();
+	public void fission() {
+//				this.parentsFission();
+//				this.childrenFission();
+		for(Node outNode:this.out){
+			outNode.expandBinodes();
+		}
+		for(Node outNode:this.out){
+			outNode.childrenFission();
+		}
+		for(Node outNode:this.out){
+			outNode.biFission();
+		}
 	}
 	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 		for(Node outNode:this.out){
 			outNode.parentsFission();
 		}
 	}
-	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
-		HashSet<Node> expandedNodes= new HashSet<Node>();
-		for(Node outNode:this.out){
-			outNode.childrenFission(expandedNodes);
-		}
-	}
+//	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
+//		HashSet<Node> expandedNodes= new HashSet<Node>();
+//		for(Node outNode:this.out){
+//			outNode.childrenFission(expandedNodes);
+//		}
+//	}
 	public Definition copyMapping(
 			HashMap<Node, Node> nodeToCopy, HashMap<Node, Node> copyToNode) {
 		HashMap<Instance,Instance> instanceToCopy = new HashMap<Instance,Instance>();
@@ -1143,7 +1152,8 @@ public class Definition {
 			HashMap<Node, Node> expandedToDefinition, Definition definition, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
-			instance.in.get(i).parentsFission();
+			instance.in.get(i).expandBinodes();
+			instance.in.get(i).childrenFission();
 //			HashSet<Node> expandedNodes= new HashSet<Node>();
 //			instance.in.get(i).childrenFission(expandedNodes);
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
