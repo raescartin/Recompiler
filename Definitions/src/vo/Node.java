@@ -1503,14 +1503,14 @@ private void nandOutFission() {
 						}else{
 							this.outOfInstance.in.get(1).parentSubnodes.get(0).splitChildrenSubnodes();
 							this.outOfInstance.in.get(0).parentSubnodes.get(1).splitChildrenSubnodes();
-							this.parentSubnodes.get(1).splitChildrenSubnodes();
-							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(0),this.parentSubnodes.get(0)};
+							this.parentSubnodes.get(0).splitChildrenSubnodes();
+							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(0),this.parentSubnodes.get(0).childrenSubnodes.get(0)};
 							this.definition.add(this.outOfInstance.definition, nodes0);
-							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(1),this.parentSubnodes.get(1).childrenSubnodes.get(0)};
+							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(1),this.parentSubnodes.get(0).childrenSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes1);
-							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(2),this.parentSubnodes.get(1).childrenSubnodes.get(1)};
+							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(0).childrenSubnodes.get(2),this.parentSubnodes.get(0).childrenSubnodes.get(2)};
 							this.definition.add(this.outOfInstance.definition, nodes2);
-							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1).childrenSubnodes.get(2)};
+							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes3);
 						}
 //					}
@@ -1527,14 +1527,14 @@ private void nandOutFission() {
 						}else{
 							this.outOfInstance.in.get(0).parentSubnodes.get(0).splitChildrenSubnodes();
 							this.outOfInstance.in.get(1).parentSubnodes.get(1).splitChildrenSubnodes();
-							this.parentSubnodes.get(1).splitChildrenSubnodes();
-							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+							this.parentSubnodes.get(0).splitChildrenSubnodes();
+							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0).childrenSubnodes.get(0)};
 							this.definition.add(this.outOfInstance.definition, nodes0);
-							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(0),this.parentSubnodes.get(1).childrenSubnodes.get(0)};
+							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(0),this.parentSubnodes.get(0).childrenSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes1);
-							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(1),this.parentSubnodes.get(1).childrenSubnodes.get(1)};
+							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(0).childrenSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(1),this.parentSubnodes.get(0).childrenSubnodes.get(2)};
 							this.definition.add(this.outOfInstance.definition, nodes2);
-							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(2),this.parentSubnodes.get(1).childrenSubnodes.get(2)};
+							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(2),this.parentSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes3);
 						}
 //					}
