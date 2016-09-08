@@ -140,7 +140,11 @@ public class Definition {
 			this.add(node);	
 		}
 		Instance instance = new Instance();//node == instance of a definition
-		instance.in = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
+		ArrayList<Node> inNodes = new ArrayList<Node>(Arrays.asList(nodes).subList(0, def.in.size()));
+		instance.in = inNodes;
+//		for(Node inNode:inNodes){
+//			instance.in.add(inNode.equivalentNode());
+//		}
 		instance.out = new ArrayList<Node>(Arrays.asList(nodes).subList(def.in.size(), def.in.size()+def.out.size()));
 		instance.definition=def;
 		this.add(instance);

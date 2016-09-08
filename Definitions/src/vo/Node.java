@@ -1427,6 +1427,9 @@ private void nandOutFission() {
 		}
 	}
 	public void expandBinodes(){
+		if(this.parentSupernode!=null){
+			this.parentSupernode.expandBinodes();
+		}
 		for(Node parentSubnode:this.parentSubnodes){
 			parentSubnode.expandBinodes();
 		}
@@ -1456,6 +1459,9 @@ private void nandOutFission() {
 	}
 
 	public void biFission() {
+		if(this.parentSupernode!=null){
+			this.parentSupernode.biFission();
+		}
 		for(Node parentSubnode:this.parentSubnodes){
 			parentSubnode.biFission();
 		}
@@ -1534,5 +1540,14 @@ private void nandOutFission() {
 				}
 			}
 		}
+	}
+	public Node equivalentNode() {
+		Node node;
+		if(this.parentSubnodes.size()==1){
+			node = this.parentSubnodes.get(0).equivalentNode();
+		}else{
+			node = this;
+		}
+		return node;
 	}
 }
