@@ -1429,6 +1429,7 @@ private void nandOutFission() {
 	public void expandBinodes(){
 		if(this.parentSupernode!=null){
 			this.parentSupernode.expandBinodes();
+			this.parentSupernode.splitChildrenSubnodes();
 		}
 		for(Node parentSubnode:this.parentSubnodes){
 			parentSubnode.expandBinodes();

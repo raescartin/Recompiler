@@ -1156,8 +1156,8 @@ public class Definition {
 			HashMap<Node, Node> expandedToDefinition, Definition definition, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
-			instance.in.get(i).expandBinodes();
-			instance.in.get(i).childrenFission();
+//			instance.in.get(i).expandBinodes();
+//			instance.in.get(i).childrenFission();
 //			HashSet<Node> expandedNodes= new HashSet<Node>();
 //			instance.in.get(i).childrenFission(expandedNodes);
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
