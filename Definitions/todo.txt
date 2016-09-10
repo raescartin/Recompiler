@@ -12,6 +12,7 @@
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-there exist two types of equivalent/redundant subnodes, both exist on a Definition structure: logical equivalent nodes, found with NandForest, and subnode equivalent, processed.
 -removed orderedTreeSet for each level of instances in order to prevent concurrent modification (ordered key instances are different from modified ones)
 -need to keep the fissed instance instead of removing
 -fix fusion by just removing fissed instances to resurface old fused ones

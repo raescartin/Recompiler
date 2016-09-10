@@ -21,6 +21,7 @@ import utils.FixedBitSet;
 //	-Nand is the basic definition
 //-Definitions may be recursive and ARE TURING COMPLETE (equivalent to algorithms)
 //-Definitions don't accept duplicate instances, via a tree set
+//-there exist two types of equivalent/redundant subnodes, both exist on a Definition structure: logical equivalent nodes, found with NandForest, and subnode equivalent, processed.
 //PRE: all inputs(and in consequence outputs) of a nand definition must be of the same size
 
 
@@ -1019,11 +1020,11 @@ public class Definition {
 			outNode.biFission();
 		}
 	}
-	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
-		for(Node outNode:this.out){
-			outNode.parentsFission();
-		}
-	}
+//	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
+//		for(Node outNode:this.out){
+//			outNode.parentsFission();
+//		}
+//	}
 //	private void childrenFission() {//Fission of nodes with children subnodes as out of nand instances
 //		HashSet<Node> expandedNodes= new HashSet<Node>();
 //		for(Node outNode:this.out){

@@ -973,7 +973,8 @@ private void nandOutFission() {
 							depth=parentDepth;
 						}
 					}
-				}else if(this.parentSupernode!=null){
+				}
+				if(this.parentSupernode!=null){
 					int parentDepth=this.parentSupernode.getDepth(evaluatedNodes);
 					if(parentDepth>depth){
 						depth=parentDepth;
@@ -1408,6 +1409,11 @@ private void nandOutFission() {
 				if(this.parentSupernode.childrenSubnodes.get(0).outOfInstance==null){
 					Node[] nodes0={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(0)};
 					this.definition.add(this.parentSupernode.outOfInstance.definition, nodes0);
+					if(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0).parentSubnodes.size()==1&&this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0).parentSubnodes.size()==1&&this.parentSupernode.childrenSubnodes.get(0).parentSubnodes.size()==1){
+						Node[] nodes0b={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0).parentSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0).parentSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(0).parentSubnodes.get(0)};
+						this.definition.add(this.parentSupernode.outOfInstance.definition, nodes0b);
+						//TODO: recursive?
+					}
 				}
 				if(this.parentSupernode.childrenSubnodes.get(1).outOfInstance==null){
 					Node[] nodes1={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(1),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(1),this.parentSupernode.childrenSubnodes.get(1)};
@@ -1416,7 +1422,11 @@ private void nandOutFission() {
 				if(this.parentSupernode.childrenSubnodes.get(2).outOfInstance==null){
 					Node[] nodes2={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2),this.parentSupernode.childrenSubnodes.get(2)};
 					this.definition.add(this.parentSupernode.outOfInstance.definition, nodes2);
-					
+					if(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2).parentSubnodes.size()==1&&this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2).parentSubnodes.size()==1&&this.parentSupernode.childrenSubnodes.get(2).parentSubnodes.size()==1){
+						Node[] nodes0b={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2).parentSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2).parentSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(2).parentSubnodes.get(0)};
+						this.definition.add(this.parentSupernode.outOfInstance.definition, nodes0b);
+						//TODO: recursive?
+					}
 				}
 				this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2).childrenFission();
 				this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2).childrenFission();
