@@ -192,7 +192,7 @@ public class Definition {
 			for (Instance instance : setOfInstances) {//print instances
 			    string+=" "+instance.toString(this);
 			}
-			string+=("\n");
+			string+=("\n\n");
 		}
 		string+=(" root in: ");
 		for (Definition root : this.rootIn){
@@ -1018,6 +1018,9 @@ public class Definition {
 		}
 		for(Node outNode:this.out){
 			outNode.biFission();
+		}
+		for(Node outNode:this.out){
+			outNode.addEquivalentSubnodeInstances();
 		}
 	}
 //	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances

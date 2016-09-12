@@ -1,4 +1,5 @@
 ﻿TODO
+-reorder and maybe merge fussion
 -fix IO finding in intersection
 -check duplicate selection, may be more complex
 -fix cost eval,  unoptimized xor cost is 7
