@@ -1407,19 +1407,14 @@ private void nandOutFission() {
 				this.parentSupernode.outOfInstance.in.get(0).splitChildrenSubnodes();
 				this.parentSupernode.outOfInstance.in.get(1).splitChildrenSubnodes();
 				if(this.parentSupernode.childrenSubnodes.get(0).outOfInstance==null){
-					Node[] nodes0={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(0)};
-					this.definition.add(this.parentSupernode.outOfInstance.definition, nodes0);
-//					this.addEquivalentSubnodes(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(0));
-					
+					this.addEquivalentSubnodeInstance(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(0),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(0),this.parentSupernode.childrenSubnodes.get(0));				
 				}
 				if(this.parentSupernode.childrenSubnodes.get(1).outOfInstance==null){
 					Node[] nodes1={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(1),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(1),this.parentSupernode.childrenSubnodes.get(1)};
 					this.definition.add(this.parentSupernode.outOfInstance.definition, nodes1);
 				}
 				if(this.parentSupernode.childrenSubnodes.get(2).outOfInstance==null){
-					Node[] nodes2={this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2),this.parentSupernode.childrenSubnodes.get(2)};
-					this.definition.add(this.parentSupernode.outOfInstance.definition, nodes2);
-//					this.addEquivalentSubnodes(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2),this.parentSupernode.childrenSubnodes.get(2));
+					this.addEquivalentSubnodeInstance(this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2),this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2),this.parentSupernode.childrenSubnodes.get(2));
 				}
 				this.parentSupernode.outOfInstance.in.get(0).childrenSubnodes.get(2).childrenFission();
 				this.parentSupernode.outOfInstance.in.get(1).childrenSubnodes.get(2).childrenFission();
@@ -1429,11 +1424,12 @@ private void nandOutFission() {
 			parentSubnode.childrenFission();
 		}
 	}
-	private void addEquivalentSubnodes(Node in0, Node in1, Node out) {
-		if(in0.parentSubnodes.size()==1&&in1.parentSubnodes.size()==1&&out.parentSubnodes.size()==1&&out.parentSubnodes.get(0).outOfInstance==null){
-			Node[] nodes0b={in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),out.parentSubnodes.get(0)};
-			this.definition.add(this.parentSupernode.outOfInstance.definition, nodes0b);
-			addEquivalentSubnodes(in0.parentSubnodes.get(0),in1.parentSubnodes.get(0),out.parentSubnodes.get(0));
+	private void addEquivalentSubnodeInstance(Node in0, Node in1, Node out) {
+		if(out.parentSubnodes.size()==1){
+			addEquivalentSubnodeInstance(in0,in1,out.parentSubnodes.get(0));
+		}else if(out.outOfInstance==null){
+			Node[] nodes={in0,in1,out};
+			this.definition.add(this.parentSupernode.outOfInstance.definition, nodes);
 		}
 	}
 	public void expandBinodes(){
@@ -1456,13 +1452,21 @@ private void nandOutFission() {
 				if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
 				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
 					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
-					newParentSupernode.childrenSubnodes.get(1).expandBinodes();
 					newParentSupernode.childrenSubnodes.get(2).addChildSupernode(this);
+					Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+					this.definition.add(this.outOfInstance.definition, nodes0);
+					Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+					this.definition.add(this.outOfInstance.definition, nodes1);
+					newParentSupernode.childrenSubnodes.get(1).expandBinodes();
 					newParentSupernode.childrenSubnodes.get(2).expandBinodes();
 				}else{
 					newParentSupernode.childrenSubnodes.get(0).addChildSupernode(this);
-					newParentSupernode.childrenSubnodes.get(0).expandBinodes();
 					newParentSupernode.childrenSubnodes.get(1).addChildSupernode(this);
+					Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+					this.definition.add(this.outOfInstance.definition, nodes0);
+					Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+					this.definition.add(this.outOfInstance.definition, nodes1);
+					newParentSupernode.childrenSubnodes.get(0).expandBinodes();
 					newParentSupernode.childrenSubnodes.get(1).expandBinodes();
 				}
 			}
@@ -1562,6 +1566,7 @@ private void nandOutFission() {
 		return node;
 	}
 	public void addEquivalentSubnodeInstances() {
+		//TODO: merge this in .childrenFission()
 		Node node=this;
 		if(this.parentSupernode!=null){
 			this.parentSupernode.addEquivalentSubnodeInstances();

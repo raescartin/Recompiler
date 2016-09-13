@@ -1019,9 +1019,9 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.biFission();
 		}
-		for(Node outNode:this.out){
-			outNode.addEquivalentSubnodeInstances();
-		}
+//		for(Node outNode:this.out){
+//			outNode.addEquivalentSubnodeInstances();
+//		}
 	}
 //	private void parentsFission() {//fission of nodes with multiple parents as in of nand instances
 //		for(Node outNode:this.out){
