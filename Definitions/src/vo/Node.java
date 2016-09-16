@@ -68,6 +68,17 @@ public class Node {
 				}else{
 					nandToNode.put(nandNode, this);
 				}
+				if(this.parentSupernode!=null){
+					if(this.parentSupernode.childrenSubnodes.get(0).outOfInstance!=null){
+						this.parentSupernode.childrenSubnodes.get(0).toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+					}
+					if(this.parentSupernode.childrenSubnodes.get(1).outOfInstance!=null&&this.parentSupernode.childrenSubnodes.get(1).childrenSubnodes.isEmpty()&&this.parentSupernode.childrenSubnodes.get(1).parentSubnodes.isEmpty()){
+						this.parentSupernode.childrenSubnodes.get(1).toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+					}
+					if(this.parentSupernode.childrenSubnodes.get(2).outOfInstance!=null){
+						this.parentSupernode.childrenSubnodes.get(2).toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+					}
+				}
 			}
 		}
 		return nandNode;
@@ -1237,103 +1248,61 @@ private void nandOutFission() {
 			}
 		}
 	}
-	public void replaceNodes(HashSet<Node> expandedNodes,HashMap<Node, Node> equivalentNodes, ArrayList<Instance> instancesToRemove) {
+	public void replaceNodes(HashSet<Node> expandedNodes,HashMap<Node, Node> equivalentNodes) {
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
 			if(this.parentSupernode!=null){
 				if(equivalentNodes.containsKey(this.parentSupernode)){
-					this.parentSupernode=equivalentNodes.get(this.parentSupernode);
+					Node newSupernode=equivalentNodes.get(this.parentSupernode);
+					newSupernode.childrenSubnodes.set(this.parentSupernode.childrenSubnodes.indexOf(this), this);
+					this.parentSupernode=newSupernode;
 				}
-				if(this.parentSupernode.outOfInstance!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance!=null&&this.parentSupernode.childrenSubnodes.get(2).outOfInstance!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode!=null&&this.parentSupernode.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode==this.parentSupernode.childrenSubnodes.get(2).outOfInstance.in.get(0).parentSupernode
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode!=null&&this.parentSupernode.childrenSubnodes.get(2).outOfInstance.in.get(1).parentSupernode!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.parentSupernode.childrenSubnodes.get(2).outOfInstance.in.get(1).parentSupernode
-				&&this.parentSupernode.childrenSubnodes.get(1).outOfInstance!=null
-				&&this.parentSupernode.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(0).parentSupernode==this.parentSupernode.childrenSubnodes.get(1).outOfInstance.in.get(0).parentSupernode
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode!=null
-				&&this.parentSupernode.childrenSubnodes.get(0).outOfInstance.in.get(1).parentSupernode==this.parentSupernode.childrenSubnodes.get(1).outOfInstance.in.get(1).parentSupernode){
-					this.parentSupernode.replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-				}
-			}else if(this.outOfInstance!=null&&this.parentSubnodes.size()==2
-			&&this.parentSubnodes.get(0).outOfInstance!=null
-			&&this.parentSubnodes.get(0).parentSupernode!=null
-			&&this.parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==this.parentSubnodes.get(0)
-			&&this.parentSubnodes.get(1).outOfInstance!=null){
-				instancesToRemove.remove(this.outOfInstance);
-				if(equivalentNodes.containsKey(this.outOfInstance.in.get(0))){
-					equivalentNodes.get(this.outOfInstance.in.get(0)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-					Instance instance=this.outOfInstance;
-					this.definition.removeInstance(instance);
-					instance.in.set(0, equivalentNodes.get(instance.in.get(0)));
-					this.definition.add(instance);
-				}else{
-					this.outOfInstance.in.get(0).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-				}
-				if(equivalentNodes.containsKey(this.outOfInstance.in.get(1))){
-					equivalentNodes.get(this.outOfInstance.in.get(1)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-					Instance instance=this.outOfInstance;
-					this.definition.removeInstance(instance);
-					instance.in.set(1, equivalentNodes.get(instance.in.get(1)));
-					this.definition.add(instance);
-				}else{
-					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-				}
-				this.parentSubnodes.clear();
-			}else if(this.outOfInstance!=null&&this.parentSubnodes.size()==2
-			&&this.parentSubnodes.get(1).outOfInstance!=null
-			&&this.parentSubnodes.get(1).parentSupernode!=null
-			&&this.parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.parentSubnodes.get(1)
-			&&this.parentSubnodes.get(0).outOfInstance!=null){
-				instancesToRemove.remove(this.outOfInstance);
-				if(equivalentNodes.containsKey(this.outOfInstance.in.get(0))){
-					equivalentNodes.get(this.outOfInstance.in.get(0)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-					Instance instance=this.outOfInstance;
-					this.definition.removeInstance(instance);
-					instance.in.set(0, equivalentNodes.get(instance.in.get(0)));
-					this.definition.add(instance);
-				}else{
-					this.outOfInstance.in.get(0).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-				}
-				if(equivalentNodes.containsKey(this.outOfInstance.in.get(1))){
-					equivalentNodes.get(this.outOfInstance.in.get(1)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-					Instance instance=this.outOfInstance;
-					this.definition.removeInstance(instance);
-					instance.in.set(1, equivalentNodes.get(instance.in.get(1)));
-					this.definition.add(instance);
-				}else{
-					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
-				}
-				this.parentSubnodes.clear();
-			}else if(!this.parentSubnodes.isEmpty()){
+				this.parentSupernode.replaceNodes(expandedNodes, equivalentNodes);
+			}
+			if(!this.parentSubnodes.isEmpty()){
 				for(int i=0;i<this.parentSubnodes.size();i++){
 					if(equivalentNodes.containsKey(this.parentSubnodes.get(i))){
 						this.parentSubnodes.set(i, equivalentNodes.get(this.parentSubnodes.get(i)));
+						this.parentSubnodes.get(i).childrenSupernodes.add(this);
 					}
-					this.parentSubnodes.get(i).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
+					this.parentSubnodes.get(i).replaceNodes(expandedNodes, equivalentNodes);
 				}
-			}else if(this.outOfInstance!=null){
-				instancesToRemove.remove(this.outOfInstance);
+			}
+			if(this.outOfInstance!=null){
 				if(equivalentNodes.containsKey(this.outOfInstance.in.get(0))){
-					equivalentNodes.get(this.outOfInstance.in.get(0)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
+//					equivalentNodes.get(this.outOfInstance.in.get(0)).replaceNodes(expandedNodes, equivalentNodes);
 					Instance instance=this.outOfInstance;
 					this.definition.removeInstance(instance);
 					instance.in.set(0, equivalentNodes.get(instance.in.get(0)));
 					this.definition.add(instance);
 				}else{
-					this.outOfInstance.in.get(0).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
+					this.outOfInstance.in.get(0).replaceNodes(expandedNodes, equivalentNodes);
 				}
 				if(equivalentNodes.containsKey(this.outOfInstance.in.get(1))){
-					equivalentNodes.get(this.outOfInstance.in.get(1)).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
+//					equivalentNodes.get(this.outOfInstance.in.get(1)).replaceNodes(expandedNodes, equivalentNodes);
 					Instance instance=this.outOfInstance;
 					this.definition.removeInstance(instance);
 					instance.in.set(1, equivalentNodes.get(instance.in.get(1)));
 					this.definition.add(instance);
 				}else{
-					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes, instancesToRemove);
+					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes);
 				}
+			}
+		}
+	}
+	public void clean(HashSet<Node> expandedNodes,ArrayList<Instance> instancesToKeep) {
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+			if(this.parentSupernode!=null){
+				this.parentSupernode.clean(expandedNodes,instancesToKeep);
+			}else if(!this.parentSubnodes.isEmpty()){
+				for(int i=0;i<this.parentSubnodes.size();i++){
+					this.parentSubnodes.get(i).clean(expandedNodes, instancesToKeep);
+				}
+			}else if(this.outOfInstance!=null){
+				instancesToKeep.add(this.outOfInstance);
+				this.outOfInstance.in.get(0).clean(expandedNodes, instancesToKeep);
+				this.outOfInstance.in.get(1).clean(expandedNodes, instancesToKeep);
 				this.parentSubnodes.clear();
 			}
 		}
@@ -1606,4 +1575,33 @@ private void nandOutFission() {
 //		}
 //		
 //	}
+	public void triFusion() {
+		//FIXME
+//		if(!this.parentSubnodes.isEmpty()){
+			for(Node parentSubnode:this.parentSubnodes){
+				parentSubnode.triFusion();
+			}
+//		}else{
+			if(this.parentSupernode!=null){
+				if(this.parentSupernode.outOfInstance!=null){	
+					if(this.parentSupernode.childrenSubnodes.get(0).outOfInstance!=null
+					&&this.parentSupernode.childrenSubnodes.get(1).outOfInstance!=null
+					&&this.parentSupernode.childrenSubnodes.get(2).outOfInstance!=null){
+						Node in0 = this.parentSupernode.childrenSubnodes.get(1).outOfInstance.in.get(0);
+						Node in1 = this.parentSupernode.childrenSubnodes.get(1).outOfInstance.in.get(1);
+						this.definition.removeInstance(this.parentSupernode.childrenSubnodes.get(0).outOfInstance);
+						this.definition.removeInstance(this.parentSupernode.childrenSubnodes.get(1).outOfInstance);
+						this.definition.removeInstance(this.parentSupernode.childrenSubnodes.get(2).outOfInstance);
+						in0.triFusion();
+						in1.triFusion();
+					}
+				}
+				this.parentSupernode.triFusion();
+			}
+//		}
+		if(this.outOfInstance!=null){
+			this.outOfInstance.in.get(0).triFusion();
+			this.outOfInstance.in.get(1).triFusion();
+		}
+	}
 }

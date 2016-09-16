@@ -1349,15 +1349,28 @@ public class Definition {
 	}
 	public void clean(HashMap<Node, Node> equivalentNode) {
 //		ArrayList<Instance> usedInstances = new ArrayList<Instance>();//can't be a hashSet since instances are modified
-		ArrayList<Instance> instancesToRemove = new ArrayList<Instance>();
-		for(ArrayList<Instance> setOfInstances:this.instances){
-			instancesToRemove.addAll(setOfInstances);
-		}
+		
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){
-			outNode.replaceNodes(expandedNodes, equivalentNode,instancesToRemove);
+			outNode.replaceNodes(expandedNodes, equivalentNode);
 		}
-		for(Instance instance:instancesToRemove){
+		for(Node outNode:this.out){
+			outNode.triFusion();
+		}
+		for(Node outNode:this.out){
+			outNode.biFusion();
+		}
+		ArrayList<Instance> instancesToKeep = new ArrayList<Instance>();
+		expandedNodes.clear();
+		for(Node outNode:this.out){
+			outNode.clean(expandedNodes, instancesToKeep);//TODO: clean nodes too
+		}
+		HashSet<Instance> instances = new HashSet<Instance>();
+		for(ArrayList<Instance> setOfInstances:this.instances){
+			instances.addAll(setOfInstances);
+		}
+		instances.removeAll(instancesToKeep);
+		for(Instance instance:instances){
 			this.removeInstance(instance);
 		}
 	}

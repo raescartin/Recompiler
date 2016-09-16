@@ -1,5 +1,6 @@
 ﻿TODO
 -fix fussion of equivalentSubnodes
+-mixed equivalent nodes: 5{1}{0}=68{1}{0} while  68{1}{2}=5{1}{2} Need to armonize direction? so only subnodes of 5 or 68
 -reorder and maybe merge fission
 -fix IO finding in intersection
 -check duplicate selection, may be more complex
