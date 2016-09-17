@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
@@ -1349,10 +1349,13 @@ public class Definition {
 	}
 	public void clean(HashMap<Node, Node> equivalentNode) {
 //		ArrayList<Instance> usedInstances = new ArrayList<Instance>();//can't be a hashSet since instances are modified
-		
+		this.getEquivalentParentSupernodes(equivalentNode);
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){
 			outNode.replaceNodes(expandedNodes, equivalentNode);
+		}
+		for(Node node:equivalentNode.keySet()){
+			if(node.outOfInstance!=null)this.removeInstance(node.outOfInstance);//prune now unused instances
 		}
 		for(Node outNode:this.out){
 			outNode.triFusion();
@@ -1373,6 +1376,20 @@ public class Definition {
 		for(Instance instance:instances){
 			this.removeInstance(instance);
 		}
+	}
+	private void getEquivalentParentSupernodes(
+			HashMap<Node, Node> equivalentNodes) {
+		Queue<Node> queue = new LinkedList<Node>();
+		queue.addAll(equivalentNodes.keySet());
+		while (!queue.isEmpty()) {
+			queue.poll().getEquivalentParentSupernode(equivalentNodes,queue);
+		}
+//		ArrayList<Node> nodes = new ArrayList<Node>();
+//		nodes.addAll(equivalentNodes.keySet());
+//		for(Node node:nodes){
+//			node.getEquivalentParentSupernodes(equivalentNodes);
+//		}
+		
 	}
 	public Instance add(Instance instance) {
 		for(Node node:instance.in){

@@ -7,6 +7,7 @@ package vo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.TreeSet;
 
 import utils.FixedBitSet;
@@ -1603,5 +1604,24 @@ private void nandOutFission() {
 			this.outOfInstance.in.get(0).triFusion();
 			this.outOfInstance.in.get(1).triFusion();
 		}
+	}
+	public void getEquivalentParentSupernodes(
+			HashMap<Node, Node> equivalentNodes) {
+		if(this.parentSupernode!=null){
+			if(equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(0))&&equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(1))&&equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(2))){
+				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
+			}
+		}
+		
+	}
+	public void getEquivalentParentSupernode(
+			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
+		if(this.parentSupernode!=null){
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(0))&&equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(1))&&equivalentNodes.containsKey(this.parentSupernode.childrenSubnodes.get(2))){
+				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
+				queue.add(this.parentSupernode);
+			}
+		}
+		
 	}
 }
