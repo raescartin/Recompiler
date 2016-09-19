@@ -142,20 +142,12 @@ public class DefinitionDB {
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
-//		for(NandNode nandNode:nandToNodes.keySet()){
-//			HashSet<Node> equivalentNodes=nandToNodes.get(nandNode);
-//			for(Node node:equivalentNodes){
-//				if(originalNodes.contains(node)){
-//					originalNodes.addAll(equivalentNodes);
-//				}
-//			}
-//		}
-//		definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode, originalNodes);
+
+
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
-//		this.fromNandForest(expandedDefinition, expandingDefinitionNandForest, nandToNode);
-//		expandedDefinition.fusion();//fusion of nodes 
+		
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
