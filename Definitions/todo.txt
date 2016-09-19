@@ -1,7 +1,6 @@
 ﻿TODO
--fix fussion of equivalentSubnodes
--mixed equivalent nodes: 5{1}{0}=68{1}{0} while  68{1}{2}=5{1}{2} Need to armonize direction? so only subnodes of 5 or 68
--reorder and maybe merge fission
+-fix depth error in fission (nand [33(6{0}&6{1}),37(5{1}&5{2});45(69{0}&69{1})])
+-fix fusion of equivalentSubnodes
 -fix IO finding in intersection
 -check duplicate selection, may be more complex
 -fix cost eval,  unoptimized xor cost is 7
@@ -15,6 +14,9 @@
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
 
 DONE
+-reorder and maybe merge fission: it's better to have as separed as possible
+-mixed equivalent nodes: 5{1}{0}=68{1}{0} while  68{1}{2}=5{1}{2} Need to armonize direction? so only subnodes of 5 or 68
+armonized so all subnodes of a same node are added
 -there exist two types of equivalent/redundant subnodes, both exist on a Definition structure: logical equivalent nodes, found with NandForest, and subnode equivalent, processed.
 -removed orderedTreeSet for each level of instances in order to prevent concurrent modification (ordered key instances are different from modified ones)
 -need to keep the fissed instance instead of removing
