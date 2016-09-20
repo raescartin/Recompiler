@@ -1530,26 +1530,30 @@ private void nandOutFission() {
 		if(this.outOfInstance!=null){
 			this.outOfInstance.in.get(0).biFission();
 			this.outOfInstance.in.get(1).biFission();
-			if(this.childrenSubnodes.isEmpty()&&this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2//this.childrenSubnodes.isEmpty() is enough or need to check comming from childrenSubnode to parentSupernode?
+			if(this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2
 			&&this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode
 			&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode
 			&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode
 			&&this.parentSubnodes.get(0).outOfInstance==null){
 				if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
 				&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==this.outOfInstance.in.get(1).parentSubnodes.get(0)){
-					Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
-					this.definition.add(this.outOfInstance.definition, nodes0);
+					if(this.childrenSubnodes.isEmpty()){//this.childrenSubnodes.isEmpty() is enough or need to check coming from childrenSubnode to parentSupernode?
+						Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+						this.definition.add(this.outOfInstance.definition, nodes0);
+						Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+						this.definition.add(this.outOfInstance.definition, nodes1);
+					}
 					this.parentSubnodes.get(0).biFission();
-					Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
-					this.definition.add(this.outOfInstance.definition, nodes1);
 					this.parentSubnodes.get(1).biFission();
 				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
 				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
-					Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
-					this.definition.add(this.outOfInstance.definition, nodes0);
+					if(this.childrenSubnodes.isEmpty()){//this.childrenSubnodes.isEmpty() is enough or need to check coming from childrenSubnode to parentSupernode?
+						Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+						this.definition.add(this.outOfInstance.definition, nodes0);
+						Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+						this.definition.add(this.outOfInstance.definition, nodes1);
+					}
 					this.parentSubnodes.get(0).biFission();
-					Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
-					this.definition.add(this.outOfInstance.definition, nodes1);
 					this.parentSubnodes.get(1).biFission();
 				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childrenSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
 				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
@@ -1557,9 +1561,9 @@ private void nandOutFission() {
 						if(this.childrenSubnodes.isEmpty()){
 							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
 							this.definition.add(this.outOfInstance.definition, nodes0);
-							this.parentSubnodes.get(0).biFission();
 							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes1);
+							this.parentSubnodes.get(0).biFission();
 							this.parentSubnodes.get(1).biFission();
 						}else{
 							this.outOfInstance.in.get(1).parentSubnodes.get(0).splitChildrenSubnodes();
@@ -1573,6 +1577,10 @@ private void nandOutFission() {
 							this.definition.add(this.outOfInstance.definition, nodes2);
 							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1).childrenSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1).childrenSubnodes.get(2)};
 							this.definition.add(this.outOfInstance.definition, nodes3);
+							this.parentSubnodes.get(0).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(0).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(1).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(2).biFission();
 						}
 //					}
 				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childrenSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
@@ -1581,9 +1589,9 @@ private void nandOutFission() {
 						if(this.childrenSubnodes.isEmpty()&&this.parentSubnodes.get(0).outOfInstance==null){
 							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
 							this.definition.add(this.outOfInstance.definition, nodes0);
-							this.parentSubnodes.get(0).biFission();
 							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
 							this.definition.add(this.outOfInstance.definition, nodes1);
+							this.parentSubnodes.get(0).biFission();
 							this.parentSubnodes.get(1).biFission();
 						}else{
 							this.outOfInstance.in.get(0).parentSubnodes.get(0).splitChildrenSubnodes();
@@ -1597,6 +1605,10 @@ private void nandOutFission() {
 							this.definition.add(this.outOfInstance.definition, nodes2);
 							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childrenSubnodes.get(2),this.parentSubnodes.get(1).childrenSubnodes.get(2)};
 							this.definition.add(this.outOfInstance.definition, nodes3);
+							this.parentSubnodes.get(0).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(0).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(1).biFission();
+							this.parentSubnodes.get(1).childrenSubnodes.get(2).biFission();
 						}
 //					}
 				}
