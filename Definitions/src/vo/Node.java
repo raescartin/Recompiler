@@ -706,7 +706,15 @@ private void nandOutFission() {
 	}
 	public void parentsFusion() {
 		//fusion of two nandInstances where outs are consecutive childrenSubnodes of a same node
-		if(this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(1).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(0).equivalentNode().parentSupernode==this.parentSubnodes.get(1).equivalentNode().parentSupernode){
+		if(this.outOfInstance!=null&&this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(1).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(0).equivalentNode().parentSupernode==this.parentSubnodes.get(1).equivalentNode().parentSupernode){
+//				if(this.outOfInstance.in.get(0).equivalentNode().outOfInstance!=null){
+//					this.definition.removeInstance(this.outOfInstance.in.get(0).equivalentNode().outOfInstance);
+//					this.outOfInstance.in.get(0).equivalentNode().fusion();
+//				}
+//				if(this.outOfInstance.in.get(1).equivalentNode().outOfInstance!=null){
+//					this.definition.removeInstance(this.outOfInstance.in.get(1).equivalentNode().outOfInstance);
+//					this.outOfInstance.in.get(0).equivalentNode().fusion();
+//				} 
 				Node leftNode = this.parentSubnodes.get(0).equivalentNode();
 				Node rightNode = this.parentSubnodes.get(1).equivalentNode();
 				leftNode.fusion();
@@ -760,7 +768,7 @@ private void nandOutFission() {
 					this.parentSubnodes.clear();
 				}else{
 					this.parentSupernode=null;
-					if(this.outOfInstance!=null) this.definition.removeInstance(this.outOfInstance);
+					this.definition.removeInstance(this.outOfInstance);
 				}
 		}else{
 			for(Node parentSubnode:this.parentSubnodes){
@@ -1522,7 +1530,7 @@ private void nandOutFission() {
 		if(this.outOfInstance!=null){
 			this.outOfInstance.in.get(0).biFission();
 			this.outOfInstance.in.get(1).biFission();
-			if(this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2
+			if(this.childrenSubnodes.isEmpty()&&this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2//this.childrenSubnodes.isEmpty() is enough or need to check comming from childrenSubnode to parentSupernode?
 			&&this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode
 			&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode
 			&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode
@@ -1722,7 +1730,7 @@ private void nandOutFission() {
 			&&leftChild.outOfInstance.in.get(0).parentSupernode!=null&&midChild.outOfInstance.in.get(0).parentSupernode!=null&&rightChild.outOfInstance.in.get(0).parentSupernode!=null
 			&&leftChild.outOfInstance.in.get(1).parentSupernode!=null&&midChild.outOfInstance.in.get(1).parentSupernode!=null&&rightChild.outOfInstance.in.get(1).parentSupernode!=null
 			&&leftChild.outOfInstance.in.get(0).parentSupernode==midChild.outOfInstance.in.get(0).parentSupernode&&midChild.outOfInstance.in.get(0).parentSupernode==rightChild.outOfInstance.in.get(0).parentSupernode
-			&&leftChild.outOfInstance.in.get(0).parentSupernode==midChild.outOfInstance.in.get(1).parentSupernode&&midChild.outOfInstance.in.get(1).parentSupernode==rightChild.outOfInstance.in.get(1).parentSupernode
+			&&leftChild.outOfInstance.in.get(1).parentSupernode==midChild.outOfInstance.in.get(1).parentSupernode&&midChild.outOfInstance.in.get(1).parentSupernode==rightChild.outOfInstance.in.get(1).parentSupernode
 			){
 				midChild.outOfInstance.in.get(0).fusion();
 				midChild.outOfInstance.in.get(1).fusion();
