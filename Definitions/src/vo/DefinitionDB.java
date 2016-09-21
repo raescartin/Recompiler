@@ -141,6 +141,7 @@ public class DefinitionDB {
 		//to nand
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
+		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
 
 

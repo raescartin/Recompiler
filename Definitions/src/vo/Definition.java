@@ -1348,7 +1348,7 @@ public class Definition {
 		}
 	}
 	public void clean(HashMap<Node, Node> equivalentNodes) {
-		this.getEquivalentParentSupernodes(equivalentNodes);
+		this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
 		this.getEquivalentChildSupernodes(equivalentNodes);
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){

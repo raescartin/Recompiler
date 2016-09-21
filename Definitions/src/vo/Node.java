@@ -707,8 +707,6 @@ private void nandOutFission() {
 	public void parentsFusion() {
 		//fusion of two nandInstances where outs are consecutive childrenSubnodes of a same node
 		if(this.outOfInstance!=null&&this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(1).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(0).equivalentNode().parentSupernode==this.parentSubnodes.get(1).equivalentNode().parentSupernode){
-//				System.out.print(this.definition.toString());
-//				System.out.print(this.toString());
 				Node leftNode = this.parentSubnodes.get(0).equivalentNode();
 				Node rightNode = this.parentSubnodes.get(1).equivalentNode();
 				leftNode.fusion();
@@ -764,6 +762,8 @@ private void nandOutFission() {
 					this.parentSupernode=null;
 					this.definition.removeInstance(this.outOfInstance);
 				}
+				System.out.println(this.toString());
+				System.out.println(this.definition.toString());
 		}else{
 			for(Node parentSubnode:this.parentSubnodes){
 				parentSubnode.fusion();
@@ -1532,14 +1532,15 @@ private void nandOutFission() {
 			&&leftChild.outOfInstance.in.get(0).parentSupernode==midChild.outOfInstance.in.get(0).parentSupernode&&midChild.outOfInstance.in.get(0).parentSupernode==rightChild.outOfInstance.in.get(0).parentSupernode
 			&&leftChild.outOfInstance.in.get(1).parentSupernode==midChild.outOfInstance.in.get(1).parentSupernode&&midChild.outOfInstance.in.get(1).parentSupernode==rightChild.outOfInstance.in.get(1).parentSupernode
 			){
-//				System.out.print(this.definition.toString());
-//				System.out.print(this.toString());
+				
 				midChild.outOfInstance.in.get(0).fusion();
 				midChild.outOfInstance.in.get(1).fusion();
 				this.definition.removeInstance(leftChild.outOfInstance);
 				this.definition.removeInstance(midChild.outOfInstance);
 				midChild.parentSubnodes.clear();
 				this.definition.removeInstance(rightChild.outOfInstance);
+				System.out.println(this.toString());
+				System.out.println(this.definition.toString());
 			}else{
 				if(this.parentSupernode!=null) this.parentSupernode.fusion();
 			}
