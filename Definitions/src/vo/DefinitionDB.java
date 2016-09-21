@@ -323,10 +323,10 @@ public class DefinitionDB {
 	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
 		//TODO: test
 		Node node = nodes.get(i);
-		if(!node.childrenSupernodes.isEmpty()){
+		if(!node.childSupernodes.isEmpty()){
 			for(Node supernodeChildCandidate:set){
 				if(!supernodeChildCandidate.parentSubnodes.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parentSubnodes)){
-					for(Node childrenSupernode:nodes.get(i).childrenSupernodes){
+					for(Node childrenSupernode:nodes.get(i).childSupernodes){
 						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parentSubnodes.isEmpty()&&childrenSupernode.parentSubnodes.containsAll(supernodeChildCandidate.parentSubnodes)){
 							childrenSupernode.parentSubnodes.set(childrenSupernode.parentSubnodes.indexOf(nodes.get(i)), supernodeChildCandidate);
 							childrenSupernode.parentSubnodes.removeAll(supernodeChildCandidate.parentSubnodes);
@@ -384,40 +384,40 @@ public class DefinitionDB {
 		//if there's two consecutive children of a node on the array of nodes, fuse them
 		Node node = nodes.get(i);
 		if(node.parentSupernode!=null){
-			if(nodes.contains(node.parentSupernode.childrenSubnodes.get(0))&&nodes.contains(node.parentSupernode.childrenSubnodes.get(1))){
+			if(nodes.contains(node.parentSupernode.childSubnodes.get(0))&&nodes.contains(node.parentSupernode.childSubnodes.get(1))){
 				Node childSupernode=null;
 				for(Node supernodeCandidate:set){
 					if(supernodeCandidate.parentSubnodes.size()==2){
-						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childrenSubnodes.get(0)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childrenSubnodes.get(1)){
+						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childSubnodes.get(0)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childSubnodes.get(1)){
 							childSupernode=supernodeCandidate;
 						}
 					}
 				}
-				node.parentSupernode.childrenSubnodes.get(0).childrenSupernodes.add(childSupernode);
-				node.parentSupernode.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
+				node.parentSupernode.childSubnodes.get(0).childSupernodes.add(childSupernode);
+				node.parentSupernode.childSubnodes.get(1).childSupernodes.add(childSupernode);
 				nodes.set(i, childSupernode);
-				nodes.removeAll(node.parentSupernode.childrenSubnodes);
-			}else if(nodes.contains(node.parentSupernode.childrenSubnodes.get(1))&&nodes.contains(node.parentSupernode.childrenSubnodes.get(2))){
+				nodes.removeAll(node.parentSupernode.childSubnodes);
+			}else if(nodes.contains(node.parentSupernode.childSubnodes.get(1))&&nodes.contains(node.parentSupernode.childSubnodes.get(2))){
 				Node childSupernode=null;
 				for(Node supernodeCandidate:set){
 					if(supernodeCandidate.parentSubnodes.size()==2){
-						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childrenSubnodes.get(1)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childrenSubnodes.get(2)){
+						if(supernodeCandidate.parentSubnodes.get(0)==node.parentSupernode.childSubnodes.get(1)&&supernodeCandidate.parentSubnodes.get(1)==node.parentSupernode.childSubnodes.get(2)){
 							childSupernode=supernodeCandidate;
 						}
 					}
 				}
-				node.parentSupernode.childrenSubnodes.get(1).childrenSupernodes.add(childSupernode);
-				node.parentSupernode.childrenSubnodes.get(2).childrenSupernodes.add(childSupernode);
+				node.parentSupernode.childSubnodes.get(1).childSupernodes.add(childSupernode);
+				node.parentSupernode.childSubnodes.get(2).childSupernodes.add(childSupernode);
 				nodes.set(i, childSupernode);
-				nodes.removeAll(node.parentSupernode.childrenSubnodes);
+				nodes.removeAll(node.parentSupernode.childSubnodes);
 			}
 		}
 	}
 	private void trifusion(int i, ArrayList<Node> nodes) {
-		if(nodes.get(i).parentSupernode!=null&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(0))&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(1))&&nodes.contains(nodes.get(i).parentSupernode.childrenSubnodes.get(2))){
-			Node childLeft = nodes.get(i).parentSupernode.childrenSubnodes.get(0);
-			Node childMid = nodes.get(i).parentSupernode.childrenSubnodes.get(1);
-			Node childRight = nodes.get(i).parentSupernode.childrenSubnodes.get(2);
+		if(nodes.get(i).parentSupernode!=null&&nodes.contains(nodes.get(i).parentSupernode.childSubnodes.get(0))&&nodes.contains(nodes.get(i).parentSupernode.childSubnodes.get(1))&&nodes.contains(nodes.get(i).parentSupernode.childSubnodes.get(2))){
+			Node childLeft = nodes.get(i).parentSupernode.childSubnodes.get(0);
+			Node childMid = nodes.get(i).parentSupernode.childSubnodes.get(1);
+			Node childRight = nodes.get(i).parentSupernode.childSubnodes.get(2);
 			nodes.set(i, nodes.get(i).parentSupernode);
 			nodes.remove(childLeft);
 			nodes.remove(childMid);

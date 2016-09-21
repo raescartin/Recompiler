@@ -186,14 +186,14 @@ class test {
     	Definition add = new Definition(2,1,"add");
     	add.in.get(0).splitChildrenSubnodes();
     	@SuppressWarnings("unused")
-		Node A0 = add.in.get(0).childrenSubnodes.get(0);
-    	Node Arest = add.in.get(0).childrenSubnodes.get(1);
-    	Node An = add.in.get(0).childrenSubnodes.get(2);
+		Node A0 = add.in.get(0).childSubnodes.get(0);
+    	Node Arest = add.in.get(0).childSubnodes.get(1);
+    	Node An = add.in.get(0).childSubnodes.get(2);
     	add.in.get(1).splitChildrenSubnodes();
     	@SuppressWarnings("unused")
-		Node B0 = add.in.get(1).childrenSubnodes.get(0);
-    	Node Brest = add.in.get(1).childrenSubnodes.get(1);
-    	Node Bn = add.in.get(1).childrenSubnodes.get(2);
+		Node B0 = add.in.get(1).childSubnodes.get(0);
+    	Node Brest = add.in.get(1).childSubnodes.get(1);
+    	Node Bn = add.in.get(1).childSubnodes.get(2);
     	Node Awithout0 = new Node();
     	Arest.addChildSupernode(Awithout0);
     	An.addChildSupernode(Awithout0);
@@ -265,9 +265,9 @@ class test {
     	//dec [0;1] = not[0{2},2] rif [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
     	Definition dec = new Definition(1,1,"dec");
     	dec.in.get(0).splitChildrenSubnodes();
-    	Node dec0 = dec.in.get(0).childrenSubnodes.get(0);
-    	Node decRest = dec.in.get(0).childrenSubnodes.get(1);
-    	Node decN = dec.in.get(0).childrenSubnodes.get(2);
+    	Node dec0 = dec.in.get(0).childSubnodes.get(0);
+    	Node decRest = dec.in.get(0).childSubnodes.get(1);
+    	Node decN = dec.in.get(0).childSubnodes.get(2);
     	Node decNnot = new Node();
     	dec.add(not, decN,decNnot);
     	Node decR= new Node(); 
@@ -294,13 +294,13 @@ class test {
     	//CMP definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
     	cmp.in.get(0).splitChildrenSubnodes();
-    	Node cmpA0 = cmp.in.get(0).childrenSubnodes.get(0);
-    	Node cmpARest = cmp.in.get(0).childrenSubnodes.get(1);
-    	Node cmpAN = cmp.in.get(0).childrenSubnodes.get(2);
+    	Node cmpA0 = cmp.in.get(0).childSubnodes.get(0);
+    	Node cmpARest = cmp.in.get(0).childSubnodes.get(1);
+    	Node cmpAN = cmp.in.get(0).childSubnodes.get(2);
     	cmp.in.get(1).splitChildrenSubnodes();
-    	Node cmpB0 = cmp.in.get(1).childrenSubnodes.get(0);
-    	Node cmpBRest = cmp.in.get(1).childrenSubnodes.get(1);
-    	Node cmpBN = cmp.in.get(1).childrenSubnodes.get(2);
+    	Node cmpB0 = cmp.in.get(1).childSubnodes.get(0);
+    	Node cmpBRest = cmp.in.get(1).childSubnodes.get(1);
+    	Node cmpBN = cmp.in.get(1).childSubnodes.get(2);
     	Node cmpAwithoutN = new Node();
     	cmpA0.addChildSupernode(cmpAwithoutN);
     	cmpARest.addChildSupernode(cmpAwithoutN);
