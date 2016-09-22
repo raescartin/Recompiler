@@ -1358,6 +1358,9 @@ public class Definition {
 			if(node.outOfInstance!=null)this.removeInstance(node.outOfInstance);//prune now unused instances
 		}
 		for(Node outNode:this.out){
+			outNode.biFusion();
+		}
+		for(Node outNode:this.out){
 			outNode.fusion();
 		}
 	}
