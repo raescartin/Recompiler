@@ -1014,7 +1014,7 @@ public class Definition {
 			outNode.expandBinodes();
 		}
 		for(Node outNode:this.out){
-			outNode.childrenFission();
+			outNode.triFission();
 		}
 		for(Node outNode:this.out){
 			outNode.biFission();
@@ -1357,12 +1357,7 @@ public class Definition {
 		for(Node node:equivalentNodes.keySet()){
 			if(node.outOfInstance!=null)this.removeInstance(node.outOfInstance);//prune now unused instances
 		}
-		for(Node outNode:this.out){
-			outNode.biFusion();
-		}
-		for(Node outNode:this.out){
-			outNode.fusion();
-		}
+
 	}
 	private void getEquivalentChildSupernodes(HashMap<Node, Node> equivalentNodes) {
 		Queue<Node> queue = new LinkedList<Node>();
@@ -1407,5 +1402,13 @@ public class Definition {
 		}
 		this.instances.get(instance.depth).add(instance); 
 		return instance;
+	}
+	public void fusion() {
+		for(Node outNode:this.out){
+			outNode.biFusion();
+		}
+		for(Node outNode:this.out){
+			outNode.triFusion();
+		}
 	}
 }

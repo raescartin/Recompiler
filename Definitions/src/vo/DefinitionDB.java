@@ -92,6 +92,7 @@ public class DefinitionDB {
 				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
 				definition.clean(equivalentNode);
+				definition.fusion();
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 //				definition.fusion();//fusion of nodes 
 //				definition.update();
@@ -148,6 +149,7 @@ public class DefinitionDB {
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
+		expandedDefinition.fusion();
 		
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
