@@ -1541,8 +1541,8 @@ private void nandOutFission() {
 				this.definition.removeInstance(midChild.outOfInstance);
 //				midChild.parentSubnodes.clear();
 				this.definition.removeInstance(rightChild.outOfInstance);
-				System.out.println(this.toString());
-				System.out.println(this.definition.toString());
+//				System.out.println(this.toString());
+//				System.out.println(this.definition.toString());
 			}else{
 				this.parentSupernode.triFusion();
 			}
@@ -1595,10 +1595,10 @@ private void nandOutFission() {
 				if(leftNode.outOfInstance!=null&&rightNode.outOfInstance!=null
 				&&leftNode.parentSupernode!=null&&rightNode.parentSupernode!=null
 				&&leftNode.parentSupernode==rightNode.parentSupernode
-				&&leftNode.outOfInstance.in.get(0).equivalentNode().parentSupernode!=null&&rightNode.outOfInstance.in.get(0).equivalentNode().parentSupernode!=null
-				&&leftNode.outOfInstance.in.get(0).equivalentNode().parentSupernode==rightNode.outOfInstance.in.get(0).equivalentNode().parentSupernode
-				&&leftNode.outOfInstance.in.get(1).equivalentNode().parentSupernode!=null&&rightNode.outOfInstance.in.get(1).equivalentNode().parentSupernode!=null
-				&&leftNode.outOfInstance.in.get(1).equivalentNode().parentSupernode==rightNode.outOfInstance.in.get(1).equivalentNode().parentSupernode
+				&&leftNode.outOfInstance.in.get(0).parentSupernode!=null&&rightNode.outOfInstance.in.get(0).parentSupernode!=null
+				&&leftNode.outOfInstance.in.get(0).parentSupernode==rightNode.outOfInstance.in.get(0).parentSupernode
+				&&leftNode.outOfInstance.in.get(1).parentSupernode!=null&&rightNode.outOfInstance.in.get(1).parentSupernode!=null
+				&&leftNode.outOfInstance.in.get(1).parentSupernode==rightNode.outOfInstance.in.get(1).parentSupernode
 				){
 					this.definition.removeInstance(leftNode.outOfInstance);
 					this.definition.removeInstance(rightNode.outOfInstance);
@@ -1644,12 +1644,27 @@ private void nandOutFission() {
 ////					this.definition.removeInstance(this.outOfInstance);
 				}
 			}
-			System.out.println(this.toString());
-			System.out.println(this.definition.toString());
+//			System.out.println(this.toString());
+//			System.out.println(this.definition.toString());
 		}else{
 			for(Node parentSubnode:this.parentSubnodes){
 				parentSubnode.biFusion();
 			}
 		}
+	}
+	public void cleanBinodes() {
+		if(this.parentSupernode!=null){
+			this.parentSubnodes.clear();
+			this.parentSupernode.cleanBinodes();
+		}
+		for(Node parentSubnode:this.parentSubnodes){
+			parentSubnode.cleanBinodes();
+		}
+		if(this.outOfInstance!=null){
+			this.parentSubnodes.clear();
+			this.outOfInstance.in.get(0).cleanBinodes();
+			this.outOfInstance.in.get(1).cleanBinodes();
+		}
+		
 	}
 }

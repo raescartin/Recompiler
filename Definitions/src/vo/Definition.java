@@ -1410,5 +1410,8 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.triFusion();
 		}
+		for(Node outNode:this.out){
+			outNode.cleanBinodes();
+		}
 	}
 }
