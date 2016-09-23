@@ -149,9 +149,11 @@ public class DefinitionDB {
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
-		expandedDefinition.fusion();	
+		
+		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
+		
+		expandedDefinition.fusion();
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
 		this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
 		Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
@@ -209,6 +211,17 @@ public class DefinitionDB {
 		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		definition.update();
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
+	}
+	private void extractIOsubnodesFromRecursiveInstances(HashSet<Instance> removedInstances, HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
+		for(Instance instance:removedInstances){
+			for(Node nodeIn:instance.in){
+				nodeIn.extractIn(recursiveIn, originalNodes);
+				nodeIn.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+			}
+			for(Node nodeOut:instance.out){
+				if(originalNodes.contains(nodeOut)) recursiveOut.add(nodeOut);
+			}
+		}
 	}
 	private void replaceNodes(HashMap<Node, Node> definitionToCopy,
 			HashMap<Node, Node> copyToDefinition,
@@ -288,11 +301,12 @@ public class DefinitionDB {
 //	}
 	private void extractIOsubnodes(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes,
-			Definition expandedDefinition) {
+			Definition expandedDefinition, HashSet<Instance> removedInstances) {
 		HashSet<Node> evaluatedNodes= new HashSet<Node>();
 		for(Node outNode: expandedDefinition.out){
 			outNode.extractIOsubnodes(evaluatedNodes, recursiveIn,recursiveOut,originalNodes);
 		}
+		this.extractIOsubnodesFromRecursiveInstances(removedInstances,evaluatedNodes,recursiveIn,recursiveOut,originalNodes);
 		
 	}
 	private Definition fromNandForest(Definition definition, NandForest nandForest, HashMap <NandNode,Node> nandToNode) {

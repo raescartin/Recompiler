@@ -1041,26 +1041,18 @@ private void nandOutFission() {
 		if(!evaluatedNodes.contains(this)){
 			evaluatedNodes.add(this);
 			if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
-				if(this.outOfInstance.definition.name=="nand"){
-					if(originalNodes.contains(this)){
-						if(!originalNodes.contains(this.outOfInstance.in.get(0))||!originalNodes.contains(this.outOfInstance.in.get(1))){
-							recursiveOut.add(this);
-							this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
-							this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
-						}
-					}else{//new out node
+				if(originalNodes.contains(this)){
+					if(!originalNodes.contains(this.outOfInstance.in.get(0))||!originalNodes.contains(this.outOfInstance.in.get(1))){
+						recursiveOut.add(this);
 						this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
 						this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
 					}
-					this.outOfInstance.in.get(0).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-					this.outOfInstance.in.get(1).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-				}else{
-					if(originalNodes.contains(this)) recursiveOut.add(this);
-					for(Node inNode:this.outOfInstance.in){
-						inNode.extractIn(recursiveIn, originalNodes);
-						inNode.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-					}
+				}else{//new out node
+					this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
+					this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
 				}
+				this.outOfInstance.in.get(0).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+				this.outOfInstance.in.get(1).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
 			}else if(!this.parentSubnodes.isEmpty()){
 				for(Node parentSubnode:this.parentSubnodes){
 					parentSubnode.extractIOsubnodes(evaluatedNodes,recursiveIn, recursiveOut, originalNodes);
@@ -1072,7 +1064,7 @@ private void nandOutFission() {
 			}
 		}
 	}
-	private void extractIn(ArrayList<Node> recursiveIn, HashSet<Node> originalNodes) {
+	void extractIn(ArrayList<Node> recursiveIn, HashSet<Node> originalNodes) {
 		//test
 		if(originalNodes.contains(this)){
 			if(!recursiveIn.contains(this)) recursiveIn.add(this);
