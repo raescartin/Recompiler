@@ -149,8 +149,7 @@ public class DefinitionDB {
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
-		expandedDefinition.fusion();
-		
+		expandedDefinition.fusion();	
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);
 		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
