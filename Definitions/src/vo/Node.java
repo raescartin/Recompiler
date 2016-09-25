@@ -1505,12 +1505,12 @@ private void nandOutFission() {
 	public void getEquivalentParentSupernode(
 			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
 		if(this.parentSupernode!=null){
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.childSubnodes.get(0))&&equivalentNodes.containsKey(this.parentSupernode.childSubnodes.get(1))&&equivalentNodes.containsKey(this.parentSupernode.childSubnodes.get(2))){
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.keySet().containsAll(this.parentSupernode.childSubnodes)){
+				queue.removeAll(this.parentSupernode.childSubnodes);
 				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
 				queue.add(this.parentSupernode);
 			}
 		}
-		
 	}
 	public void triFusion() {
 		for(Node parentSubnode:this.parentSubnodes){
@@ -1658,5 +1658,27 @@ private void nandOutFission() {
 			this.outOfInstance.in.get(1).cleanBinodes();
 		}
 		
+	}
+	public void mergeParentSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
+		if(this.parentSupernode!=null){
+			if(!queue.contains(this.parentSupernode)&&queue.containsAll(this.parentSupernode.childSubnodes)){
+				queue.removeAll(this.parentSupernode.childSubnodes);
+				nodes.removeAll(this.parentSupernode.childSubnodes);
+				queue.add(this.parentSupernode);
+				nodes.add(this.parentSupernode);
+			}
+		}
+		queue.remove(this);
+	}
+	public void mergeChildSupernode(Queue<Node> queue, ArrayList<Node> recursiveIn) {
+		for(Node childSupernode:this.childSupernodes){
+			if(queue.containsAll(childSupernode.parentSubnodes)){
+				queue.removeAll(childSupernode.parentSubnodes);//replace with queue.remove() if candidates needed because multiple childSupernodes are posible
+				recursiveIn.removeAll(childSupernode.parentSubnodes);
+				queue.add(childSupernode);
+				recursiveIn.add(childSupernode);
+			}
+		}
+		queue.remove(this);
 	}
 }

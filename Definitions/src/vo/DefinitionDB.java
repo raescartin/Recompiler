@@ -7,6 +7,8 @@ package vo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -216,7 +218,7 @@ public class DefinitionDB {
 		for(Instance instance:removedInstances){
 			for(Node nodeIn:instance.in){
 				nodeIn.extractIn(recursiveIn, originalNodes);
-				nodeIn.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+//				nodeIn.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
 			}
 			for(Node nodeOut:instance.out){
 				if(originalNodes.contains(nodeOut)) recursiveOut.add(nodeOut);
@@ -253,34 +255,57 @@ public class DefinitionDB {
 	}
 	private void extractIOparentSupernodes(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut) {
-		ArrayList<Node> nodes = new ArrayList<Node>();
-		boolean posibleSupernodes;
-		do{
-			posibleSupernodes=false;
-			nodes.addAll(recursiveIn);
-			for(Node node:nodes){
-				posibleSupernodes=posibleSupernodes||node.extractIOparentSupernodes(recursiveIn);
-			}
-		}while(posibleSupernodes);
-		do{
-			posibleSupernodes=false;
-			nodes.clear();
-			nodes.addAll(recursiveOut);
-			for(Node node:nodes){
-				node.extractIOparentSupernodes(recursiveOut);
-			}
-		}while(posibleSupernodes);
+		Queue<Node> queueIn = new LinkedList<Node>();
+		queueIn.addAll(recursiveIn);
+		while (!queueIn.isEmpty()) {
+			queueIn.peek().mergeParentSupernode(queueIn,recursiveIn);
+		}
+		Queue<Node> queueOut = new LinkedList<Node>();
+		queueOut.addAll(recursiveOut);
+		while (!queueOut.isEmpty()) {
+			queueOut.peek().mergeParentSupernode(queueOut,recursiveOut);
+		}
+//		ArrayList<Node> nodes = new ArrayList<Node>();
+//		boolean posibleSupernodes;
+//		do{
+//			posibleSupernodes=false;
+//			nodes.addAll(recursiveIn);
+//			for(Node node:nodes){
+//				posibleSupernodes=posibleSupernodes||node.extractIOparentSupernodes(recursiveIn);
+//			}
+//		}while(posibleSupernodes);
+//		do{
+//			posibleSupernodes=false;
+//			nodes.clear();
+//			nodes.addAll(recursiveOut);
+//			for(Node node:nodes){
+//				node.extractIOparentSupernodes(recursiveOut);
+//			}
+//		}while(posibleSupernodes);
 	}
 	private void extractIOchildrenSupernodes(ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes, Definition expandedDefinition, ArrayList<Instance> expandedInstances) {
-		HashSet<Node> evaluatedNodes = new HashSet<Node>();
-		for(Node outNode:expandedDefinition.out){
-			outNode.extractIOchildrenSupernodes(evaluatedNodes,recursiveIn,recursiveOut,originalNodes);
+
+		Queue<Node> queueCandidatesIn = new LinkedList<Node>();
+		queueCandidatesIn.addAll(recursiveIn);
+		while (!queueCandidatesIn.isEmpty()) {
+			queueCandidatesIn.peek().mergeChildSupernode(queueCandidatesIn,recursiveIn);
 		}
-		for(Instance instance:expandedInstances){
-			for(Node inNode:instance.in){
-				inNode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-			}
+//		this.mergeChildrenSupernodes(queueCandidatesIn);
+		Queue<Node> queueCandidatesOut = new LinkedList<Node>();
+		queueCandidatesOut.addAll(recursiveOut);
+		while (!queueCandidatesOut.isEmpty()) {
+			queueCandidatesOut.peek().mergeChildSupernode(queueCandidatesOut,recursiveOut);
 		}
+//		this.mergeChildrenSupernodes(queueCandidatesOut);
+//		HashSet<Node> evaluatedNodes = new HashSet<Node>();
+//		for(Node outNode:expandedDefinition.out){
+//			outNode.extractIOchildrenSupernodes(evaluatedNodes,recursiveIn,recursiveOut,originalNodes);
+//		}
+//		for(Instance instance:expandedInstances){
+//			for(Node inNode:instance.in){
+//				inNode.extractIOchildrenSupernodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+//			}
+//		}
 		
 	}
 //	private void addOriginalRecursionIO(HashSet<Instance> removedInstances,
