@@ -143,7 +143,6 @@ public class DefinitionDB {
 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 		//to nand
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
-		expandedDefinition.mapFission(originalNodes);//update originalNodes to keep track of fissed nodes
 		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
 
@@ -151,11 +150,10 @@ public class DefinitionDB {
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
-		
-		this.extractIOsubnodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
-		
 		expandedDefinition.fusion();
+		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
+		this.extractIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
 		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
 		this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
 		Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
@@ -214,11 +212,11 @@ public class DefinitionDB {
 		definition.update();
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
 	}
-	private void extractIOsubnodesFromRecursiveInstances(HashSet<Instance> removedInstances, HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
+	private void extractIOfromRecursiveInstances(HashSet<Instance> removedInstances, ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
 		for(Instance instance:removedInstances){
 			for(Node nodeIn:instance.in){
 				nodeIn.extractIn(recursiveIn, originalNodes);
-//				nodeIn.extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
+//				if(originalNodes.contains(nodeIn)) recursiveIn.add(nodeIn);
 			}
 			for(Node nodeOut:instance.out){
 				if(originalNodes.contains(nodeOut)) recursiveOut.add(nodeOut);
@@ -324,15 +322,12 @@ public class DefinitionDB {
 //		}
 //		
 //	}
-	private void extractIOsubnodes(ArrayList<Node> recursiveIn,
+	private void extractIO(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes,
 			Definition expandedDefinition, HashSet<Instance> removedInstances) {
-		HashSet<Node> evaluatedNodes= new HashSet<Node>();
 		for(Node outNode: expandedDefinition.out){
-			outNode.extractIOsubnodes(evaluatedNodes, recursiveIn,recursiveOut,originalNodes);
+			outNode.extractOut(recursiveIn,recursiveOut,originalNodes);
 		}
-		this.extractIOsubnodesFromRecursiveInstances(removedInstances,evaluatedNodes,recursiveIn,recursiveOut,originalNodes);
-		
 	}
 	private Definition fromNandForest(Definition definition, NandForest nandForest, HashMap <NandNode,Node> nandToNode) {
 		//set existing Definition from NandForest without NandNode's repetition	

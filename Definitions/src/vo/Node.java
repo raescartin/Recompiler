@@ -1036,42 +1036,52 @@ private void nandOutFission() {
 	public void addOriginalRecursionOut(ArrayList<Node> recursiveOut) {
 		if(!recursiveOut.contains(this)) recursiveOut.add(this);
 	}
-	public void extractIOsubnodes(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
+	public void extractOut(ArrayList<Node> recursiveIn,
 			ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
-		if(!evaluatedNodes.contains(this)){
-			evaluatedNodes.add(this);
-			if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
-				if(originalNodes.contains(this)){
-					if(!originalNodes.contains(this.outOfInstance.in.get(0))||!originalNodes.contains(this.outOfInstance.in.get(1))){
-						recursiveOut.add(this);
-						this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
-						this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
-					}
-				}else{//new out node
+		if(!this.parentSubnodes.isEmpty()){
+			for(Node parentSubnode:this.parentSubnodes){
+				parentSubnode.extractOut(recursiveIn, recursiveOut, originalNodes);
+			}
+		}else if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
+			if(this.outOfInstance.definition.name=="nand"){
+				if(!originalNodes.contains(this.outOfInstance.in.get(0))||!originalNodes.contains(this.outOfInstance.in.get(1))){
+					recursiveOut.add(this);
 					this.outOfInstance.in.get(0).extractIn(recursiveIn, originalNodes);
 					this.outOfInstance.in.get(1).extractIn(recursiveIn, originalNodes);
+				}else{
+					this.outOfInstance.in.get(0).extractOut(recursiveIn, recursiveOut, originalNodes);
+					this.outOfInstance.in.get(1).extractOut(recursiveIn, recursiveOut, originalNodes);
 				}
-				this.outOfInstance.in.get(0).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-				this.outOfInstance.in.get(1).extractIOsubnodes(evaluatedNodes, recursiveIn, recursiveOut, originalNodes);
-			}else if(!this.parentSubnodes.isEmpty()){
-				for(Node parentSubnode:this.parentSubnodes){
-					parentSubnode.extractIOsubnodes(evaluatedNodes,recursiveIn, recursiveOut, originalNodes);
+			}else{
+				for(Node inNode:this.outOfInstance.in){
+					inNode.extractIn(recursiveIn, originalNodes);
 				}
-			}else if(this.parentSupernode!=null){
-				for(Node childSubnode:this.parentSupernode.childSubnodes){
-					childSubnode.extractIOsubnodes(evaluatedNodes,recursiveIn, recursiveOut, originalNodes);
+				for(Node outNode:this.outOfInstance.out){
+					if(!recursiveOut.contains(outNode)) recursiveOut.add(outNode);
 				}
+			}
+		}else if(this.parentSupernode!=null){
+			if(originalNodes.contains(this.parentSupernode)){
+				this.parentSupernode.extractOut( recursiveIn, recursiveOut, originalNodes);
+			}else{
+				recursiveOut.add(this);
+				this.parentSupernode.extractIn(recursiveIn, originalNodes);
 			}
 		}
 	}
 	void extractIn(ArrayList<Node> recursiveIn, HashSet<Node> originalNodes) {
-		//test
-		if(originalNodes.contains(this)){
-			if(!recursiveIn.contains(this)) recursiveIn.add(this);
-		}else{
+		if(!this.parentSubnodes.isEmpty()){
 			for(Node parentSubnode:this.parentSubnodes){
 				parentSubnode.extractIn(recursiveIn, originalNodes);
 			}
+		}else if(originalNodes.contains(this)){
+			if(!recursiveIn.contains(this)) recursiveIn.add(this);
+		}else if(this.outOfInstance!=null){//should have preference over everything //this preference may cause problems with fusion so maybe have to check for children here
+			for(Node inNode: this.outOfInstance.in){
+				inNode.extractIn(recursiveIn, originalNodes);
+			}
+		}else if(this.parentSupernode!=null){
+			this.parentSupernode.extractIn(recursiveIn, originalNodes);
 		}
 	}
 	public void extractIOchildrenSupernodes(HashSet<Node> evaluatedNodes, ArrayList<Node> recursiveIn,
@@ -1680,5 +1690,26 @@ private void nandOutFission() {
 			}
 		}
 		queue.remove(this);
+	}
+	public void getNewOriginalNodes(HashSet<Node> originalNodes) {
+		for(Node parentSubnode:this.parentSubnodes){
+			if(originalNodes.contains(this)) originalNodes.add(parentSubnode);
+			parentSubnode.getNewOriginalNodes(originalNodes);
+		}
+		if(this.outOfInstance!=null){
+			this.outOfInstance.in.get(0).getNewOriginalNodes(originalNodes);
+			this.outOfInstance.in.get(1).getNewOriginalNodes(originalNodes);
+		}
+		if(this.parentSupernode!=null){
+			this.parentSupernode.getNewOriginalNodes(originalNodes);
+		}
+		if(!originalNodes.contains(this)){
+			if(this.parentSupernode!=null&&originalNodes.contains(this.parentSupernode)){
+				originalNodes.add(this);
+			}
+			else if(!this.parentSubnodes.isEmpty()&&originalNodes.containsAll(this.parentSubnodes)){
+				originalNodes.add(this);
+			}
+		}
 	}
 }

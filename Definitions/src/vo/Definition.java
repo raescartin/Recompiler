@@ -976,11 +976,9 @@ public class Definition {
 //		}
 //		recursionOutNandNodes.addAll(nandForest.in.subList(nandIn, nandForest.in.size()));
 //	}
-	void mapFission(HashSet<Node> originalNodes) {
-		ArrayList <Node> nodes = new ArrayList<Node>();
-		nodes.addAll(originalNodes);
-		for(Node node:nodes){
-			node.nodeMapFission(this,originalNodes);
+	void mapNewOriginalNodes(HashSet<Node> originalNodes) {
+		for(Node outNode:this.out){
+			outNode.getNewOriginalNodes(originalNodes);
 		}
 	}
 	public void update() {
