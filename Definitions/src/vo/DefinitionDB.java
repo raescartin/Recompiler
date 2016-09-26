@@ -83,7 +83,7 @@ public class DefinitionDB {
 		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
-				HashMap <Node,Node> equivalentNode = new HashMap <Node,Node>();
+				HashMap <Node,Node> equivalentNodes = new HashMap <Node,Node>();
 				HashMap<Node, NandNode> nodeToNand = new HashMap<Node, NandNode>();
 //				HashSet<Node> nodeIO = new HashSet<Node>();
 //				nodeIO.addAll(definition.in);
@@ -91,9 +91,11 @@ public class DefinitionDB {
 				definition.toNandInstances();
 				definition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 //				definition.mapFission(nodeIO);
-				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNode);//non recursive definition to nandforest
+				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNodes);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
-				definition.clean(equivalentNode);
+				this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
+				this.getEquivalentChildSupernodes(equivalentNodes);
+				definition.replaceNodes(equivalentNodes);
 				definition.fusion();
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 //				definition.fusion();//fusion of nodes 
@@ -145,11 +147,11 @@ public class DefinitionDB {
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
-
-
+		this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
+		this.getEquivalentChildSupernodes(equivalentNodes);
 		this.replaceNodes(originalNodes,equivalentNodes);
 		this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
-		expandedDefinition.clean(equivalentNodes);
+		expandedDefinition.replaceNodes(equivalentNodes);
 		expandedDefinition.fusion();
 		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
 		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
@@ -225,7 +227,7 @@ public class DefinitionDB {
 	}
 	private void replaceNodes(HashMap<Node, Node> definitionToCopy,
 			HashMap<Node, Node> copyToDefinition,
-			HashMap<Node, Node> equivalentNodes, HashMap<Node, Node> expandedToDefinition) {
+			HashMap<Node, Node> expandedToDefinition, HashMap<Node, Node> equivalentNodes) {
 		
 			HashSet<Node> nodesCopy = new HashSet<Node>();
 			nodesCopy.addAll(copyToDefinition.keySet());
@@ -237,7 +239,9 @@ public class DefinitionDB {
 					copyToDefinition.remove(node);
 				}
 			}
-			for(Node node:expandedToDefinition.keySet()){
+			nodesCopy.clear();
+			nodesCopy.addAll(expandedToDefinition.keySet());
+			for(Node node:nodesCopy){
 				if(equivalentNodes.containsKey(node)){
 					expandedToDefinition.put(equivalentNodes.get(node), expandedToDefinition.get(node));
 				}
@@ -569,5 +573,21 @@ public class DefinitionDB {
 			string+=this.definitions.get(name).toString();
 		}
 		return string;
+	}
+	private void getEquivalentChildSupernodes(HashMap<Node, Node> equivalentNodes) {
+		Queue<Node> queue = new LinkedList<Node>();
+		queue.addAll(equivalentNodes.keySet());
+		while (!queue.isEmpty()) {
+			queue.poll().getEquivalentChildSupernodes(equivalentNodes,queue);
+		}
+		
+	}
+	private void getEquivalentParentSupernodes(
+			HashMap<Node, Node> equivalentNodes) {
+		Queue<Node> queue = new LinkedList<Node>();
+		queue.addAll(equivalentNodes.keySet());
+		while (!queue.isEmpty()) {
+			queue.poll().getEquivalentParentSupernode(equivalentNodes,queue);
+		}
 	}
 }

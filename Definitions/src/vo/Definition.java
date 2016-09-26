@@ -1345,9 +1345,7 @@ public class Definition {
 			}
 		}
 	}
-	public void clean(HashMap<Node, Node> equivalentNodes) {
-		this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
-		this.getEquivalentChildSupernodes(equivalentNodes);
+	public void replaceNodes(HashMap<Node, Node> equivalentNodes) {
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node outNode:this.out){
 			outNode.replaceNodes(expandedNodes, equivalentNodes);
@@ -1357,22 +1355,8 @@ public class Definition {
 		}
 
 	}
-	private void getEquivalentChildSupernodes(HashMap<Node, Node> equivalentNodes) {
-		Queue<Node> queue = new LinkedList<Node>();
-		queue.addAll(equivalentNodes.keySet());
-		while (!queue.isEmpty()) {
-			queue.poll().getEquivalentChildSupernodes(equivalentNodes,queue);
-		}
-		
-	}
-	private void getEquivalentParentSupernodes(
-			HashMap<Node, Node> equivalentNodes) {
-		Queue<Node> queue = new LinkedList<Node>();
-		queue.addAll(equivalentNodes.keySet());
-		while (!queue.isEmpty()) {
-			queue.poll().getEquivalentParentSupernode(equivalentNodes,queue);
-		}
-	}
+	
+	
 	public Instance add(Instance instance) {
 		for(Node node:instance.in){
 			this.add(node);	
