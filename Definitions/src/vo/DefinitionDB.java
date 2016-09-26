@@ -148,7 +148,7 @@ public class DefinitionDB {
 
 
 		this.replaceNodes(originalNodes,equivalentNodes);
-		this.replaceNodes(definitionToCopy,copyToDefinition,equivalentNodes);
+		this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
 		expandedDefinition.clean(equivalentNodes);
 		expandedDefinition.fusion();
 		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
@@ -225,7 +225,7 @@ public class DefinitionDB {
 	}
 	private void replaceNodes(HashMap<Node, Node> definitionToCopy,
 			HashMap<Node, Node> copyToDefinition,
-			HashMap<Node, Node> equivalentNodes) {
+			HashMap<Node, Node> equivalentNodes, HashMap<Node, Node> expandedToDefinition) {
 		
 			HashSet<Node> nodesCopy = new HashSet<Node>();
 			nodesCopy.addAll(copyToDefinition.keySet());
@@ -235,6 +235,11 @@ public class DefinitionDB {
 					definitionToCopy.remove(copyToDefinition.get(node));
 					definitionToCopy.put(copyToDefinition.get(node), equivalentNodes.get(node));
 					copyToDefinition.remove(node);
+				}
+			}
+			for(Node node:expandedToDefinition.keySet()){
+				if(equivalentNodes.containsKey(node)){
+					expandedToDefinition.put(equivalentNodes.get(node), expandedToDefinition.get(node));
 				}
 			}
 		
