@@ -1,19 +1,24 @@
 ﻿TODO
+-generalize toNandInstances
+-print nandDefinition
+-correct parallel cost (nandInstances+cost of other definitions)
+-error on "ones"
+-fix cost eval,  unoptimized xor cost is 7 Use aprox cost (exact is partial sum of hipergeometric sucesion)
 -fix depth error in fission (nand [33(6{0}&6{1}),37(5{1}&5{2});45(69{0}&69{1})])
--fix fusion of equivalentSubnodes
--fix IO finding in intersection
--check duplicate selection, may be more complex
--fix cost eval,  unoptimized xor cost is 7
 -fix toBest to be restrictive (subnodes etc... must be exactly the same to replace)
 -sqrt
 -add arrays of nodes to definition/try to implement algorithms with arrays
 -check order of all evaluations everywhere
--merge bifusion and trifusion (generelization)
 -todo: recursive intersection merge (if/rif)
 -change Definition to Function
--fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) 
+ 
 
 DONE
+-fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) NO! no need
+-merge bifusion and trifusion (generelization) NO! no need, better divided
+-check duplicate selection
+-fix IO finding in intersection
+-fix fusion of equivalentSubnodes
 -reorder and maybe merge fission: it's better to have as separed as possible
 -mixed equivalent nodes: 5{1}{0}=68{1}{0} while  68{1}{2}=5{1}{2} Need to armonize direction? so only subnodes of 5 or 68
 armonized so all subnodes of a same node are added

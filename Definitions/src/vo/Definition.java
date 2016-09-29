@@ -192,7 +192,7 @@ public class Definition {
 			for (Instance instance : setOfInstances) {//print instances
 			    string+=" "+instance.toString(this);
 			}
-			string+=("\n\n");
+			string+=("\n");
 		}
 		string+=(" root in: ");
 		for (Definition root : this.rootIn){
@@ -327,50 +327,41 @@ public class Definition {
 //		return true;
 //	}
 	public void printCost(){
-		String strCost=this.cost();
-		System.out.println("Definition cost in nands: "+strCost);
-		String strParallelCost=this.parallelCost();
+//		String strCost=this.cost();
+//		System.out.println("Definition cost in nands: "+strCost);
+		System.out.println("Definition as nands:");
+		Definition nandsDef=this.copy();
+		nandsDef.replaceDefinition(this, nandsDef);
+		nandsDef.toNandInstances();
+		System.out.print(nandsDef.toString());
+		String strParallelCost=nandsDef.parallelCost();
 		System.out.println("Definition cost in parallel nands: "+strParallelCost);
 	}
 	private String parallelCost() {
-		Definition copyDef=this.copy();
-		copyDef.replaceDefinition(this, copyDef);
 		String strCost = new String();
-		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
-			copyDef.toNandInstances();
-			copyDef.fission();
-			int iterationCost=copyDef.instances.size();
-			strCost=String.valueOf(iterationCost);
+		if(!this.selfRecursiveInstances.isEmpty()){//definition is recursive
+			int iterationCost=0;
+			for(Instance recursiveInstance:this.selfRecursiveInstances){
+				if(recursiveInstance.depth>iterationCost) iterationCost=recursiveInstance.depth;
+			}
+			if(iterationCost>0){
+				strCost=String.valueOf(iterationCost);
+				strCost+="*n";
+			}
+			if(this.instances.size()-iterationCost>0){
+				strCost+="+";
+				strCost+=String.valueOf(this.instances.size()-iterationCost);
+			}
+			
 		}else{
-			AddedNodes addedNodes = new AddedNodes();
-			HashSet<Instance> removedInstances = new HashSet<Instance>();
-			for(Instance instanceOfRecursiveDefinition:copyDef.instancesOfRecursiveDefinitions){
-				strCost+=instanceOfRecursiveDefinition.definition.cost()+"+";
-				copyDef.removeRecursiveInstance(instanceOfRecursiveDefinition, addedNodes, removedInstances);
-			}
-			copyDef.instancesOfRecursiveDefinitions.clear();
-			copyDef.removeRecursion(addedNodes, removedInstances);
-			copyDef.toNandInstances();
-			copyDef.fission();
-			int iterationCost=copyDef.instances.size();
-			int nodesEvaluatedByIteration=1;//TODO: calculate nodes evaluated by iteration (index on recursive call)
-			if(this.selfRecursiveInstances.isEmpty()){
-				strCost+=String.valueOf(iterationCost);//TODO: n is a generic variable name, for now
-			}else{
-				if(nodesEvaluatedByIteration==1){
-					if(this.selfRecursiveInstances.size()<2){
-						strCost+=String.valueOf(iterationCost+"*n");//TODO: n is a generic variable name, for now
-					}else{//log base number of selfRecursiveInstances
-						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size()));
-					}
-				}else{
-					if(this.selfRecursiveInstances.size()<2){
-						strCost+=String.valueOf(iterationCost+"*n/"+nodesEvaluatedByIteration);
-					}else{//log base number of selfRecursiveInstances
-						strCost+=String.valueOf(iterationCost+"*n*log*"+String.valueOf(this.selfRecursiveInstances.size())+"/"+nodesEvaluatedByIteration);
-					}
-				}
-			}
+			strCost=String.valueOf(this.instances.size());
+		}
+		for(Instance recursiveInstance:this.instancesOfRecursiveDefinitions){
+			Definition definitionCopy =recursiveInstance.definition.copy();
+			definitionCopy.replaceDefinition(recursiveInstance.definition, definitionCopy);
+			definitionCopy.toNandInstances();
+			strCost+="+";
+			strCost+=definitionCopy.parallelCost();
 		}
 		return strCost;
 	}
@@ -382,8 +373,8 @@ public class Definition {
 			copyDef.toNandInstances();
 			copyDef.fission();
 			int iterationCost=0;
-			for(ArrayList<Instance> instanceHashSet:this.instances){
-				for(@SuppressWarnings("unused") Instance instance:instanceHashSet){
+			for(ArrayList<Instance> instanceSet:this.instances){
+				for(@SuppressWarnings("unused") Instance instance:instanceSet){
 					iterationCost++;
 				}
 			}

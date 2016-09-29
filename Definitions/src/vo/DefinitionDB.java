@@ -212,6 +212,9 @@ public class DefinitionDB {
 		}
 		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
 		definition.update();
+//		if(definition.name=="add"){
+//			this.put(recursiveDefinition.name, recursiveDefinition);
+//		}
 		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
 	}
 	private void extractIOfromRecursiveInstances(HashSet<Instance> removedInstances, ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
