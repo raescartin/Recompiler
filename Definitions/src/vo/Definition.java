@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import utils.AddedNodes;
 import utils.FixedBitSet;
+import utils.Polynomial;
 
 //DESCRIPTION
 //-Defines a "Definition", procedure, function with multiple outputs
@@ -334,36 +333,18 @@ public class Definition {
 		nandsDef.replaceDefinition(this, nandsDef);
 		nandsDef.toNandInstances();
 		System.out.print(nandsDef.toString());
-		String strParallelCost=nandsDef.parallelCost();
+		String strParallelCost=nandsDef.parallelCost().toString();
 		System.out.println("Definition cost in parallel nands: "+strParallelCost);
 	}
-	private String parallelCost() {
-		String strCost = new String();
-		if(!this.selfRecursiveInstances.isEmpty()){//definition is recursive
-			int iterationCost=0;
-			for(Instance recursiveInstance:this.selfRecursiveInstances){
-				if(recursiveInstance.depth>iterationCost) iterationCost=recursiveInstance.depth;
+	private Polynomial parallelCost() {
+		Polynomial cost = new Polynomial();
+		for(Node outNode:this.out){
+			Polynomial outNodeCost=outNode.parallelCost();
+			if(outNodeCost.sup(cost)){
+				cost=outNodeCost;
 			}
-			if(iterationCost>0){
-				strCost=String.valueOf(iterationCost);
-				strCost+="*n";
-			}
-			if(this.instances.size()-iterationCost>0){
-				strCost+="+";
-				strCost+=String.valueOf(this.instances.size()-iterationCost);
-			}
-			
-		}else{
-			strCost=String.valueOf(this.instances.size());
 		}
-		for(Instance recursiveInstance:this.instancesOfRecursiveDefinitions){
-			Definition definitionCopy =recursiveInstance.definition.copy();
-			definitionCopy.replaceDefinition(recursiveInstance.definition, definitionCopy);
-			definitionCopy.toNandInstances();
-			strCost+="+";
-			strCost+=definitionCopy.parallelCost();
-		}
-		return strCost;
+		return cost;
 	}
 	private String cost() {
 		Definition copyDef=this.copy();
