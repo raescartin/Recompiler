@@ -337,14 +337,18 @@ public class Definition {
 		System.out.println("Definition cost in parallel nands: "+strParallelCost);
 	}
 	private Polynomial parallelCost() {
-		Polynomial cost = new Polynomial();
+		HashMap<Node,Polynomial> cost = new HashMap<Node,Polynomial>(); 
+		Polynomial definitionCost = new Polynomial();
+		for(Node inNode:this.in){
+			cost.put(inNode, new Polynomial());
+		}
 		for(Node outNode:this.out){
-			Polynomial outNodeCost=outNode.parallelCost();
-			if(outNodeCost.sup(cost)){
-				cost=outNodeCost;
+			Polynomial outNodeCost=outNode.parallelCost(cost);
+			if(outNodeCost.sup(definitionCost)){
+				definitionCost=outNodeCost;
 			}
 		}
-		return cost;
+		return definitionCost;
 	}
 	private String cost() {
 		Definition copyDef=this.copy();

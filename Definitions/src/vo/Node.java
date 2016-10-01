@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.TreeSet;
 
 import utils.FixedBitSet;
+import utils.Polynomial;
 //Each node can have 1 supernode parent and multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
 //Each node can have supernode AND subnode children
 //childrenSubnodes serve as indexes: if a node has subnode children, the leftmost represents the leftmost bit, the rightmost the rightmost bit and the middle one the rest
@@ -1717,5 +1718,36 @@ private void nandOutFission() {
 				originalNodes.add(this);
 			}
 		}
+	}
+	public Polynomial parallelCost(HashMap<Node, Polynomial> cost) {
+		if(!cost.containsKey(this)){
+			if(this.outOfInstance!=null){
+				for(Node nodeIn:this.outOfInstance.in){
+					nodeIn.parallelCost(cost);
+				}
+				if(this.definition==this.outOfInstance.definition){
+					ArrayList<Integer> pArray= new ArrayList<Integer>();
+					pArray.add(0);
+					pArray.add(1);
+					cost.put(this, new Polynomial());
+					for(Node nodeIn:this.outOfInstance.in){
+						if(cost.get(nodeIn).sup(cost.get(this))){
+							cost.put(this,cost.get(nodeIn).multiply(new Polynomial(pArray)));
+						}
+					}
+					
+				}
+				else if(this.outOfInstance.definition.name=="nand"){
+					if(cost.get(this.outOfInstance.in.get(0)).sup(cost.get(this.outOfInstance.in.get(1)))){
+						cost.put(this, cost.get(this.outOfInstance.in.get(0)).add(new Polynomial(1)));
+					}else{
+						cost.put(this, cost.get(this.outOfInstance.in.get(1)).add(new Polynomial(1)));
+					}
+				}else{
+					
+				}
+			}
+		}
+		return cost.get(this);
 	}
 }
