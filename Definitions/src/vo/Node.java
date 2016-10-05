@@ -1744,9 +1744,34 @@ private void nandOutFission() {
 						cost.put(this, cost.get(this.outOfInstance.in.get(1)).add(new Polynomial(1)));
 					}
 				}else{
-					
+					Polynomial outCost = this.outOfInstance.definition.parallelCost();
+					Polynomial inCost = new Polynomial(0);
+					for(Node inNode:this.outOfInstance.in){
+						if(cost.get(inNode).sup(inCost)){
+							inCost=cost.get(inNode);
+						}
+					}
+					outCost=outCost.add(inCost);
+					for(int i=0;i<this.outOfInstance.out.size();i++){
+						cost.put(this.outOfInstance.out.get(i), outCost);
+					}
 				}
+			}else if(this.parentSupernode!=null){
+				this.parentSupernode.parallelCost(cost);
+				cost.put(this, cost.get(this.parentSupernode));
+			}else if(!this.parentSubnodes.isEmpty()){
+				Polynomial nodeCost = new Polynomial(0);
+				for(Node parentSubnode:this.parentSubnodes){
+					parentSubnode.parallelCost(cost);
+					if(cost.get(parentSubnode).sup(nodeCost)){
+						nodeCost=cost.get(parentSubnode);
+					}
+				}
+				cost.put(this, nodeCost);
 			}
+		}
+		if(!cost.containsKey(this)){
+			cost.put(this, new Polynomial(0));
 		}
 		return cost.get(this);
 	}
