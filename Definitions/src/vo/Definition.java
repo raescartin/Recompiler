@@ -334,25 +334,27 @@ public class Definition {
 		nandsDef.toNandInstances();
 		System.out.print(nandsDef.toString());
 		
-		String strParallelCost=nandsDef.parallelCost().toString();
+		String strParallelCost=this.parallelCost().toString();
 		System.out.println("Definition cost in parallel nands: "+strParallelCost);
 	}
-	Polynomial parallelCost() {
+	Polynomial parallelCost() {//down to top cost evaluation
 		Polynomial definitionCost = new Polynomial();
-		HashMap<Node, Polynomial> cost= new HashMap<Node, Polynomial>();
-		for(Node inNode:this.in){
-			cost.put(inNode, new Polynomial(0));
-		}
+		HashMap<Node, Polynomial> cost = new HashMap<Node, Polynomial>();
 		for(Node outNode:this.out){
+			cost.put(outNode, new Polynomial(0));
 			outNode.parallelCost(cost);
-			if(cost.get(outNode).sup(definitionCost)){
-				definitionCost=cost.get(outNode);
+		}
+		for(Node inNode:this.in){//cost is max cost of reaching in nodes
+			if(!cost.containsKey(inNode)) cost.put(inNode,new Polynomial(0));
+			if(cost.get(inNode).sup(definitionCost)){
+				definitionCost=cost.get(inNode);
 			}
 		}
 		return definitionCost;
 	}
 	public void parallelCost(HashMap<Node, Polynomial> cost) {
 		for(Node outNode:this.out){
+			cost.put(outNode, new Polynomial(0));
 			outNode.parallelCost(cost);
 		}
 	}

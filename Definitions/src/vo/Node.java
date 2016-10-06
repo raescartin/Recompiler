@@ -1719,60 +1719,81 @@ private void nandOutFission() {
 			}
 		}
 	}
-	public Polynomial parallelCost(HashMap<Node, Polynomial> cost) {
-		if(!cost.containsKey(this)){
-			if(this.outOfInstance!=null){
-				for(Node nodeIn:this.outOfInstance.in){
-					nodeIn.parallelCost(cost);
+	public void parallelCost(HashMap<Node, Polynomial> cost) {
+		if(this.outOfInstance!=null){
+			if(this.outOfInstance.definition.name=="nand"){
+				if(cost.containsKey(this.outOfInstance.in.get(0))){
+					if(cost.get(this).add(new Polynomial(1)).sup(cost.get(this.outOfInstance.in.get(0)))){
+						cost.put(this.outOfInstance.in.get(0),cost.get(this).add(new Polynomial(1)));
+					}
+				}else{
+					cost.put(this.outOfInstance.in.get(0),cost.get(this).add(new Polynomial(1)));
 				}
-				if(this.definition==this.outOfInstance.definition){
+				if(cost.containsKey(this.outOfInstance.in.get(1))){
+					if(cost.get(this).add(new Polynomial(1)).sup(cost.get(this.outOfInstance.in.get(1)))){
+						cost.put(this.outOfInstance.in.get(1),cost.get(this).add(new Polynomial(1)));
+					}
+				}else{
+					cost.put(this.outOfInstance.in.get(1),cost.get(this).add(new Polynomial(1)));
+				}
+				this.outOfInstance.in.get(0).parallelCost(cost);
+				this.outOfInstance.in.get(1).parallelCost(cost);
+			}else{
+				HashMap<Node, Polynomial> tempCost = new HashMap<Node, Polynomial>();
+				if(this.outOfInstance.definition==this.definition) {
+					for(Node inNode:this.outOfInstance.definition.in){
+						tempCost.put(inNode, new Polynomial(0));
+					}
+					for(Node outNode:this.outOfInstance.definition.out){
+						tempCost.put(outNode, new Polynomial(0));
+					}
+				}else{
+					this.outOfInstance.definition.parallelCost(tempCost);
+				}
+				if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()){///this node is out of recursive definition
 					ArrayList<Integer> pArray= new ArrayList<Integer>();
 					pArray.add(0);
 					pArray.add(1);
-					cost.put(this, new Polynomial());
-					for(Node nodeIn:this.outOfInstance.in){
-						if(cost.get(nodeIn).sup(cost.get(this))){
-							cost.put(this,cost.get(nodeIn).multiply(new Polynomial(pArray)));
-						}
+					for(Node nodeIn:this.outOfInstance.definition.in){
+						tempCost.put(nodeIn,tempCost.get(nodeIn).multiply(new Polynomial(pArray)));
 					}
-					
 				}
-				else if(this.outOfInstance.definition.name=="nand"){
-					if(cost.get(this.outOfInstance.in.get(0)).sup(cost.get(this.outOfInstance.in.get(1)))){
-						cost.put(this, cost.get(this.outOfInstance.in.get(0)).add(new Polynomial(1)));
+				for(Node nodeIn:this.outOfInstance.definition.in){
+					tempCost.put(nodeIn,tempCost.get(nodeIn).add(cost.get(this)));
+				}
+				for(int i=0;i<this.outOfInstance.in.size();i++){
+					if(cost.containsKey(this.outOfInstance.in.get(i))){
+						if(tempCost.get(this.outOfInstance.definition.in.get(i)).sup(cost.get(this.outOfInstance.in.get(i)))){
+							cost.put(this.outOfInstance.in.get(i),tempCost.get(this.outOfInstance.definition.in.get(i)));
+						}
 					}else{
-						cost.put(this, cost.get(this.outOfInstance.in.get(1)).add(new Polynomial(1)));
+						cost.put(this.outOfInstance.in.get(i),tempCost.get(this.outOfInstance.definition.in.get(i)));
+					}
+				}
+				for(Node nodeIn:this.outOfInstance.in){
+					nodeIn.parallelCost(cost);
+				}
+			}
+		}else if(this.parentSupernode!=null){
+			if(cost.containsKey(this.parentSupernode)){
+				if(cost.get(this).sup(cost.get(this.parentSupernode))){
+					cost.put(this.parentSupernode,cost.get(this));
+				}
+			}else{
+				cost.put(this.parentSupernode,cost.get(this));
+			}
+			this.parentSupernode.parallelCost(cost);
+		}else if(!this.parentSubnodes.isEmpty()){
+			for(Node parentSubnode:this.parentSubnodes){
+				if(cost.containsKey(parentSubnode)){
+					if(cost.get(this).sup(cost.get(parentSubnode))){
+						cost.put(parentSubnode,cost.get(this));
 					}
 				}else{
-					Polynomial outCost = this.outOfInstance.definition.parallelCost();
-					Polynomial inCost = new Polynomial(0);
-					for(Node inNode:this.outOfInstance.in){
-						if(cost.get(inNode).sup(inCost)){
-							inCost=cost.get(inNode);
-						}
-					}
-					outCost=outCost.add(inCost);
-					for(int i=0;i<this.outOfInstance.out.size();i++){
-						cost.put(this.outOfInstance.out.get(i), outCost);
-					}
+					cost.put(parentSubnode,cost.get(this));
 				}
-			}else if(this.parentSupernode!=null){
-				this.parentSupernode.parallelCost(cost);
-				cost.put(this, cost.get(this.parentSupernode));
-			}else if(!this.parentSubnodes.isEmpty()){
-				Polynomial nodeCost = new Polynomial(0);
-				for(Node parentSubnode:this.parentSubnodes){
-					parentSubnode.parallelCost(cost);
-					if(cost.get(parentSubnode).sup(nodeCost)){
-						nodeCost=cost.get(parentSubnode);
-					}
-				}
-				cost.put(this, nodeCost);
+				parentSubnode.parallelCost(cost);
 			}
 		}
-		if(!cost.containsKey(this)){
-			cost.put(this, new Polynomial(0));
-		}
-		return cost.get(this);
 	}
 }
