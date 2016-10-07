@@ -258,7 +258,7 @@ class test {
      	System.out.print("Optimized definition: \n");
     	System.out.print(ones.toString());
     	ones.printCost();
-    	ones.printEval(A);
+    	ones.printEval(A);//FIXME!!!
     	System.out.print(definitionDB.toString());
     	
     	//DEC definition////definition to decrement an integer by one

@@ -1741,37 +1741,45 @@ private void nandOutFission() {
 			}else{
 				HashMap<Node, Polynomial> tempCost = new HashMap<Node, Polynomial>();
 				if(this.outOfInstance.definition==this.definition) {
-					for(Node inNode:this.outOfInstance.definition.in){
+					for(Node nodeIn:this.definition.in){
+						tempCost.put(nodeIn,new Polynomial(0));
+					}
+					for(Node inNode:this.outOfInstance.in){
 						tempCost.put(inNode, new Polynomial(0));
+						inNode.parallelCost(tempCost);
 					}
-					for(Node outNode:this.outOfInstance.definition.out){
-						tempCost.put(outNode, new Polynomial(0));
-					}
-				}else{
-					this.outOfInstance.definition.parallelCost(tempCost);
-				}
-				if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()){///this node is out of recursive definition
 					ArrayList<Integer> pArray= new ArrayList<Integer>();
 					pArray.add(0);
 					pArray.add(1);
-					for(Node nodeIn:this.outOfInstance.definition.in){
-						tempCost.put(nodeIn,tempCost.get(nodeIn).multiply(new Polynomial(pArray)));
+					for(Node nodeIn:this.definition.in){
+						tempCost.put(nodeIn,tempCost.get(nodeIn).multiply(new Polynomial(pArray)).add(cost.get(this)));//exact?
 					}
-				}
-				for(Node nodeIn:this.outOfInstance.definition.in){
-					tempCost.put(nodeIn,tempCost.get(nodeIn).add(cost.get(this)));
-				}
-				for(int i=0;i<this.outOfInstance.in.size();i++){
-					if(cost.containsKey(this.outOfInstance.in.get(i))){
-						if(tempCost.get(this.outOfInstance.definition.in.get(i)).sup(cost.get(this.outOfInstance.in.get(i)))){
+					for(Node inNode:this.definition.in){
+						if(cost.containsKey(inNode)){
+							if(tempCost.get(inNode).sup(cost.get(inNode))){
+								cost.put(inNode,tempCost.get(inNode));
+							}
+						}else{
+							cost.put(inNode,tempCost.get(inNode));
+						}
+					}
+				}else{
+					this.outOfInstance.definition.parallelCost(tempCost);
+					for(Node nodeIn:this.outOfInstance.definition.in){
+						tempCost.put(nodeIn,tempCost.get(nodeIn).add(cost.get(this)));
+					}
+					for(int i=0;i<this.outOfInstance.in.size();i++){
+						if(cost.containsKey(this.outOfInstance.in.get(i))){
+							if(tempCost.get(this.outOfInstance.definition.in.get(i)).sup(cost.get(this.outOfInstance.in.get(i)))){
+								cost.put(this.outOfInstance.in.get(i),tempCost.get(this.outOfInstance.definition.in.get(i)));
+							}
+						}else{
 							cost.put(this.outOfInstance.in.get(i),tempCost.get(this.outOfInstance.definition.in.get(i)));
 						}
-					}else{
-						cost.put(this.outOfInstance.in.get(i),tempCost.get(this.outOfInstance.definition.in.get(i)));
 					}
-				}
-				for(Node nodeIn:this.outOfInstance.in){
-					nodeIn.parallelCost(cost);
+					for(Node nodeIn:this.outOfInstance.in){
+						nodeIn.parallelCost(cost);
+					}
 				}
 			}
 		}else if(this.parentSupernode!=null){
