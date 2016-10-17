@@ -1331,8 +1331,12 @@ public class Definition {
 	}
 	public void replaceNodes(HashMap<Node, Node> equivalentNodes) {
 		HashSet<Node> expandedNodes = new HashSet<Node>();
-		for(Node outNode:this.out){
-			outNode.replaceNodes(expandedNodes, equivalentNodes);
+		for(int i=0;i<this.out.size();i++){
+			while(equivalentNodes.containsKey(this.out.get(i))){
+//				if(this.out.get(i).outOfInstance!=null) this.removeInstance(this.out.get(i).outOfInstance);
+				this.out.set(i, equivalentNodes.get(this.out.get(i)));
+			}
+			this.out.get(i).replaceNodes(expandedNodes, equivalentNodes);
 		}
 		for(Node node:equivalentNodes.keySet()){
 			if(node.outOfInstance!=null)this.removeInstance(node.outOfInstance);//prune now unused instances

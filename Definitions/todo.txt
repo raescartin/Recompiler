@@ -12,6 +12,7 @@
 -todo: recursive intersection merge (if/rif)
 -change Definition to Function
 -issue: parallel representation doesn't show otpimal cost for general definitions, only for nand instances
+-justify double negation of nands simplification vs Karnaugh Maps simplification
  
 
 DONE

@@ -99,7 +99,7 @@ public class DefinitionDB {
 				definition.fusion();
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
 //				definition.fusion();//fusion of nodes 
-//				definition.update();
+				definition.update();
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
