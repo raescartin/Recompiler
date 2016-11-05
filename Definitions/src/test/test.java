@@ -20,9 +20,9 @@ import vo.Node;
 
 class test {
     public static void main(String[] args) {
-    	String A="1";
-    	String B="0";
-    	String C="1";
+    	String A="00001111";
+    	String B="00110011";
+    	String C="01010101";
     	String D="1";
     	
 		//=========================================================================================================================================
@@ -109,15 +109,16 @@ class test {
     	System.out.print(definitionDB.toString());
     
     	//IF definition//
-    	//if a then b else c = (¬AvB)^(AvC) !!!ELSE ALWAYS NEEDED!!! 0=false 1=true
+    	//MUX
+    	//if a then b else c = (¬A^B)v(A^C) !!!ELSE ALWAYS NEEDED!!! 0=false 1=true //THERE WAS AN ERROR HERE
     	Definition ifDef = new Definition(3,1,"if");
     	Node ifdef0 = new Node();
     	Node ifdef1 = new Node();
     	Node ifdef2 = new Node();
     	ifDef.add(not,ifDef.in.get(0),ifdef0);
-    	ifDef.add(or,ifdef0,ifDef.in.get(1),ifdef1);
-    	ifDef.add(or,ifDef.in.get(0),ifDef.in.get(2),ifdef2);
-    	ifDef.add(and,ifdef1,ifdef2,ifDef.out.get(0));
+    	ifDef.add(and,ifdef0,ifDef.in.get(1),ifdef1);
+    	ifDef.add(and,ifDef.in.get(0),ifDef.in.get(2),ifdef2);
+    	ifDef.add(or,ifdef1,ifdef2,ifDef.out.get(0));
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(ifDef.toString());

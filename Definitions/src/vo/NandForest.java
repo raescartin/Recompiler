@@ -39,16 +39,21 @@ import utils.FixedBitSet;
 public class NandForest {//multiple nand trees
 	public ArrayList<NandNode> in = new ArrayList<NandNode>(); //NEEDED
 	public ArrayList<NandNode> out = new ArrayList<NandNode>(); //NEEDED
-	public HashMap<BigInteger,NandNode>  nodes = new HashMap<BigInteger,NandNode>();//used to keep record of UNIQUE nodes
+	public HashMap<NandNode,HashMap<NandNode,NandNode>>  outNodes = new HashMap<NandNode,HashMap<NandNode,NandNode>>();//used to keep record of UNIQUE nodes
+    public HashMap<NandNode,Integer>  nodes = new HashMap<NandNode,Integer>();
+    public int numNodes;
 	public NandForest(int numberOfInputs) {
+		this.numNodes=0;
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
-			this.in.add(new NandNode(BigInteger.valueOf(i+Constants.MAX_NANDFOREST_INS)));//must add a constant so all id's are ordered consistently, max number of ins is the constant value 
-			this.nodes.put(this.in.get(i).id, this.in.get(i));
+			NandNode nandNode = new NandNode();
+			this.in.add(nandNode);
+			this.nodes.put(nandNode,this.numNodes);
+			this.numNodes++;
 		}
 	}
 	public NandNode add(NandNode in1,NandNode in2){
 		NandNode node;
-		if(in1.id.compareTo(in2.id) > 0) {//in1.id<in2.id){//Order so A NAND B == B NAND A, always represented as A NAND B
+		if(this.nodes.get(in2)<this.nodes.get(in1)) {//Order nodes so A NAND B == B NAND A, always represented as A NAND B
 			node=in1;
 			in1=in2;
 			in2=node;
@@ -60,13 +65,22 @@ public class NandForest {//multiple nand trees
 				node = in1.in1;// old nodes may remain for the garbage collector to deal//FIXME:remove node from this.nodes if unused
 					
 		}else{//non simplified node
-			node = new NandNode(new BigInteger(String.valueOf(in1.id) + String.valueOf(in2.id)));
-			node.in1=in1;
-			node.in2=in2;
-			if(this.nodes.containsKey(node.id)){//check if node already exists
-				return this.nodes.get(node.id);
+			if(outNodes.containsKey(in1)&&outNodes.get(in1).containsKey(in2)){//check if node already exists
+				node=this.outNodes.get(in1).get(in2);
+			}else{
+				node = new NandNode();
+				node.in1=in1;
+				node.in2=in2;
+				this.nodes.put(node,this.numNodes);
+				this.numNodes++;
+				if(this.outNodes.containsKey(in1)){
+					this.outNodes.get(in1).put(in2,node);
+				}else{
+					HashMap<NandNode,NandNode> hashMap = new HashMap<NandNode,NandNode>();
+					hashMap.put(in2, node);
+					outNodes.put(in1, hashMap);
+				}
 			}
-			this.nodes.put(node.id,node);
 		}
 		return node;
 	}
@@ -81,29 +95,45 @@ public class NandForest {//multiple nand trees
 	public String toString() {
 		String string = new String();
 		if(in.size()>0)string=("(");
-		for (int i = 0; i < in.size(); i++) {
-			string+=(this.in.get(i).id+",");
+		for (NandNode nandNode: this.in) {
+			string+=(this.nodes.get(nandNode)+",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=(";");
-		for (int i = 0; i < out.size(); i++) {
-			string+=(this.out.get(i).id+",");
+		for (NandNode nandNode: this.out) {
+			string+=(this.nodes.get(nandNode)+",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=(")=");
 		for (int i = 0; i < out.size(); i++) {
-			string+=out.get(i).printNode(this.in);
+			string+=this.printNode(out.get(i),this.in);
 			string+=("|");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration "|"
 		string+="\n";
 		return string;
 	}
+	public String printNode(NandNode node,ArrayList<NandNode> in){
+		String string = new String();
+		if(node.in1!=null&&node.in2!=null){
+//			string+=this.id; //used only to debug
+			string+=("(");
+			string+=this.printNode(node.in1,in);
+			string+=(") nand (");
+			string+=this.printNode(node.in2,in);
+			string+=(")");
+		}else{
+			string+=this.nodes.get(node);
+		}
+		return string;
+	}
 	public void optimize(){
 		//add nodes from leafs (in) to roots (out)
 		this.nodes.clear();
-		for (NandNode node : this.in) {
-			this.nodes.put(node.id,node);
+		this.numNodes=0;
+		for (NandNode nandNode : this.in) {
+			this.nodes.put(nandNode,this.numNodes);
+			this.numNodes++;
 		}
 		for (NandNode node : this.out) {
 			this.optimizeByLevel(node);
@@ -111,12 +141,13 @@ public class NandForest {//multiple nand trees
 		
 	}
 	private NandNode optimizeByLevel(NandNode node) {
-		if(this.nodes.containsKey(node.id)){
+		if(this.nodes.containsKey(node)){
 			return node;
 		}else{
+			this.nodes.put(node,this.numNodes);
+			this.numNodes++;
 			return this.add(optimizeByLevel(node.in1), optimizeByLevel(node.in2));
 		}
-		
 	}
 	public ArrayList<NandNode> addIns(Integer integer) {
 		ArrayList<NandNode> nandNodes = new ArrayList<NandNode>();
@@ -126,9 +157,10 @@ public class NandForest {//multiple nand trees
 		return nandNodes;
 	}
 	public NandNode addIn() {
-		NandNode nandNode = new NandNode(BigInteger.valueOf(this.nodes.size()+Constants.MAX_NANDFOREST_INS));
+		NandNode nandNode = new NandNode();
 		this.in.add(nandNode);
-		this.nodes.put(nandNode.id,nandNode);
+		this.nodes.put(nandNode,this.numNodes);
+		this.numNodes++;
 		return nandNode;
 	}
 	public ArrayList<NandNode> setOuts(ArrayList<NandNode> nandNodes){

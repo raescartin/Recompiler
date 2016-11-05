@@ -119,7 +119,7 @@ public class Definition {
 		///Need to map subnodes of ins and outs to conserve references!!!
 		this.mapIns(nandToNode,nodeToNand,nandForest);
 		this.mapOuts(nandToNode,nodeToNand,nandForest,equivalentNode);
-		nandForest.optimize();
+//		nandForest.optimize();
 		return nandForest;
 	}
 	void mapIns(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {
