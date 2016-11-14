@@ -20,6 +20,12 @@ import vo.Node;
 
 class test {
     public static void main(String[] args) {
+//    	String A="0";
+//    	String B="1";
+//    	String C="0";
+//    	String A="00";
+//    	String B="01";
+//    	String C="01";
     	String A="00001111";
     	String B="00110011";
     	String C="01010101";
@@ -154,15 +160,16 @@ class test {
     	rifDef.in.get(2).addChildSubnode(rifdef6);
     	rifDef.in.get(2).addChildSubnode(rifdef7);
     	rifDef.in.get(2).addChildSubnode(rifdef8);
-    	rifDef.add(not,rifDef.in.get(0),rifdef0);
-    	rifDef.add(or,rifdef0,rifdef5,rifdef1);
-    	rifDef.add(or,rifDef.in.get(0),rifdef8,rifdef2);
-    	rifDef.add(and,rifdef1,rifdef2,rifdef9);//rightmost bit of if computed
+//    	rifDef.add(not,rifDef.in.get(0),rifdef0);
+//    	rifDef.add(or,rifdef0,rifdef5,rifdef1);
+//    	rifDef.add(or,rifDef.in.get(0),rifdef8,rifdef2);
+//    	rifDef.add(and,rifdef1,rifdef2,rifdef9);//rightmost bit of if computed
     	rifdef3.addChildSupernode(rifdef10);
     	rifdef4.addChildSupernode(rifdef10);
     	rifdef6.addChildSupernode(rifdef11);
     	rifdef7.addChildSupernode(rifdef11);
     	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
+    	rifDef.add(ifDef,rifDef.in.get(0),rifdef5,rifdef8,rifdef9);
     	rifdef12.addChildSupernode(rifDef.out.get(0));
     	rifdef9.addChildSupernode(rifDef.out.get(0));
     	System.out.println();
