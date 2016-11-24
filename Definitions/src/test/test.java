@@ -284,7 +284,7 @@ class test {
     	Node decRout= new Node();
     	dec.add(dec,decR,decRout);
     	Node decRif = new Node();
-    	dec.add(rifDef,decN,decR,decRout,decRif);
+    	dec.add(rifDef,decN,decRout,decR,decRif);
     	decRif.addChildSupernode(dec.out.get(0));
     	decNnot.addChildSupernode(dec.out.get(0));
     	System.out.println();

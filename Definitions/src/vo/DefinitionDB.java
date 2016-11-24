@@ -80,7 +80,7 @@ public class DefinitionDB {
 			//intersection optimization of definition with contained recursive definitions
 			//intersection optimization between contained recursive definitions
 		
-		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
+		if(definition.selfRecursiveInstances.isEmpty()&&definition.instancesContainingRecursion.isEmpty()){//definition has no recursion
 			if(definition.name!="nand"){ //if definition is nand it's already optimized! (base case for recursion)
 				HashMap <NandNode,Node> nandToNode = new HashMap <NandNode,Node>();
 				HashMap <Node,Node> equivalentNodes = new HashMap <Node,Node>();
@@ -105,6 +105,7 @@ public class DefinitionDB {
 			//Optimize the non recursive part of definition	
 			AddedNodes addedNodes = new AddedNodes();
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
+			definition.expandNonRecursiveInstances();
 			definition.removeRecursion(addedNodes, removedInstances);
 			this.optimize(definition);
 			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion

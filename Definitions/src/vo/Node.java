@@ -840,7 +840,7 @@ private void nandOutFission() {
 				if(this.outOfInstance.definition.name=="nand"){
 					Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
 					this.definition.add(this.outOfInstance.definition,nodes);
-				}else if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()||!this.outOfInstance.definition.instancesOfRecursiveDefinitions.isEmpty()){//recursive
+				}else if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()||!this.outOfInstance.definition.instancesContainingRecursion.isEmpty()){//recursive
 					ArrayList<Node> nodesArray = new ArrayList<Node>();
 					nodesArray.addAll(this.outOfInstance.in);
 					nodesArray.addAll(this.outOfInstance.out);

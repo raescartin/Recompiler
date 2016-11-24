@@ -70,7 +70,7 @@ public class Definition {
 	public ArrayList<ArrayList<Instance>> instances;//TODO: better data structure Hash AND list linkedhashmap?  - replaces def?
 	public ArrayList<Definition> rootIn;//TODO: better data structure Hash AND list linkedhashmap? - verify definitions are in DB
 	public HashSet<Instance> selfRecursiveInstances;//Recursive instances of this definition, contained in this definition
-	public HashSet<Instance> instancesOfRecursiveDefinitions;//Instances of other recursive definitions
+	public HashSet<Instance> instancesContainingRecursion;//Instances of other recursive definitions
 	//DEBUGGING ONLY
 	public HashSet<Node> nodes;
 	//END OF DEBUGGING ONLY
@@ -82,7 +82,7 @@ public class Definition {
 		this.out = new ArrayList<Node>();
 		this.instances = new ArrayList<ArrayList<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
-		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
+		this.instancesContainingRecursion = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
 		//DEBUGGING ONLY
 		this.nodes = new HashSet<Node> ();
@@ -105,7 +105,7 @@ public class Definition {
 		this.out = new ArrayList<Node>();
 		this.instances = new ArrayList<ArrayList<Instance>>();
 		this.selfRecursiveInstances = new HashSet<Instance>();
-		this.instancesOfRecursiveDefinitions = new HashSet<Instance>();
+		this.instancesContainingRecursion = new HashSet<Instance>();
 		this.rootIn = new ArrayList<Definition>();
 		this.nodes = new HashSet<Node> ();
 	}
@@ -362,7 +362,7 @@ public class Definition {
 		Definition copyDef=this.copy();
 		copyDef.replaceDefinition(this, copyDef);
 		String strCost = new String();
-		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesOfRecursiveDefinitions.isEmpty()){//definition has no recursion
+		if(copyDef.selfRecursiveInstances.isEmpty()&&copyDef.instancesContainingRecursion.isEmpty()){//definition has no recursion
 			copyDef.toNandInstances();
 			copyDef.fission();
 			int iterationCost=0;
@@ -375,11 +375,10 @@ public class Definition {
 		}else{
 			AddedNodes addedNodes = new AddedNodes();
 			HashSet<Instance> removedInstances = new HashSet<Instance>();
-			for(Instance instanceOfRecursiveDefinition:copyDef.instancesOfRecursiveDefinitions){
+			for(Instance instanceOfRecursiveDefinition:copyDef.instancesContainingRecursion){
 				strCost+=instanceOfRecursiveDefinition.definition.cost()+"+";
-				copyDef.removeRecursiveInstance(instanceOfRecursiveDefinition, addedNodes, removedInstances);
 			}
-			copyDef.instancesOfRecursiveDefinitions.clear();
+			copyDef.expandNonRecursiveInstances();
 			copyDef.removeRecursion(addedNodes, removedInstances);
 			copyDef.toNandInstances();
 			copyDef.fission();
@@ -506,27 +505,23 @@ public class Definition {
 		
 	}
 	public void removeRecursion(AddedNodes addedNodes,HashSet<Instance> removedInstances) {
-		for(Instance instance : this.selfRecursiveInstances){
-			//remove all recursive instances, to make the definition not self recursive
-			//adding nodes from recursive instances
-			//TODO:
-			//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
-			//1 add instances of 1st recursion (expand recursion like its done with instancesOfRecursiveDefinitions)
-			//2 map out/in recursive nodes
-			//3 keep track of these nodes
-			//4 create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
-			this.removeRecursiveInstance(instance,addedNodes,removedInstances);					
-		}
-		this.selfRecursiveInstances.clear();
+		//PRE: all non recursive instances are expanded
+		//POST: removes recursion calls from structure for sequential treatment
+//		//!!!TO OPTIMIZE SEQUENTIAL PART!!!
+//		//1 expand first instance of recursion (for intersection of iteration with main part)
+//		//2 map out/in recursive nodes
+//		//3 keep track of these nodes
+//		//4 TODO: create new definition of the recursive part without intersections (def=x,defRwithoutIntersections,y defRwithoutIntersections=w,defRwithoutIntersections,z)
 		HashSet<Instance> instances = new HashSet<Instance>();
-		instances.addAll(this.instancesOfRecursiveDefinitions);
-		this.instancesOfRecursiveDefinitions.clear();
+		instances.addAll(this.instancesContainingRecursion);
+		instances.addAll(this.selfRecursiveInstances);
+//		this.instancesContainingRecursion.clear();
 		for(Instance instance:instances){//map all the instancesOfRecursiveDefinitions nodes
-			this.removeInstance(instance);
-			this.expandRecursiveInstance(instance, addedNodes, removedInstances);
+//			this.expandInstance(instance);
+			this.removeRecursiveInstance(instance, addedNodes, removedInstances);
 		}
 	}
-	void expandRecursiveInstance(Instance instance, AddedNodes addedNodes, HashSet<Instance> removedInstances) {
+	void expandInstance(Instance instance) {
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
 			definitionToInstanceNodes.put(instance.definition.in.get(i), instance.in.get(i));
@@ -564,14 +559,14 @@ public class Definition {
 				}
 			}
 			Instance newInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
-			if(newInstance.definition==instance.definition){
-				this.instancesOfRecursiveDefinitions.remove(newInstance);
-				this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
-			}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
-				this.instancesOfRecursiveDefinitions.remove(newInstance);
-				this.removeInstance(newInstance);
-				this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
-			}
+//			if(newInstance.definition==instance.definition){
+//				this.instancesContainingRecursion.remove(newInstance);
+//				this.removeRecursiveInstance(newInstance, addedNodes, removedInstances);
+//			}else if(!newInstance.definition.selfRecursiveInstances.isEmpty()){//is recursive
+//				this.instancesContainingRecursion.remove(newInstance);
+//				this.removeInstance(newInstance);
+//				this.expandRecursiveInstance(newInstance, addedNodes, removedInstances);
+//			}
 		}
 	}
 	void removeRecursiveInstance(Instance instance,AddedNodes addedNodes, HashSet<Instance> removedInstances) {
@@ -800,7 +795,7 @@ public class Definition {
 			instanceHashSet.remove(instance);
 			if(instanceHashSet.isEmpty()) this.instances.remove(instanceHashSet);
 		}
-		this.instancesOfRecursiveDefinitions.remove(instance);
+		this.instancesContainingRecursion.remove(instance);
 		this.selfRecursiveInstances.remove(instance);
 	}
 //	void expandInstanceInstances(Instance instance) {
@@ -845,13 +840,13 @@ public class Definition {
 		for(ArrayList<Instance> setOfInstances:this.instances){
 			for (Instance instance : setOfInstances) {
 				if(instance.definition==definition){
-					this.instancesOfRecursiveDefinitions.remove(instance);
+					this.instancesContainingRecursion.remove(instance);
 					this.selfRecursiveInstances.remove(instance);
 					instance.definition=newDef;
 					if(this==newDef){
 						this.selfRecursiveInstances.add(instance);
-					}else if(!newDef.selfRecursiveInstances.isEmpty()||!newDef.instancesOfRecursiveDefinitions.isEmpty()){
-						this.instancesOfRecursiveDefinitions.add(instance);
+					}else if(!newDef.selfRecursiveInstances.isEmpty()||!newDef.instancesContainingRecursion.isEmpty()){
+						this.instancesContainingRecursion.add(instance);
 					}
 				}
 			}
@@ -971,7 +966,7 @@ public class Definition {
 		this.nodes.clear();
 		this.maxNode=0;
 		this.instances.clear();
-		this.instancesOfRecursiveDefinitions.clear();
+		this.instancesContainingRecursion.clear();
 		this.selfRecursiveInstances.clear();
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node inNode:this.in){
@@ -1186,9 +1181,9 @@ public class Definition {
 					this.removeRecursiveInstance(thisInstance,addedNodes,removedInstances);	
 				}else{
 					Instance thisInstance=this.add(definitionInstance.definition,nodes.toArray(new Node[nodes.size()]));
-					if(!definitionInstance.definition.instancesOfRecursiveDefinitions.isEmpty()){
-						this.removeInstance(instance);
-						this.expandRecursiveInstance(instance, addedNodes, removedInstances);
+					if(!definitionInstance.definition.instancesContainingRecursion.isEmpty()){
+						this.removeRecursiveInstance(thisInstance,addedNodes,removedInstances);//TODO: CHECK
+						this.expandInstance(instance);
 					}
 				}
 			}
@@ -1354,8 +1349,8 @@ public class Definition {
 		}
 		if(instance.definition==this){
 			this.selfRecursiveInstances.add(instance);
-		}else if(!instance.definition.selfRecursiveInstances.isEmpty()||!instance.definition.instancesOfRecursiveDefinitions.isEmpty()){
-			this.instancesOfRecursiveDefinitions.add(instance);
+		}else if(!instance.definition.selfRecursiveInstances.isEmpty()||!instance.definition.instancesContainingRecursion.isEmpty()){
+			this.instancesContainingRecursion.add(instance);
 		}
 		for (Node outNode:instance.out) {//nºinst outs = nºdef outs
 			outNode.outOfInstance=instance;
@@ -1383,5 +1378,20 @@ public class Definition {
 		for(Node outNode:this.out){
 			outNode.cleanBinodes();
 		}
+	}
+	public void expandNonRecursiveInstances() {
+		boolean containsNonRecursiveInstances;
+		do{
+			containsNonRecursiveInstances=false;
+			HashSet<Instance> instances = new HashSet<Instance>();
+			instances.addAll(this.instancesContainingRecursion);
+			for(Instance instance:instances){//map all the instancesOfRecursiveDefinitions nodes
+				if(instance.definition.selfRecursiveInstances.isEmpty()){//instance of no recursive definition
+					containsNonRecursiveInstances=true;
+					this.removeInstance(instance);
+					this.expandInstance(instance);
+				}
+			}
+		}while(containsNonRecursiveInstances);
 	}
 }
