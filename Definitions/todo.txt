@@ -1,4 +1,6 @@
 ﻿TODO
+-end minimization doc
+-need to optimize sequential part of recursive definitions?
 -generalize toNandInstances
 -print nandDefinition
 -correct parallel cost (nandInstances+cost of other definitions)

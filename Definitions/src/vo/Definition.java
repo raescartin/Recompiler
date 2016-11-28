@@ -533,7 +533,7 @@ public class Definition {
 			mapParents(instance.out.get(i),instance.definition.out.get(i),definitionToInstanceNodes);
 		}
 		ArrayList<Instance> instances = new ArrayList<Instance>();
-		for(ArrayList<Instance> setOfInstances:this.instances){
+		for(ArrayList<Instance> setOfInstances:instance.definition.instances){
 			instances.addAll(setOfInstances);
 		}
 		for(Instance definitionInstance:instances){
