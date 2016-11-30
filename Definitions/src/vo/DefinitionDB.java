@@ -48,9 +48,6 @@ public class DefinitionDB {
 		//POST:optimize, then add definition to database
 		definition.clearRoot();
 		this.optimize(definition);
-		if(!definition.selfRecursiveInstances.isEmpty()){
-			this.optimizeRecursiveIntersection(definition);		
-		}
 //		this.toHighestLevel(definition);//definition made of instances of nand definiition, to highest level possible
 		definition.getRoot();
 		this.definitions.put(name, definition);//insert optimized definition in database
@@ -103,13 +100,7 @@ public class DefinitionDB {
 			}	
 		}else{//definition has recursion
 			//Optimize the non recursive part of definition	
-			AddedNodes addedNodes = new AddedNodes();
-			HashSet<Instance> removedInstances = new HashSet<Instance>();
-			definition.expandNonRecursiveInstances();
-			definition.removeRecursion(addedNodes, removedInstances);
-			this.optimize(definition);
-			definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
-			
+			this.optimizeRecursiveIntersection(definition);	
 		}
 		return definition;
 	}
@@ -139,12 +130,14 @@ public class DefinitionDB {
 		ArrayList <Node> recursiveInInstance = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOutInstance = new ArrayList <Node>();
 		ArrayList<Node> nodes = new ArrayList<Node>();
+		definition.toNandInstances();
 		Definition expandedDefinition = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
+//		expandedDefinition.toNandInstances();//to nands before mapping so all posible subnodes are mapped
 		expandedDefinition.mapNodes(originalNodes);
 		ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
  		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances,addedNodes, removedInstances);
 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
-		//to nand
+// 		expandedDefinition.toNandInstances();//to nands after expanding
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
@@ -201,7 +194,7 @@ public class DefinitionDB {
 			if(expandedToDefinition.containsKey(node)){
 				recursiveOutInstance.add(expandedToDefinition.get(node));
 			}else{
-				recursiveInInstance.add(copyToDefinition.get(node));
+				recursiveOutInstance.add(copyToDefinition.get(node));
 			}
 		}
 		nodes.clear();
