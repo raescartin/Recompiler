@@ -1,5 +1,4 @@
 ﻿TODO
--end minimization doc
 -need to optimize sequential part of recursive definitions?
 -generalize toNandInstances
 -print nandDefinition
@@ -18,6 +17,15 @@
  
 
 DONE
+-end minimization doc
+	-representación modelo estandar red booleana vs red nand
+	-n entradas una salida vs nand:
+		-and de n entradas vs nand de 2 entradas
+	-método de miniminización multinivel el objetivo no es minimizar el número de literales, sino el de funciones NAND
+	(es equivalente al número de literales expresado en funciones NAND, pero no al numero de literales expresados en más alto nivel)
+	aclarar este punto
+	-cita NAND universal
+	Mano, M. Morris and Charles R. Kime. Logic and Computer Design Fundamentals, Third Edition. Prentice Hall, 2004. p. 73.
 -fix Definition.toNandInstances() to work on recursive definitions (-> maybe create new function or fix optimize with this in mind) NO! no need
 -merge bifusion and trifusion (generelization) NO! no need, better divided
 -check duplicate selection

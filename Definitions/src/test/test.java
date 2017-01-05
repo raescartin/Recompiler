@@ -141,38 +141,21 @@ class test {
     	//recursive IF definition//
     	//if a then b else c = (¬AvB)^(AvC)
     	//size(a)=1 size(b)=n size(c)=m
-    	Definition rifDef = new Definition(3,1,"rif");//recursive ,bit a bit, def of if (0 is 1 bit long)
-    	Node rifdef0 = new Node();
+    	Definition rifDef = new Definition(3,1,"rif");//recursive ,bit a bit, def of if (conditional is 1 bit long)
+    	Node restButLastA = new Node();
+    	Node lastA = new Node();
+    	Node restButLastB = new Node();
+    	Node lastB = new Node();
     	Node rifdef1 = new Node();
     	Node rifdef2 = new Node();
-    	Node rifdef3 = new Node();
-    	Node rifdef4 = new Node();
-    	Node rifdef5 = new Node();
-    	Node rifdef6 = new Node();
-    	Node rifdef7 = new Node();
-    	Node rifdef8 = new Node();
-    	Node rifdef9 = new Node();
-    	Node rifdef10 = new Node();
-    	Node rifdef11 = new Node();
-    	Node rifdef12 = new Node();
-    	rifDef.in.get(1).addChildSubnode(rifdef3);
-    	rifDef.in.get(1).addChildSubnode(rifdef4);
-    	rifDef.in.get(1).addChildSubnode(rifdef5);
-    	rifDef.in.get(2).addChildSubnode(rifdef6);
-    	rifDef.in.get(2).addChildSubnode(rifdef7);
-    	rifDef.in.get(2).addChildSubnode(rifdef8);
-//    	rifDef.add(not,rifDef.in.get(0),rifdef0);
-//    	rifDef.add(or,rifdef0,rifdef5,rifdef1);
-//    	rifDef.add(or,rifDef.in.get(0),rifdef8,rifdef2);
-//    	rifDef.add(and,rifdef1,rifdef2,rifdef9);//rightmost bit of if computed
-    	rifdef3.addChildSupernode(rifdef10);
-    	rifdef4.addChildSupernode(rifdef10);
-    	rifdef6.addChildSupernode(rifdef11);
-    	rifdef7.addChildSupernode(rifdef11);
-    	rifDef.add(rifDef,rifDef.in.get(0),rifdef10,rifdef11,rifdef12);
-    	rifDef.add(ifDef,rifDef.in.get(0),rifdef5,rifdef8,rifdef9);
-    	rifdef12.addChildSupernode(rifDef.out.get(0));
-    	rifdef9.addChildSupernode(rifDef.out.get(0));
+    	rifDef.in.get(1).addRestButLast(restButLastA);
+    	rifDef.in.get(1).addLast(lastA);
+    	rifDef.in.get(2).addRestButLast(restButLastB);
+    	rifDef.in.get(2).addLast(lastB);
+    	rifDef.add(rifDef,rifDef.in.get(0),restButLastA,restButLastB,rifdef1);
+    	rifDef.add(ifDef,rifDef.in.get(0),lastA,lastB,rifdef2);
+    	rifdef1.addChildSupernode(rifDef.out.get(0));
+    	rifdef2.addChildSupernode(rifDef.out.get(0));
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(rifDef.toString());
@@ -193,39 +176,22 @@ class test {
     	//ADD definition//
     	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) 
     	Definition add = new Definition(2,1,"add");
-    	add.in.get(0).splitChildrenSubnodes();
-    	@SuppressWarnings("unused")
-		Node A0 = add.in.get(0).childSubnodes.get(0);
-    	Node Arest = add.in.get(0).childSubnodes.get(1);
-    	Node An = add.in.get(0).childSubnodes.get(2);
-    	add.in.get(1).splitChildrenSubnodes();
-    	@SuppressWarnings("unused")
-		Node B0 = add.in.get(1).childSubnodes.get(0);
-    	Node Brest = add.in.get(1).childSubnodes.get(1);
-    	Node Bn = add.in.get(1).childSubnodes.get(2);
-    	Node Awithout0 = new Node();
-    	Arest.addChildSupernode(Awithout0);
-    	An.addChildSupernode(Awithout0);
-    	Node Bwithout0 = new Node();
-    	Brest.addChildSupernode(Bwithout0);
-    	Bn.addChildSupernode(Bwithout0);
+		Node ArestButFirst = new Node();
+    	add.in.get(0).addRestButFirst(ArestButFirst);
+    	Node BrestButFirst = new Node();
+    	add.in.get(1).addRestButFirst(BrestButFirst);
     	Node xorOut = new Node();
     	add.add(xor, add.in.get(0),add.in.get(1),xorOut);
-    	Node addxor0 = new Node();
-    	Node xorrest = new Node();
-    	Node xorn = new Node();
-    	xorOut.addChildSubnode(addxor0);
-    	xorOut.addChildSubnode(xorrest);
-    	xorOut.addChildSubnode(xorn);
-    	Node xorwithoutN = new Node();
-    	addxor0.addChildSupernode(xorwithoutN);
-    	xorrest.addChildSupernode(xorwithoutN);
+    	Node addXorRestButLast = new Node();
+    	xorOut.addRestButLast(addXorRestButLast);
+    	Node addXorLast = new Node();
+    	xorOut.addLast(addXorLast);
     	Node addAndOut = new Node();
-    	add.add(and, Awithout0,Bwithout0,addAndOut);
+    	add.add(and, ArestButFirst,BrestButFirst,addAndOut);
     	Node addOut = new Node();
-    	add.add(add, xorwithoutN,addAndOut,addOut);
+    	add.add(add, addXorRestButLast,addAndOut,addOut);
     	addOut.addChildSupernode(add.out.get(0));
-    	xorn.addChildSupernode(add.out.get(0));
+    	addXorLast.addChildSupernode(add.out.get(0));
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(add.toString());
@@ -273,19 +239,18 @@ class test {
     	//DEC definition////definition to decrement an integer by one
     	//dec [0;1] = not[0{2},2] rif [0{2},(0{0}&0{1}&2),(8&2;1] dec [(0{0}&0{1});8]//TODO: fix to string incorrect subnodes + to look like this
     	Definition dec = new Definition(1,1,"dec");
-    	dec.in.get(0).splitChildrenSubnodes();
-    	Node dec0 = dec.in.get(0).childSubnodes.get(0);
-    	Node decRest = dec.in.get(0).childSubnodes.get(1);
-    	Node decN = dec.in.get(0).childSubnodes.get(2);
+//    	Node dec0 = dec.in.get(0).childSubnodes.get(0);
+//    	Node decRest = dec.in.get(0).childSubnodes.get(1);
+    	Node decRestButLast = new Node();
+    	dec.in.get(0).addRestButLast(decRestButLast);
+    	Node decLast =  new Node();
+    	dec.in.get(0).addLast(decLast);
     	Node decNnot = new Node();
-    	dec.add(not, decN,decNnot);
-    	Node decR= new Node(); 
-    	dec0.addChildSupernode(decR);
-    	decRest.addChildSupernode(decR);
+    	dec.add(not, decLast,decNnot);
     	Node decRout= new Node();
-    	dec.add(dec,decR,decRout);
+    	dec.add(dec,decRestButLast,decRout);
     	Node decRif = new Node();
-    	dec.add(rifDef,decN,decRout,decR,decRif);
+    	dec.add(rifDef,decLast,decRout,decRestButLast,decRif);
     	decRif.addChildSupernode(dec.out.get(0));
     	decNnot.addChildSupernode(dec.out.get(0));
     	System.out.println();
@@ -302,24 +267,17 @@ class test {
     	
     	//CMP definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
-    	cmp.in.get(0).splitChildrenSubnodes();
-    	Node cmpA0 = cmp.in.get(0).childSubnodes.get(0);
-    	Node cmpARest = cmp.in.get(0).childSubnodes.get(1);
-    	Node cmpAN = cmp.in.get(0).childSubnodes.get(2);
-    	cmp.in.get(1).splitChildrenSubnodes();
-    	Node cmpB0 = cmp.in.get(1).childSubnodes.get(0);
-    	Node cmpBRest = cmp.in.get(1).childSubnodes.get(1);
-    	Node cmpBN = cmp.in.get(1).childSubnodes.get(2);
-    	Node cmpAwithoutN = new Node();
-    	cmpA0.addChildSupernode(cmpAwithoutN);
-    	cmpARest.addChildSupernode(cmpAwithoutN);
-    	Node cmpBwithoutN = new Node();
-    	cmpB0.addChildSupernode(cmpBwithoutN);
-    	cmpBRest.addChildSupernode(cmpBwithoutN);
+    	Node cmpAfirst =  new Node();
+    	cmp.in.get(0).addFirst(cmpAfirst);
+    	Node cmpArestButFirst =  new Node();
+    	Node cmpBfirst =  new Node();
+    	cmp.in.get(1).addFirst(cmpBfirst);
+    	Node cmpBrestButFirst =  new Node();
+    	cmp.in.get(1).addRestButFirst(cmpBrestButFirst);
     	Node cmpXor = new Node();
-    	cmp.add(xor, cmpAN,cmpBN,cmpXor);
+    	cmp.add(xor, cmpAfirst,cmpBfirst,cmpXor);
     	Node cmpR = new Node();
-    	cmp.add(cmp, cmpAwithoutN,cmpBwithoutN,cmpR);
+    	cmp.add(cmp, cmpArestButFirst,cmpBrestButFirst,cmpR);
     	Node cmpXnor = new Node();
     	cmp.add(not, cmpXor,cmpXnor);
     	cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); //should cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0)); work? cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); simple
