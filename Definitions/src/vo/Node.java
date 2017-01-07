@@ -14,16 +14,17 @@ import utils.FixedBitSet;
 import utils.Polynomial;
 //Each node can have 1 supernode parent and multiple parents, if a node has 1 parent it's a subnode of this one parent, if a node has multiple parents it's a supernode of these
 //Each node can have supernode AND subnode children
-//childrenSubnodes serve as indexes: if a node has subnode children, the leftmost represents the leftmost bit, the rightmost the rightmost bit and the middle one the rest
+//childrenSubnodes serve as indexes: if a node has subnode children, first represents the leftmost element restButFirst the rest, last the rightmost bit and restButLast the rest
+//childrenSubnodes don't have any meaning without their superNode
 public class Node {
 	public Node parentSupernode;
 	public ArrayList<Node> parentSubnodes;//ArrayList, since there can be repetition
 //	public ArrayList<Node> childSubnodes;
 	public ArrayList<Node> childSupernodes;
-	public Node first;
-	public Node restButFirst;
-	public Node restButLast;
-	public Node last;
+	public Node first;//childSubnode
+	public Node restButFirst;//childSubnode
+	public Node restButLast;//childSubnode
+	public Node last;//childSubnode
 	public Instance outOfInstance;
 	public Definition definition;
 	//DEBUGGING ONLY
@@ -97,9 +98,9 @@ public class Node {
 		if(this.parentSupernode!=null){
 			string+=this.parentSupernode.toString();
 			if(this.parentSupernode.first==this) string+="{0}";
-			if(this.parentSupernode.restButFirst==this) string+="{1..n}";
-			if(this.parentSupernode.restButLast==this) string+="{0..n-1}";
-			if(this.parentSupernode.restButLast==this) string+="{n}";
+			else if(this.parentSupernode.restButFirst==this) string+="{1..n}";
+			else if(this.parentSupernode.restButLast==this) string+="{0..n-1}";
+			else if(this.parentSupernode.restButLast==this) string+="{n}";
 		}else{
 			string+=this.idForDefinition;
 		}
@@ -946,22 +947,26 @@ public class Node {
 					if(parentDepth>depth){
 						depth=parentDepth;
 					}
-				}else if(this.first!=null){
+				}
+				if(this.first!=null){
 					int firstDepth=this.first.getDepth(evaluatedNodes);
 					if(firstDepth>depth){
 						depth=firstDepth;
 					}
-				}else if(this.restButFirst!=null){
+				}
+				if(this.restButFirst!=null){
 					int restButFirstDepth=this.restButFirst.getDepth(evaluatedNodes);
 					if(restButFirstDepth>depth){
 						depth=restButFirstDepth;
 					}
-				}else if(this.restButLast!=null){
+				}
+				if(this.restButLast!=null){
 					int restButLastDepth=this.restButLast.getDepth(evaluatedNodes);
 					if(restButLastDepth>depth){
 						depth=restButLastDepth;
 					}
-				}else if(this.last!=null){
+				}
+				if(this.last!=null){
 					int lastDepth=this.last.getDepth(evaluatedNodes);
 					if(lastDepth>depth){
 						depth=lastDepth;
@@ -1339,84 +1344,87 @@ public class Node {
 //			this.parentSupernode.prune();
 //		}
 //	}
-	public void triFission() {
-		//TODO: maybe need to fix nandIn mapping on nandTree, since this uses only needed subnodes
+	public void childSubnodesFission() {
 		if(this.outOfInstance!=null){
-			if(this.first!=null&&this.restButFirst!=null){
+			if(this.first!=null){
 				if(this.outOfInstance.in.get(0).first==null){
 					this.outOfInstance.in.get(0).first= new Node();
-				}
-				if(this.outOfInstance.in.get(0).restButFirst==null){
-					this.outOfInstance.in.get(0).restButFirst= new Node();
 				}
 				if(this.outOfInstance.in.get(1).first==null){
 					this.outOfInstance.in.get(1).first= new Node();
 				}
+				Node[] nodes={this.outOfInstance.in.get(0).first,this.outOfInstance.in.get(1).first,this.first};
+				this.definition.add(this.outOfInstance.definition, nodes);
+				this.first.childSubnodesFission();
+			}
+			if(this.restButFirst!=null){
+				if(this.outOfInstance.in.get(0).restButFirst==null){
+					this.outOfInstance.in.get(0).restButFirst= new Node();
+				}
 				if(this.outOfInstance.in.get(1).restButFirst==null){
 					this.outOfInstance.in.get(1).restButFirst= new Node();
 				}
-				Node[] nodes1={this.outOfInstance.in.get(0).first,this.outOfInstance.in.get(1).first,this.first};
-				this.definition.add(this.outOfInstance.definition, nodes1);
-				Node[] nodes2={this.outOfInstance.in.get(0).restButFirst,this.outOfInstance.in.get(1).restButFirst,this.restButFirst};
-				this.definition.add(this.outOfInstance.definition, nodes2);
-				this.first.triFission();
-				this.restButFirst.triFission(); 
+				Node[] nodes={this.outOfInstance.in.get(0).restButFirst,this.outOfInstance.in.get(1).restButFirst,this.restButFirst};
+				this.definition.add(this.outOfInstance.definition, nodes);
+				this.restButFirst.childSubnodesFission(); 
 			}
-			if(this.restButLast!=null&&this.last!=null){
+			if(this.restButLast!=null){
 				if(this.outOfInstance.in.get(0).restButLast==null){
 					this.outOfInstance.in.get(0).restButLast= new Node();
-				}
-				if(this.outOfInstance.in.get(0).last==null){
-					this.outOfInstance.in.get(0).last= new Node();
 				}
 				if(this.outOfInstance.in.get(1).restButLast==null){
 					this.outOfInstance.in.get(1).restButLast= new Node();
 				}
+				Node[] nodes={this.outOfInstance.in.get(0).restButLast,this.outOfInstance.in.get(1).restButLast,this.restButLast};
+				this.definition.add(this.outOfInstance.definition, nodes);
+				this.restButLast.childSubnodesFission();
+			}
+			if(this.last!=null){
+				if(this.outOfInstance.in.get(0).last==null){
+					this.outOfInstance.in.get(0).last= new Node();
+				}
 				if(this.outOfInstance.in.get(1).last==null){
 					this.outOfInstance.in.get(1).last= new Node();
 				}
-				Node[] nodes1={this.outOfInstance.in.get(0).restButLast,this.outOfInstance.in.get(1).restButLast,this.restButLast};
-				this.definition.add(this.outOfInstance.definition, nodes1);
-				Node[] nodes2={this.outOfInstance.in.get(0).last,this.outOfInstance.in.get(1).last,this.last};
-				this.definition.add(this.outOfInstance.definition, nodes2);
-				this.restButLast.triFission();
-				this.last.triFission(); 
+				Node[] nodes={this.outOfInstance.in.get(0).last,this.outOfInstance.in.get(1).last,this.last};
+				this.definition.add(this.outOfInstance.definition, nodes);
+				this.last.childSubnodesFission(); 
 			}
 			if(this.first==null&&this.restButFirst==null&this.restButLast==null&&this.last==null){
-				this.outOfInstance.in.get(0).triFission();
-				this.outOfInstance.in.get(1).triFission();
+				this.outOfInstance.in.get(0).childSubnodesFission();
+				this.outOfInstance.in.get(1).childSubnodesFission();
 			}
 		}else{
 			if(this.parentSupernode!=null){
-				parentSupernode.triFission();
+				parentSupernode.childSubnodesFission();
 			}
 			for(Node parentSubnode:this.parentSubnodes){
-				parentSubnode.triFission();
+				parentSubnode.childSubnodesFission();
 			}
 		}
 	}
-	private void addEquivalentSubnodeInstance(Node in0, Node in1, Node out) {
-		if(out.parentSubnodes.size()==1){
-			addEquivalentSubnodeInstance(in0,in1,out.parentSubnodes.get(0));
-		}else if(out.outOfInstance==null){
-			Node[] nodes={in0,in1,out};
-			this.definition.add(this.parentSupernode.outOfInstance.definition, nodes);
-		}
-	}
-	public void expandBinodes(){
-		if(this.parentSupernode!=null){
-			this.parentSupernode.expandBinodes();
-			this.parentSupernode.splitChildrenSubnodes();
-		}
-		for(Node parentSubnode:this.parentSubnodes){
-			parentSubnode.expandBinodes();
-		}
-		if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).expandBinodes();
-			this.outOfInstance.in.get(1).expandBinodes();
-			this.expandBinodeSubnodeParents(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1));
-		}
-	}
+//	private void addEquivalentSubnodeInstance(Node in0, Node in1, Node out) {
+//		if(out.parentSubnodes.size()==1){
+//			addEquivalentSubnodeInstance(in0,in1,out.parentSubnodes.get(0));
+//		}else if(out.outOfInstance==null){
+//			Node[] nodes={in0,in1,out};
+//			this.definition.add(this.parentSupernode.outOfInstance.definition, nodes);
+//		}
+//	}
+//	public void expandBinodes(){
+//		if(this.parentSupernode!=null){
+//			this.parentSupernode.expandBinodes();
+//			this.parentSupernode.splitChildrenSubnodes();
+//		}
+//		for(Node parentSubnode:this.parentSubnodes){
+//			parentSubnode.expandBinodes();
+//		}
+//		if(this.outOfInstance!=null){
+//			this.outOfInstance.in.get(0).expandBinodes();
+//			this.outOfInstance.in.get(1).expandBinodes();
+//			this.expandBinodeSubnodeParents(this.outOfInstance.in.get(0),this.outOfInstance.in.get(1));
+//		}
+//	}
 
 //	private void expandBinodeSubnodeParents(Node in0, Node in1) {
 //		if(in0.parentSubnodes.size()==2&&in1.parentSubnodes.size()==2
@@ -1439,34 +1447,24 @@ public class Node {
 //					}
 //		}
 //	}
-	public void biFission() {
-		if(this.parentSupernode!=null){
-			this.parentSupernode.biFission();
-		}
-		for(Node parentSubnode:this.parentSubnodes){
-			parentSubnode.biFission();
-		}
-		if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).biFission();
-			this.outOfInstance.in.get(1).biFission();
-			if(this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2
-			&&this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode
-			&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode
-			&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode
-			&&this.parentSubnodes.get(0).outOfInstance==null){
-//				if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
-//				&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(1).parentSubnodes.get(0)){
-					if(this.childSubnodes.isEmpty()){//if node has been triFissed, subnodes already exist
-						Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
-						this.definition.add(this.outOfInstance.definition, nodes0);
-						Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
-						this.definition.add(this.outOfInstance.definition, nodes1);
-					}
-					this.parentSubnodes.get(0).biFission();
-					this.parentSubnodes.get(1).biFission();
-//				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
-//				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
-//					if(this.childSubnodes.isEmpty()){//this.childrenSubnodes.isEmpty() is enough or need to check coming from childrenSubnode to parentSupernode?
+//	public void biFission() {
+//		if(this.parentSupernode!=null){
+//			this.parentSupernode.biFission();
+//		}
+//		for(Node parentSubnode:this.parentSubnodes){
+//			parentSubnode.biFission();
+//		}
+//		if(this.outOfInstance!=null){
+//			this.outOfInstance.in.get(0).biFission();
+//			this.outOfInstance.in.get(1).biFission();
+//			if(this.outOfInstance.in.get(0).parentSubnodes.size()==2&&this.outOfInstance.in.get(1).parentSubnodes.size()==2&&this.parentSubnodes.size()==2
+//			&&this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode
+//			&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode==this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode
+//			&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode
+//			&&this.parentSubnodes.get(0).outOfInstance==null){
+////				if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
+////				&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(1).parentSubnodes.get(0)){
+//					if(this.childSubnodes.isEmpty()){//if node has been triFissed, subnodes already exist
 //						Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
 //						this.definition.add(this.outOfInstance.definition, nodes0);
 //						Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
@@ -1474,66 +1472,76 @@ public class Node {
 //					}
 //					this.parentSubnodes.get(0).biFission();
 //					this.parentSubnodes.get(1).biFission();
-//				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
-//				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
-////					if(this.parentSubnodes.get(0).outOfInstance==null){
-//						if(this.childSubnodes.isEmpty()){
-//							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
-//							this.definition.add(this.outOfInstance.definition, nodes0);
-//							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
-//							this.definition.add(this.outOfInstance.definition, nodes1);
-//							this.parentSubnodes.get(0).biFission();
-//							this.parentSubnodes.get(1).biFission();
-//						}else{
-////							this.outOfInstance.in.get(1).parentSubnodes.get(0).splitChildrenSubnodes();
-////							this.outOfInstance.in.get(0).parentSubnodes.get(1).splitChildrenSubnodes();
-////							this.parentSubnodes.get(1).splitChildrenSubnodes();
-////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(0),this.parentSubnodes.get(0)};
-////							this.definition.add(this.outOfInstance.definition, nodes0);
-////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(0)};
-////							this.definition.add(this.outOfInstance.definition, nodes1);
-////							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(2),this.parentSubnodes.get(1).childSubnodes.get(1)};
-////							this.definition.add(this.outOfInstance.definition, nodes2);
-////							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(2)};
-////							this.definition.add(this.outOfInstance.definition, nodes3);
-////							this.parentSubnodes.get(0).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(0).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(1).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(2).biFission();
-//						}
+////				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
+////				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
+////					if(this.childSubnodes.isEmpty()){//this.childrenSubnodes.isEmpty() is enough or need to check coming from childrenSubnode to parentSupernode?
+////						Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+////						this.definition.add(this.outOfInstance.definition, nodes0);
+////						Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+////						this.definition.add(this.outOfInstance.definition, nodes1);
 ////					}
-//				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
-//				&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(1).parentSubnodes.get(0)){
-////					if(this.parentSubnodes.get(0).outOfInstance==null){
-//						if(this.childSubnodes.isEmpty()&&this.parentSubnodes.get(0).outOfInstance==null){
-//							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
-//							this.definition.add(this.outOfInstance.definition, nodes0);
-//							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
-//							this.definition.add(this.outOfInstance.definition, nodes1);
-//							this.parentSubnodes.get(0).biFission();
-//							this.parentSubnodes.get(1).biFission();
-//						}else{
-////							this.outOfInstance.in.get(0).parentSubnodes.get(0).splitChildrenSubnodes();
-////							this.outOfInstance.in.get(1).parentSubnodes.get(1).splitChildrenSubnodes();
-////							this.parentSubnodes.get(1).splitChildrenSubnodes();
-////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+////					this.parentSubnodes.get(0).biFission();
+////					this.parentSubnodes.get(1).biFission();
+////				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(0).parentSubnodes.get(0)
+////				&&this.outOfInstance.in.get(1).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(1).parentSubnodes.get(1)){
+//////					if(this.parentSubnodes.get(0).outOfInstance==null){
+////						if(this.childSubnodes.isEmpty()){
+////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
 ////							this.definition.add(this.outOfInstance.definition, nodes0);
-////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(0),this.parentSubnodes.get(1).childSubnodes.get(0)};
+////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
 ////							this.definition.add(this.outOfInstance.definition, nodes1);
-////							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(1)};
-////							this.definition.add(this.outOfInstance.definition, nodes2);
-////							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(2),this.parentSubnodes.get(1).childSubnodes.get(2)};
-////							this.definition.add(this.outOfInstance.definition, nodes3);
 ////							this.parentSubnodes.get(0).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(0).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(1).biFission();
-////							this.parentSubnodes.get(1).childSubnodes.get(2).biFission();
-//						}
-////					}
-//				}
-			}
-		}
-	}
+////							this.parentSubnodes.get(1).biFission();
+////						}else{
+//////							this.outOfInstance.in.get(1).parentSubnodes.get(0).splitChildrenSubnodes();
+//////							this.outOfInstance.in.get(0).parentSubnodes.get(1).splitChildrenSubnodes();
+//////							this.parentSubnodes.get(1).splitChildrenSubnodes();
+//////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(0),this.parentSubnodes.get(0)};
+//////							this.definition.add(this.outOfInstance.definition, nodes0);
+//////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(0)};
+//////							this.definition.add(this.outOfInstance.definition, nodes1);
+//////							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(0).childSubnodes.get(2),this.parentSubnodes.get(1).childSubnodes.get(1)};
+//////							this.definition.add(this.outOfInstance.definition, nodes2);
+//////							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1).childSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(2)};
+//////							this.definition.add(this.outOfInstance.definition, nodes3);
+//////							this.parentSubnodes.get(0).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(0).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(1).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(2).biFission();
+////						}
+//////					}
+////				}else if(this.outOfInstance.in.get(0).parentSubnodes.get(1).parentSupernode.childSubnodes.get(2)==this.outOfInstance.in.get(0).parentSubnodes.get(1)
+////				&&this.outOfInstance.in.get(1).parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)==this.outOfInstance.in.get(1).parentSubnodes.get(0)){
+//////					if(this.parentSubnodes.get(0).outOfInstance==null){
+////						if(this.childSubnodes.isEmpty()&&this.parentSubnodes.get(0).outOfInstance==null){
+////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+////							this.definition.add(this.outOfInstance.definition, nodes0);
+////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1),this.parentSubnodes.get(1)};
+////							this.definition.add(this.outOfInstance.definition, nodes1);
+////							this.parentSubnodes.get(0).biFission();
+////							this.parentSubnodes.get(1).biFission();
+////						}else{
+//////							this.outOfInstance.in.get(0).parentSubnodes.get(0).splitChildrenSubnodes();
+//////							this.outOfInstance.in.get(1).parentSubnodes.get(1).splitChildrenSubnodes();
+//////							this.parentSubnodes.get(1).splitChildrenSubnodes();
+//////							Node[] nodes0={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(0),this.outOfInstance.in.get(1).parentSubnodes.get(0),this.parentSubnodes.get(0)};
+//////							this.definition.add(this.outOfInstance.definition, nodes0);
+//////							Node[] nodes1={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(0),this.parentSubnodes.get(1).childSubnodes.get(0)};
+//////							this.definition.add(this.outOfInstance.definition, nodes1);
+//////							Node[] nodes2={this.outOfInstance.in.get(0).parentSubnodes.get(0).childSubnodes.get(2),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(1),this.parentSubnodes.get(1).childSubnodes.get(1)};
+//////							this.definition.add(this.outOfInstance.definition, nodes2);
+//////							Node[] nodes3={this.outOfInstance.in.get(0).parentSubnodes.get(1),this.outOfInstance.in.get(1).parentSubnodes.get(1).childSubnodes.get(2),this.parentSubnodes.get(1).childSubnodes.get(2)};
+//////							this.definition.add(this.outOfInstance.definition, nodes3);
+//////							this.parentSubnodes.get(0).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(0).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(1).biFission();
+//////							this.parentSubnodes.get(1).childSubnodes.get(2).biFission();
+////						}
+//////					}
+////				}
+//			}
+//		}
+//	}
 	public Node equivalentNode() {
 		Node node;
 		if(this.parentSubnodes.size()==1){
@@ -1574,76 +1582,54 @@ public class Node {
 //		}
 //		
 //	}
-//	public void triFusion() {
-//		//FIXME
-////		if(!this.parentSubnodes.isEmpty()){
-//			for(Node parentSubnode:this.parentSubnodes){
-//				parentSubnode.triFusion();
-//			}
-////		}else{
-//			if(this.parentSupernode!=null){
-//				if(this.parentSupernode.outOfInstance!=null){	
-//					if(this.parentSupernode.childSubnodes.get(0).outOfInstance!=null
-//					&&this.parentSupernode.childSubnodes.get(1).outOfInstance!=null
-//					&&this.parentSupernode.childSubnodes.get(2).outOfInstance!=null){
-//						Node in0 = this.parentSupernode.childSubnodes.get(1).outOfInstance.in.get(0);
-//						Node in1 = this.parentSupernode.childSubnodes.get(1).outOfInstance.in.get(1);
-//						this.definition.removeInstance(this.parentSupernode.childSubnodes.get(0).outOfInstance);
-//						this.definition.removeInstance(this.parentSupernode.childSubnodes.get(1).outOfInstance);
-//						this.definition.removeInstance(this.parentSupernode.childSubnodes.get(2).outOfInstance);
-//						in0.triFusion();
-//						in1.triFusion();
-//					}
-//				}
-//				this.parentSupernode.triFusion();
-//			}
-////		}
-//		if(this.outOfInstance!=null){
-//			this.outOfInstance.in.get(0).triFusion();
-//			this.outOfInstance.in.get(1).triFusion();
-//		}
-//	}
 	public void getEquivalentParentSupernode(
 			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
 		if(this.parentSupernode!=null){
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.keySet().containsAll(this.parentSupernode.childSubnodes)){
-				queue.removeAll(this.parentSupernode.childSubnodes);
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.first)&&equivalentNodes.containsKey(this.parentSupernode.restButFirst)){
+				queue.remove(this.parentSupernode.first);
+				queue.remove(this.parentSupernode.restButFirst);
+				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
+				queue.add(this.parentSupernode);
+			}
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.restButLast)&&equivalentNodes.containsKey(this.parentSupernode.last)){
+				queue.remove(this.parentSupernode.restButLast);
+				queue.remove(this.parentSupernode.last);
 				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
 				queue.add(this.parentSupernode);
 			}
 		}
 	}
-	public void triFusion() {
+	public void childSubnodesFusion() {
 		for(Node parentSubnode:this.parentSubnodes){
-			parentSubnode.triFusion();
-		}
-		if(this.parentSupernode!=null){
-			Node leftChild = this.parentSupernode.childSubnodes.get(0).equivalentNode();//need equivalent
-			Node midChild = this.parentSupernode.childSubnodes.get(1).equivalentNode();//.equivalentNode();
-			Node rightChild = this.parentSupernode.childSubnodes.get(2).equivalentNode();//.equivalentNode();
-//			midChild.parentsFusion();
-			if(leftChild.outOfInstance!=null&&midChild.outOfInstance!=null&&rightChild.outOfInstance!=null
-			&&leftChild.outOfInstance.in.get(0).parentSupernode!=null&&midChild.outOfInstance.in.get(0).parentSupernode!=null&&rightChild.outOfInstance.in.get(0).parentSupernode!=null
-			&&leftChild.outOfInstance.in.get(1).parentSupernode!=null&&midChild.outOfInstance.in.get(1).parentSupernode!=null&&rightChild.outOfInstance.in.get(1).parentSupernode!=null
-			&&leftChild.outOfInstance.in.get(0).parentSupernode==midChild.outOfInstance.in.get(0).parentSupernode&&midChild.outOfInstance.in.get(0).parentSupernode==rightChild.outOfInstance.in.get(0).parentSupernode
-			&&leftChild.outOfInstance.in.get(1).parentSupernode==midChild.outOfInstance.in.get(1).parentSupernode&&midChild.outOfInstance.in.get(1).parentSupernode==rightChild.outOfInstance.in.get(1).parentSupernode
-			){
-				midChild.outOfInstance.in.get(0).triFusion();
-				midChild.outOfInstance.in.get(1).triFusion();
-				this.definition.removeInstance(leftChild.outOfInstance);
-				this.definition.removeInstance(midChild.outOfInstance);
-//				midChild.parentSubnodes.clear();
-				this.definition.removeInstance(rightChild.outOfInstance);
-//				System.out.println(this.toString());
-//				System.out.println(this.definition.toString());
-			}else{
-				this.parentSupernode.triFusion();
-			}
+			parentSubnode.childSubnodesFusion();
 		}
 		if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).triFusion();
-			this.outOfInstance.in.get(1).triFusion();
-		}	
+			if(this.first!=null&&this.first.outOfInstance!=null&&this.restButFirst!=null&&this.restButFirst.outOfInstance!=null
+			&&this.first.outOfInstance.in.get(0).parentSupernode!=null&&this.first.outOfInstance.in.get(1).parentSupernode!=null
+			&&this.restButFirst.outOfInstance.in.get(0).parentSupernode!=null&&this.restButFirst.outOfInstance.in.get(1).parentSupernode!=null
+			&&this.first.outOfInstance.in.get(0).parentSupernode==this.restButFirst.outOfInstance.in.get(0).parentSupernode
+			&&this.first.outOfInstance.in.get(1).parentSupernode==this.restButFirst.outOfInstance.in.get(1).parentSupernode){
+				this.definition.removeInstance(this.first.outOfInstance);
+				this.definition.removeInstance(this.restButFirst.outOfInstance);
+				this.first.outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
+				this.first.outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
+			}
+			if(this.restButLast!=null&&this.restButLast.outOfInstance!=null&&this.last!=null&&this.last.outOfInstance!=null
+			&&this.restButLast.outOfInstance.in.get(0).parentSupernode!=null&&this.restButLast.outOfInstance.in.get(1).parentSupernode!=null
+			&&this.last.outOfInstance.in.get(0).parentSupernode!=null&&this.last.outOfInstance.in.get(1).parentSupernode!=null
+			&&this.restButLast.outOfInstance.in.get(0).parentSupernode==this.last.outOfInstance.in.get(0).parentSupernode
+			&&this.restButLast.outOfInstance.in.get(1).parentSupernode==this.last.outOfInstance.in.get(1).parentSupernode){
+				this.definition.removeInstance(this.restButLast.outOfInstance);
+				this.definition.removeInstance(this.last.outOfInstance);
+				this.restButLast.outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
+				this.restButLast.outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
+			}
+			this.outOfInstance.in.get(0).childSubnodesFusion();
+			this.outOfInstance.in.get(1).childSubnodesFusion();
+		}
+		if(this.parentSupernode!=null){
+			this.parentSupernode.childSubnodesFusion();
+		}
 	}
 	public void getEquivalentChildSupernodes(
 			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
@@ -1669,19 +1655,19 @@ public class Node {
 		}
 		
 	}
-	public void biFusion() {
+	public void parentSubnodesFusion() {
 		if(this.parentSupernode!=null){
-			this.parentSupernode.biFusion();
+			this.parentSupernode.parentSubnodesFusion();
 		}
 		if(this.outOfInstance!=null){
-			this.outOfInstance.in.get(0).biFusion();
-			this.outOfInstance.in.get(1).biFusion();
+			this.outOfInstance.in.get(0).parentSubnodesFusion();
+			this.outOfInstance.in.get(1).parentSubnodesFusion();
 		}
 		if(this.outOfInstance!=null&&this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(1).equivalentNode().parentSupernode!=null&&this.parentSubnodes.get(0).equivalentNode().parentSupernode==this.parentSubnodes.get(1).equivalentNode().parentSupernode){
 			Node leftNode = this.parentSubnodes.get(0).equivalentNode();
 			Node rightNode = this.parentSubnodes.get(1).equivalentNode();
-			leftNode.biFusion();
-			rightNode.biFusion();
+			leftNode.parentSubnodesFusion();
+			rightNode.parentSubnodesFusion();
 			if(leftNode.parentSupernode.outOfInstance!=null){
 				this.definition.removeInstance(this.outOfInstance);
 			}else{
@@ -1741,7 +1727,7 @@ public class Node {
 //			System.out.println(this.definition.toString());
 		}else{
 			for(Node parentSubnode:this.parentSubnodes){
-				parentSubnode.biFusion();
+				parentSubnode.parentSubnodesFusion();
 			}
 		}
 	}
@@ -1762,9 +1748,19 @@ public class Node {
 	}
 	public void mergeParentSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
 		if(this.parentSupernode!=null){
-			if(!queue.contains(this.parentSupernode)&&queue.containsAll(this.parentSupernode.childSubnodes)){
-				queue.removeAll(this.parentSupernode.childSubnodes);
-				nodes.removeAll(this.parentSupernode.childSubnodes);
+			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.first)&&queue.contains(this.parentSupernode.restButFirst)){
+				queue.remove(this.parentSupernode.first);
+				queue.remove(this.parentSupernode.restButFirst);
+				nodes.remove(this.parentSupernode.first);
+				nodes.remove(this.parentSupernode.restButFirst);
+				queue.add(this.parentSupernode);
+				nodes.add(this.parentSupernode);
+			}
+			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.restButLast)&&queue.contains(this.parentSupernode.last)){
+				queue.remove(this.parentSupernode.restButLast);
+				queue.remove(this.parentSupernode.last);
+				nodes.remove(this.parentSupernode.restButLast);
+				nodes.remove(this.parentSupernode.last);
 				queue.add(this.parentSupernode);
 				nodes.add(this.parentSupernode);
 			}

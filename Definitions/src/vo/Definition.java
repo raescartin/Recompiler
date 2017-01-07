@@ -991,12 +991,13 @@ public class Definition {
 //		for(Node outNode:this.out){
 //			outNode.expandBinodes();
 //		}
+//		for(Node outNode:this.out){
+//			outNode.parentSubnodesFission();
+//		}
 		for(Node outNode:this.out){
-			outNode.triFission();
+			outNode.childSubnodesFission();
 		}
-		for(Node outNode:this.out){
-			outNode.biFission();
-		}
+
 //		for(Node outNode:this.out){
 //			outNode.addEquivalentSubnodeInstances();
 //		}
@@ -1471,15 +1472,15 @@ public class Definition {
 		return instance;
 	}
 	public void fusion() {
+//		for(Node outNode:this.out){
+//			outNode.parentSubnodesFusion();
+//		}
 		for(Node outNode:this.out){
-			outNode.biFusion();
+			outNode.childSubnodesFusion();
 		}
-		for(Node outNode:this.out){
-			outNode.triFusion();
-		}
-		for(Node outNode:this.out){
-			outNode.cleanBinodes();
-		}
+//		for(Node outNode:this.out){
+//			outNode.cleanBinodes();
+//		}
 	}
 	public void expandNonRecursiveInstances() {
 		boolean containsNonRecursiveInstances;
