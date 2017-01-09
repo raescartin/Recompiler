@@ -21,10 +21,10 @@ public class Node {
 	public ArrayList<Node> parentSubnodes;//ArrayList, since there can be repetition
 //	public ArrayList<Node> childSubnodes;
 	public ArrayList<Node> childSupernodes;
-	public Node first;//childSubnode
-	public Node restButFirst;//childSubnode
-	public Node restButLast;//childSubnode
-	public Node last;//childSubnode
+	private Node first;//childSubnode
+	private Node restButFirst;//childSubnode
+	private Node restButLast;//childSubnode
+	private Node last;//childSubnode
 	public Instance outOfInstance;
 	public Definition definition;
 	//DEBUGGING ONLY
@@ -36,6 +36,19 @@ public class Node {
 		this.parentSubnodes = new ArrayList<Node>();
 //		this.childSubnodes = new ArrayList<Node>();
 		this.childSupernodes = new ArrayList<Node>();
+	}
+	//getters
+	public Node getFirst(){
+		return this.first;
+	}
+	public Node getRestButFirst(){
+		return this.restButFirst;
+	}
+	public Node getRestButLast(){
+		return this.restButLast;
+	}
+	public Node getLast(){
+		return this.last;
 	}
 	public Node addChildSupernode(Node childSuperNode) {//add children supernode to node	
 		childSuperNode.parentSubnodes.add(this);
@@ -75,20 +88,6 @@ public class Node {
 				}else{
 					nandToNode.put(nandNode, this);
 				}
-				if(this.parentSupernode!=null){
-					if(this.parentSupernode.first!=null&&this.parentSupernode.first.outOfInstance!=null){
-						this.parentSupernode.first.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
-					}
-					if(this.parentSupernode.restButFirst!=null&&this.parentSupernode.restButFirst.outOfInstance!=null){
-						this.parentSupernode.restButFirst.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
-					}
-					if(this.parentSupernode.restButLast!=null&&this.parentSupernode.restButLast.outOfInstance!=null){
-						this.parentSupernode.restButLast.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
-					}
-					if(this.parentSupernode.last!=null&&this.parentSupernode.last.outOfInstance!=null){
-						this.parentSupernode.last.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
-					}
-				}
 			}
 		}
 		return nandNode;
@@ -97,10 +96,10 @@ public class Node {
 		String string = new String();
 		if(this.parentSupernode!=null){
 			string+=this.parentSupernode.toString();
-			if(this.parentSupernode.first==this) string+="{0}";
-			else if(this.parentSupernode.restButFirst==this) string+="{1..n}";
-			else if(this.parentSupernode.restButLast==this) string+="{0..n-1}";
-			else if(this.parentSupernode.restButLast==this) string+="{n}";
+			if(this.parentSupernode.getFirst()==this) string+="{0}";
+			else if(this.parentSupernode.getRestButFirst()==this) string+="{1..n}";
+			else if(this.parentSupernode.getRestButLast()==this) string+="{0..n-1}";
+			else if(this.parentSupernode.getLast()==this) string+="{n}";
 		}else{
 			string+=this.idForDefinition;
 		}
@@ -117,21 +116,21 @@ public class Node {
 		return string;
 	}
 	public void mapInChildren(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {		
-		if(this.first==null&&this.restButFirst==null&this.restButLast==null&&this.last==null){
+		if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
 			if(!nodeToNand.containsKey(this)){
 				NandNode nandNode = nandForest.addIn();
 				nandToNode.put(nandNode, this);
 				nodeToNand.put(this, nandNode);
 			}
 		}else{
-			if(this.first!=null)this.first.mapInChildren(nandToNode,nodeToNand, nandForest);
-			if(this.restButFirst!=null)this.restButFirst.mapInChildren(nandToNode,nodeToNand, nandForest);
-			if(this.restButLast!=null)this.restButLast.mapInChildren(nandToNode,nodeToNand, nandForest);
-			if(this.last!=null)this.last.mapInChildren(nandToNode,nodeToNand, nandForest);
+			if(this.getFirst()!=null)this.getFirst().mapInChildren(nandToNode,nodeToNand, nandForest);
+			if(this.getRestButFirst()!=null)this.getRestButFirst().mapInChildren(nandToNode,nodeToNand, nandForest);
+			if(this.getRestButLast()!=null)this.getRestButLast().mapInChildren(nandToNode,nodeToNand, nandForest);
+			if(this.getLast()!=null)this.getLast().mapInChildren(nandToNode,nodeToNand, nandForest);
 		}
 	}
 	public void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashMap<NandNode, Node> nandToNode) {		
-		if(this.first==null&&this.restButFirst==null&this.restButLast==null&&this.last==null){
+		if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
 			NandNode nandNode;
 			if(nandToNodeIn.contains(this)){
 				nandNode=nodeToNand.get(this);
@@ -142,10 +141,10 @@ public class Node {
 			nodeToNand.put(this, nandNode);
 			nandToNode.put(nandNode,this);
 		}else{
-			if(this.first!=null)this.first.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
-			if(this.restButFirst!=null)this.restButFirst.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
-			if(this.restButLast!=null)this.restButLast.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
-			if(this.last!=null)this.last.mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+			if(this.getFirst()!=null)this.getFirst().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+			if(this.getRestButFirst()!=null)this.getRestButFirst().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+			if(this.getRestButLast()!=null)this.getRestButLast().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+			if(this.getLast()!=null)this.getLast().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
 		}
 	}
 	public void mapOutParents(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand,
@@ -703,13 +702,13 @@ public class Node {
 			}else if(this.parentSupernode!=null){
 				this.parentSupernode.eval(valueMap, depth);
 				if(valueMap.containsKey(this.parentSupernode)){
-					if(parentSupernode.first==this){
+					if(parentSupernode.getFirst()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,0));
-					}else if(parentSupernode.restButFirst==this){
+					}else if(parentSupernode.getRestButFirst()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(1,valueMap.get(this.parentSupernode).length()-1));
-					}else if(parentSupernode.restButLast==this){
+					}else if(parentSupernode.getRestButLast()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,valueMap.get(this.parentSupernode).length()-2));
-					}else if(parentSupernode.last==this){
+					}else if(parentSupernode.getLast()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(valueMap.get(this.parentSupernode).length()-1,valueMap.get(this.parentSupernode).length()-1));
 					}
 				}
@@ -948,26 +947,26 @@ public class Node {
 						depth=parentDepth;
 					}
 				}
-				if(this.first!=null){
-					int firstDepth=this.first.getDepth(evaluatedNodes);
+				if(this.getFirst()!=null){
+					int firstDepth=this.getFirst().getDepth(evaluatedNodes);
 					if(firstDepth>depth){
 						depth=firstDepth;
 					}
 				}
-				if(this.restButFirst!=null){
-					int restButFirstDepth=this.restButFirst.getDepth(evaluatedNodes);
+				if(this.getRestButFirst()!=null){
+					int restButFirstDepth=this.getRestButFirst().getDepth(evaluatedNodes);
 					if(restButFirstDepth>depth){
 						depth=restButFirstDepth;
 					}
 				}
-				if(this.restButLast!=null){
-					int restButLastDepth=this.restButLast.getDepth(evaluatedNodes);
+				if(this.getRestButLast()!=null){
+					int restButLastDepth=this.getRestButLast().getDepth(evaluatedNodes);
 					if(restButLastDepth>depth){
 						depth=restButLastDepth;
 					}
 				}
-				if(this.last!=null){
-					int lastDepth=this.last.getDepth(evaluatedNodes);
+				if(this.getLast()!=null){
+					int lastDepth=this.getLast().getDepth(evaluatedNodes);
 					if(lastDepth>depth){
 						depth=lastDepth;
 					}
@@ -1229,10 +1228,10 @@ public class Node {
 			if(this.parentSupernode!=null){
 				if(equivalentNodes.containsKey(this.parentSupernode)){
 					Node newSupernode=equivalentNodes.get(this.parentSupernode);
-					newSupernode.first=this.parentSupernode.first;
-					newSupernode.restButFirst=this.parentSupernode.restButFirst;
-					newSupernode.restButLast=this.parentSupernode.restButLast;
-					newSupernode.last=this.parentSupernode.last;
+					newSupernode.addFirst(this.parentSupernode.getFirst());
+					newSupernode.addRestButFirst(this.parentSupernode.getRestButFirst());
+					newSupernode.addRestButLast(this.parentSupernode.getRestButLast());
+					newSupernode.addLast(this.parentSupernode.getLast());
 					this.parentSupernode=newSupernode;
 				}
 				this.parentSupernode.replaceNodes(expandedNodes, equivalentNodes);
@@ -1346,51 +1345,59 @@ public class Node {
 //	}
 	public void childSubnodesFission() {
 		if(this.outOfInstance!=null){
-			if(this.first!=null){
-				if(this.outOfInstance.in.get(0).first==null){
-					this.outOfInstance.in.get(0).first= new Node();
+			if(this.getFirst()!=null){
+				if(this.outOfInstance.in.get(0).getFirst()==null){
+					this.outOfInstance.in.get(0).addFirst(new Node());
 				}
-				if(this.outOfInstance.in.get(1).first==null){
-					this.outOfInstance.in.get(1).first= new Node();
+				if(this.outOfInstance.in.get(1).getFirst()==null){
+					this.outOfInstance.in.get(1).addFirst(new Node());
 				}
-				Node[] nodes={this.outOfInstance.in.get(0).first,this.outOfInstance.in.get(1).first,this.first};
-				this.definition.add(this.outOfInstance.definition, nodes);
-				this.first.childSubnodesFission();
+				if(this.getFirst().outOfInstance==null){
+					Node[] nodes={this.outOfInstance.in.get(0).getFirst(),this.outOfInstance.in.get(1).getFirst(),this.getFirst()};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					this.getFirst().childSubnodesFission();
+				}
 			}
-			if(this.restButFirst!=null){
-				if(this.outOfInstance.in.get(0).restButFirst==null){
-					this.outOfInstance.in.get(0).restButFirst= new Node();
+			if(this.getRestButFirst()!=null){
+				if(this.outOfInstance.in.get(0).getRestButFirst()==null){
+					this.outOfInstance.in.get(0).addRestButFirst(new Node());
 				}
-				if(this.outOfInstance.in.get(1).restButFirst==null){
-					this.outOfInstance.in.get(1).restButFirst= new Node();
+				if(this.outOfInstance.in.get(1).getRestButFirst()==null){
+					this.outOfInstance.in.get(1).addRestButFirst(new Node());
 				}
-				Node[] nodes={this.outOfInstance.in.get(0).restButFirst,this.outOfInstance.in.get(1).restButFirst,this.restButFirst};
-				this.definition.add(this.outOfInstance.definition, nodes);
-				this.restButFirst.childSubnodesFission(); 
+				if(this.getRestButFirst().outOfInstance==null){
+					Node[] nodes={this.outOfInstance.in.get(0).getRestButFirst(),this.outOfInstance.in.get(1).getRestButFirst(),this.getRestButFirst()};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					this.getRestButFirst().childSubnodesFission();
+				}
 			}
-			if(this.restButLast!=null){
-				if(this.outOfInstance.in.get(0).restButLast==null){
-					this.outOfInstance.in.get(0).restButLast= new Node();
+			if(this.getRestButLast()!=null){
+				if(this.outOfInstance.in.get(0).getRestButLast()==null){
+					this.outOfInstance.in.get(0).addRestButLast(new Node());
 				}
-				if(this.outOfInstance.in.get(1).restButLast==null){
-					this.outOfInstance.in.get(1).restButLast= new Node();
+				if(this.outOfInstance.in.get(1).getRestButLast()==null){
+					this.outOfInstance.in.get(1).addRestButLast(new Node());
 				}
-				Node[] nodes={this.outOfInstance.in.get(0).restButLast,this.outOfInstance.in.get(1).restButLast,this.restButLast};
-				this.definition.add(this.outOfInstance.definition, nodes);
-				this.restButLast.childSubnodesFission();
+				if(this.getRestButLast().outOfInstance==null){
+					Node[] nodes={this.outOfInstance.in.get(0).getRestButLast(),this.outOfInstance.in.get(1).getRestButLast(),this.getRestButLast()};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					this.getRestButLast().childSubnodesFission();
+				}
 			}
-			if(this.last!=null){
-				if(this.outOfInstance.in.get(0).last==null){
-					this.outOfInstance.in.get(0).last= new Node();
+			if(this.getLast()!=null){
+				if(this.outOfInstance.in.get(0).getLast()==null){
+					this.outOfInstance.in.get(0).addLast(new Node());
 				}
-				if(this.outOfInstance.in.get(1).last==null){
-					this.outOfInstance.in.get(1).last= new Node();
+				if(this.outOfInstance.in.get(1).getLast()==null){
+					this.outOfInstance.in.get(1).addLast(new Node());
 				}
-				Node[] nodes={this.outOfInstance.in.get(0).last,this.outOfInstance.in.get(1).last,this.last};
-				this.definition.add(this.outOfInstance.definition, nodes);
-				this.last.childSubnodesFission(); 
+				if(this.getLast().outOfInstance==null){
+					Node[] nodes={this.outOfInstance.in.get(0).getLast(),this.outOfInstance.in.get(1).getLast(),this.getLast()};
+					this.definition.add(this.outOfInstance.definition, nodes);
+					this.getLast().childSubnodesFission(); 
+				}
 			}
-			if(this.first==null&&this.restButFirst==null&this.restButLast==null&&this.last==null){
+			if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
 				this.outOfInstance.in.get(0).childSubnodesFission();
 				this.outOfInstance.in.get(1).childSubnodesFission();
 			}
@@ -1585,15 +1592,15 @@ public class Node {
 	public void getEquivalentParentSupernode(
 			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
 		if(this.parentSupernode!=null){
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.first)&&equivalentNodes.containsKey(this.parentSupernode.restButFirst)){
-				queue.remove(this.parentSupernode.first);
-				queue.remove(this.parentSupernode.restButFirst);
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.getFirst())&&equivalentNodes.containsKey(this.parentSupernode.getRestButFirst())){
+				queue.remove(this.parentSupernode.getFirst());
+				queue.remove(this.parentSupernode.getRestButFirst());
 				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
 				queue.add(this.parentSupernode);
 			}
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.restButLast)&&equivalentNodes.containsKey(this.parentSupernode.last)){
-				queue.remove(this.parentSupernode.restButLast);
-				queue.remove(this.parentSupernode.last);
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.getRestButLast())&&equivalentNodes.containsKey(this.parentSupernode.getLast())){
+				queue.remove(this.parentSupernode.getRestButLast());
+				queue.remove(this.parentSupernode.getLast());
 				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
 				queue.add(this.parentSupernode);
 			}
@@ -1604,25 +1611,25 @@ public class Node {
 			parentSubnode.childSubnodesFusion();
 		}
 		if(this.outOfInstance!=null){
-			if(this.first!=null&&this.first.outOfInstance!=null&&this.restButFirst!=null&&this.restButFirst.outOfInstance!=null
-			&&this.first.outOfInstance.in.get(0).parentSupernode!=null&&this.first.outOfInstance.in.get(1).parentSupernode!=null
-			&&this.restButFirst.outOfInstance.in.get(0).parentSupernode!=null&&this.restButFirst.outOfInstance.in.get(1).parentSupernode!=null
-			&&this.first.outOfInstance.in.get(0).parentSupernode==this.restButFirst.outOfInstance.in.get(0).parentSupernode
-			&&this.first.outOfInstance.in.get(1).parentSupernode==this.restButFirst.outOfInstance.in.get(1).parentSupernode){
-				this.definition.removeInstance(this.first.outOfInstance);
-				this.definition.removeInstance(this.restButFirst.outOfInstance);
-				this.first.outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
-				this.first.outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
+			if(this.getFirst()!=null&&this.getFirst().outOfInstance!=null&&this.getRestButFirst()!=null&&this.getRestButFirst().outOfInstance!=null
+			&&this.getFirst().outOfInstance.in.get(0).parentSupernode!=null&&this.getFirst().outOfInstance.in.get(1).parentSupernode!=null
+			&&this.getRestButFirst().outOfInstance.in.get(0).parentSupernode!=null&&this.getRestButFirst().outOfInstance.in.get(1).parentSupernode!=null
+			&&this.getFirst().outOfInstance.in.get(0).parentSupernode==this.getRestButFirst().outOfInstance.in.get(0).parentSupernode
+			&&this.getFirst().outOfInstance.in.get(1).parentSupernode==this.getRestButFirst().outOfInstance.in.get(1).parentSupernode){
+				this.definition.removeInstance(this.getFirst().outOfInstance);
+				this.definition.removeInstance(this.getRestButFirst().outOfInstance);
+				this.getFirst().outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
+				this.getFirst().outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
 			}
-			if(this.restButLast!=null&&this.restButLast.outOfInstance!=null&&this.last!=null&&this.last.outOfInstance!=null
-			&&this.restButLast.outOfInstance.in.get(0).parentSupernode!=null&&this.restButLast.outOfInstance.in.get(1).parentSupernode!=null
-			&&this.last.outOfInstance.in.get(0).parentSupernode!=null&&this.last.outOfInstance.in.get(1).parentSupernode!=null
-			&&this.restButLast.outOfInstance.in.get(0).parentSupernode==this.last.outOfInstance.in.get(0).parentSupernode
-			&&this.restButLast.outOfInstance.in.get(1).parentSupernode==this.last.outOfInstance.in.get(1).parentSupernode){
-				this.definition.removeInstance(this.restButLast.outOfInstance);
-				this.definition.removeInstance(this.last.outOfInstance);
-				this.restButLast.outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
-				this.restButLast.outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
+			if(this.getRestButLast()!=null&&this.getRestButLast().outOfInstance!=null&&this.getLast()!=null&&this.getLast().outOfInstance!=null
+			&&this.getRestButLast().outOfInstance.in.get(0).parentSupernode!=null&&this.getRestButLast().outOfInstance.in.get(1).parentSupernode!=null
+			&&this.getLast().outOfInstance.in.get(0).parentSupernode!=null&&this.getLast().outOfInstance.in.get(1).parentSupernode!=null
+			&&this.getRestButLast().outOfInstance.in.get(0).parentSupernode==this.getLast().outOfInstance.in.get(0).parentSupernode
+			&&this.getRestButLast().outOfInstance.in.get(1).parentSupernode==this.getLast().outOfInstance.in.get(1).parentSupernode){
+				this.definition.removeInstance(this.getRestButLast().outOfInstance);
+				this.definition.removeInstance(this.getLast().outOfInstance);
+				this.getRestButLast().outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
+				this.getRestButLast().outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
 			}
 			this.outOfInstance.in.get(0).childSubnodesFusion();
 			this.outOfInstance.in.get(1).childSubnodesFusion();
@@ -1748,19 +1755,19 @@ public class Node {
 	}
 	public void mergeParentSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
 		if(this.parentSupernode!=null){
-			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.first)&&queue.contains(this.parentSupernode.restButFirst)){
-				queue.remove(this.parentSupernode.first);
-				queue.remove(this.parentSupernode.restButFirst);
-				nodes.remove(this.parentSupernode.first);
-				nodes.remove(this.parentSupernode.restButFirst);
+			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.getFirst())&&queue.contains(this.parentSupernode.getRestButFirst())){
+				queue.remove(this.parentSupernode.getFirst());
+				queue.remove(this.parentSupernode.getRestButFirst());
+				nodes.remove(this.parentSupernode.getFirst());
+				nodes.remove(this.parentSupernode.getRestButFirst());
 				queue.add(this.parentSupernode);
 				nodes.add(this.parentSupernode);
 			}
-			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.restButLast)&&queue.contains(this.parentSupernode.last)){
-				queue.remove(this.parentSupernode.restButLast);
-				queue.remove(this.parentSupernode.last);
-				nodes.remove(this.parentSupernode.restButLast);
-				nodes.remove(this.parentSupernode.last);
+			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.getRestButLast())&&queue.contains(this.parentSupernode.getLast())){
+				queue.remove(this.parentSupernode.getRestButLast());
+				queue.remove(this.parentSupernode.getLast());
+				nodes.remove(this.parentSupernode.getRestButLast());
+				nodes.remove(this.parentSupernode.getLast());
 				queue.add(this.parentSupernode);
 				nodes.add(this.parentSupernode);
 			}
