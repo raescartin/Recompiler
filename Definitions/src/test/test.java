@@ -4,6 +4,8 @@
  *******************************************************************************/
 package test;
 
+import java.util.BitSet;
+
 import vo.Definition;
 import vo.DefinitionDB;
 import vo.Node;
@@ -38,7 +40,7 @@ class test {
     	
     	//NAND definition//
     	Definition nand = new Definition(2,1,"nand");
-    	nand.printEval(A,B);
+    	nand.printEval(A,B);      
     	nand.printCost();
         //Declare DATABASE
         DefinitionDB  definitionDB = new DefinitionDB(nand);
@@ -148,9 +150,9 @@ class test {
     	Node lastB = new Node();
     	Node rifdef1 = new Node();
     	Node rifdef2 = new Node();
-    	rifDef.in.get(1).addRestButLast(restButLastA);
+    	rifDef.in.get(1).addRest(restButLastA);
     	rifDef.in.get(1).addLast(lastA);
-    	rifDef.in.get(2).addRestButLast(restButLastB);
+    	rifDef.in.get(2).addRest(restButLastB);
     	rifDef.in.get(2).addLast(lastB);
     	rifDef.add(rifDef,rifDef.in.get(0),restButLastA,restButLastB,rifdef1);
     	rifDef.add(ifDef,rifDef.in.get(0),lastA,lastB,rifdef2);
@@ -176,20 +178,16 @@ class test {
     	//ADD definition//
     	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) 
     	Definition add = new Definition(2,1,"add");
-		Node ArestButFirst = new Node();
-    	add.in.get(0).addRestButFirst(ArestButFirst);
-    	Node BrestButFirst = new Node();
-    	add.in.get(1).addRestButFirst(BrestButFirst);
     	Node xorOut = new Node();
     	add.add(xor, add.in.get(0),add.in.get(1),xorOut);
-    	Node addXorRestButLast = new Node();
-    	xorOut.addRestButLast(addXorRestButLast);
+    	Node addXorRest = new Node();
+    	xorOut.addRest(addXorRest);
     	Node addXorLast = new Node();
     	xorOut.addLast(addXorLast);
     	Node addAndOut = new Node();
-    	add.add(and, ArestButFirst,BrestButFirst,addAndOut);
+    	add.add(and, add.in.get(0), add.in.get(1),addAndOut);
     	Node addOut = new Node();
-    	add.add(add, addXorRestButLast,addAndOut,addOut);
+    	add.add(add, addXorRest,addAndOut,addOut);
     	addOut.addChildSupernode(add.out.get(0));
     	addXorLast.addChildSupernode(add.out.get(0));
     	System.out.println();
@@ -242,7 +240,7 @@ class test {
 //    	Node dec0 = dec.in.get(0).childSubnodes.get(0);
 //    	Node decRest = dec.in.get(0).childSubnodes.get(1);
     	Node decRestButLast = new Node();
-    	dec.in.get(0).addRestButLast(decRestButLast);
+    	dec.in.get(0).addRest(decRestButLast);
     	Node decLast =  new Node();
     	dec.in.get(0).addLast(decLast);
     	Node decNnot = new Node();
@@ -267,17 +265,17 @@ class test {
     	
     	//CMP definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
-    	Node cmpAfirst =  new Node();
-    	cmp.in.get(0).addFirst(cmpAfirst);
-    	Node cmpArestButFirst =  new Node();
-    	Node cmpBfirst =  new Node();
-    	cmp.in.get(1).addFirst(cmpBfirst);
-    	Node cmpBrestButFirst =  new Node();
-    	cmp.in.get(1).addRestButFirst(cmpBrestButFirst);
+    	Node cmpAlast =  new Node();
+    	cmp.in.get(0).addLast(cmpAlast);
+    	Node cmpArest =  new Node();
+    	Node cmpBlast =  new Node();
+    	cmp.in.get(1).addLast(cmpBlast);
+    	Node cmpBrest =  new Node();
+    	cmp.in.get(1).addRest(cmpBrest);
     	Node cmpXor = new Node();
-    	cmp.add(xor, cmpAfirst,cmpBfirst,cmpXor);
+    	cmp.add(xor, cmpAlast,cmpBlast,cmpXor);
     	Node cmpR = new Node();
-    	cmp.add(cmp, cmpArestButFirst,cmpBrestButFirst,cmpR);
+    	cmp.add(cmp, cmpArest,cmpBrest,cmpR);
     	Node cmpXnor = new Node();
     	cmp.add(not, cmpXor,cmpXnor);
     	cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); //should cmp.add(ifDef, cmpXor,cmpXnor,cmpR,cmp.out.get(0)); work? cmp.add(and, cmpXnor,cmpR,cmp.out.get(0)); simple

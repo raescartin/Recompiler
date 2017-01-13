@@ -19,11 +19,8 @@ import utils.Polynomial;
 public class Node {
 	public Node parentSupernode;
 	public ArrayList<Node> parentSubnodes;//ArrayList, since there can be repetition
-//	public ArrayList<Node> childSubnodes;
 	public ArrayList<Node> childSupernodes;
-	private Node first;//childSubnode
-	private Node restButFirst;//childSubnode
-	private Node restButLast;//childSubnode
+	private Node rest;//childSubnode
 	private Node last;//childSubnode
 	public Instance outOfInstance;
 	public Definition definition;
@@ -34,18 +31,11 @@ public class Node {
 	public Node() { 
 		this.parentSupernode=null;
 		this.parentSubnodes = new ArrayList<Node>();
-//		this.childSubnodes = new ArrayList<Node>();
 		this.childSupernodes = new ArrayList<Node>();
 	}
 	//getters
-	public Node getFirst(){
-		return this.first;
-	}
-	public Node getRestButFirst(){
-		return this.restButFirst;
-	}
-	public Node getRestButLast(){
-		return this.restButLast;
+	public Node getRest(){
+		return this.rest;
 	}
 	public Node getLast(){
 		return this.last;
@@ -96,9 +86,7 @@ public class Node {
 		String string = new String();
 		if(this.parentSupernode!=null){
 			string+=this.parentSupernode.toString();
-			if(this.parentSupernode.getFirst()==this) string+="{0}";
-			else if(this.parentSupernode.getRestButFirst()==this) string+="{1..n}";
-			else if(this.parentSupernode.getRestButLast()==this) string+="{0..n-1}";
+			if(this.parentSupernode.getRest()==this) string+="{1..n-1}";
 			else if(this.parentSupernode.getLast()==this) string+="{n}";
 		}else{
 			string+=this.idForDefinition;
@@ -116,21 +104,19 @@ public class Node {
 		return string;
 	}
 	public void mapInChildren(HashMap<NandNode, Node> nandToNode,HashMap<Node, NandNode> nodeToNand, NandForest nandForest) {		
-		if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
+		if(this.getRest()==null&&this.getLast()==null){
 			if(!nodeToNand.containsKey(this)){
 				NandNode nandNode = nandForest.addIn();
 				nandToNode.put(nandNode, this);
 				nodeToNand.put(this, nandNode);
 			}
 		}else{
-			if(this.getFirst()!=null)this.getFirst().mapInChildren(nandToNode,nodeToNand, nandForest);
-			if(this.getRestButFirst()!=null)this.getRestButFirst().mapInChildren(nandToNode,nodeToNand, nandForest);
-			if(this.getRestButLast()!=null)this.getRestButLast().mapInChildren(nandToNode,nodeToNand, nandForest);
+			if(this.getRest()!=null)this.getRest().mapInChildren(nandToNode,nodeToNand, nandForest);
 			if(this.getLast()!=null)this.getLast().mapInChildren(nandToNode,nodeToNand, nandForest);
 		}
 	}
 	public void mapInChildrenMapping(HashMap<Node, NandNode> nodeToNand, NandForest nandForest,ArrayList<Node> nandToNodeIn, HashMap<NandNode, Node> nandToNode) {		
-		if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
+		if(this.getRest()==null&&this.getLast()==null){
 			NandNode nandNode;
 			if(nandToNodeIn.contains(this)){
 				nandNode=nodeToNand.get(this);
@@ -141,9 +127,7 @@ public class Node {
 			nodeToNand.put(this, nandNode);
 			nandToNode.put(nandNode,this);
 		}else{
-			if(this.getFirst()!=null)this.getFirst().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
-			if(this.getRestButFirst()!=null)this.getRestButFirst().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
-			if(this.getRestButLast()!=null)this.getRestButLast().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
+			if(this.getRest()!=null)this.getRest().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
 			if(this.getLast()!=null)this.getLast().mapInChildrenMapping(nodeToNand, nandForest, nandToNodeIn, nandToNode);
 		}
 	}
@@ -675,16 +659,6 @@ public class Node {
 					}
 				}
 			}else if(!this.parentSubnodes.isEmpty()){//deal with subnodes and supernodes
-//				if(this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).parentSupernode!=null&&this.parentSubnodes.get(1).parentSupernode!=null&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode){// "rest" selection
-//					this.parentSubnodes.get(0).parentSupernode.eval(valueMap, depth);
-//					if(valueMap.containsKey(this.parentSubnodes.get(0).parentSupernode)){
-//						if(this.parentSubnodes.get(0)==this.parentSubnodes.get(0).parentSupernode.childSubnodes.get(0)&&this.parentSubnodes.get(1)==this.parentSubnodes.get(0).parentSupernode.childSubnodes.get(1)){//consecutive nodes
-//							valueMap.put(this,valueMap.get(this.parentSubnodes.get(0).parentSupernode).get(0,valueMap.get(this.parentSubnodes.get(0).parentSupernode).length()-2));
-//						}else if(this.parentSubnodes.get(0)==this.parentSubnodes.get(0).parentSupernode.childSubnodes.get(1)&&this.parentSubnodes.get(1)==this.parentSubnodes.get(0).parentSupernode.childSubnodes.get(2)){
-//							valueMap.put(this,valueMap.get(this.parentSubnodes.get(0).parentSupernode).get(1,valueMap.get(this.parentSubnodes.get(0).parentSupernode).length()-1));
-//						}
-//					}
-//				}else{//node with multiple parents
 					FixedBitSet fixedBitSet = new FixedBitSet();
 					boolean allExpanded=true;
 					for (Node parent : this.parentSubnodes) {
@@ -702,11 +676,60 @@ public class Node {
 			}else if(this.parentSupernode!=null){
 				this.parentSupernode.eval(valueMap, depth);
 				if(valueMap.containsKey(this.parentSupernode)){
-					if(parentSupernode.getFirst()==this){
-						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,0));
-					}else if(parentSupernode.getRestButFirst()==this){
-						valueMap.put(this,valueMap.get(this.parentSupernode).get(1,valueMap.get(this.parentSupernode).length()-1));
-					}else if(parentSupernode.getRestButLast()==this){
+					if(parentSupernode.getRest()==this){
+						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,valueMap.get(this.parentSupernode).length()-2));
+					}else if(parentSupernode.getLast()==this){
+						valueMap.put(this,valueMap.get(this.parentSupernode).get(valueMap.get(this.parentSupernode).length()-1,valueMap.get(this.parentSupernode).length()-1));
+					}
+				}
+			}
+		}
+		
+	}
+	public void eval(HashMap<Node, FixedBitSet> valueMap) {
+		if(!valueMap.containsKey(this)){
+			if(this.outOfInstance!=null){
+				boolean allDiminishingInsAreEmpty=true;
+				for (Node nodeIn : this.outOfInstance.in) {
+					nodeIn.eval(valueMap);
+					if(this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).parentSupernode!=null&&this.parentSubnodes.get(1).parentSupernode!=null&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode){
+						if(valueMap.get(nodeIn).length()!=0){
+							allDiminishingInsAreEmpty=false;
+						}
+					}
+				}
+				if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()&&allDiminishingInsAreEmpty){//recursive instance with empty ins
+					for (Node nodeOut : this.outOfInstance.out) {
+						valueMap.put(nodeOut, new FixedBitSet());
+					}
+				}else{
+					HashMap<Node, FixedBitSet> newValueMap = new HashMap<Node, FixedBitSet>() ;
+					for(int i=0;i<this.outOfInstance.in.size();i++){//copy forward
+						if(valueMap.containsKey(this.outOfInstance.in.get(i))){
+							newValueMap.put(this.outOfInstance.definition.in.get(i), valueMap.get(this.outOfInstance.in.get(i)));
+						}
+					}
+					this.outOfInstance.definition.eval(newValueMap);			
+					for(int i=0;i<this.outOfInstance.out.size();i++){//copy back
+						if(newValueMap.containsKey(this.outOfInstance.definition.out.get(i))){
+							valueMap.put(this.outOfInstance.out.get(i), newValueMap.get(this.outOfInstance.definition.out.get(i)));
+						} 
+					}
+				}
+			}else if(!this.parentSubnodes.isEmpty()){//deal with subnodes and supernodes
+					FixedBitSet fixedBitSet = new FixedBitSet();
+					for(int i=this.parentSubnodes.size()-1;i>=0;i--){
+						this.parentSubnodes.get(i).eval(valueMap);
+					}
+					for(Node parentSubnode:this.parentSubnodes){
+						fixedBitSet.concat(valueMap.get(parentSubnode));
+					}
+					valueMap.put(this, fixedBitSet);
+//				}
+			}else if(this.parentSupernode!=null){
+				this.parentSupernode.eval(valueMap);
+				if(valueMap.containsKey(this.parentSupernode)){
+					if(parentSupernode.getRest()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(0,valueMap.get(this.parentSupernode).length()-2));
 					}else if(parentSupernode.getLast()==this){
 						valueMap.put(this,valueMap.get(this.parentSupernode).get(valueMap.get(this.parentSupernode).length()-1,valueMap.get(this.parentSupernode).length()-1));
@@ -793,38 +816,16 @@ public class Node {
 //		}
 //		return childSubnode;
 //	}
-	public Node addFirst(Node first) {
-		first.parentSupernode=this;
-		this.first=first;
+	public Node addRest(Node rest) {
+		rest.parentSupernode=this;
+		this.rest=rest;
 		if(this.definition!=null){
-			this.definition.add(first);
+			this.definition.add(rest);
 		}
-		if(first.definition!=null){
-			first.definition.add(this);
+		if(rest.definition!=null){
+			rest.definition.add(this);
 		}
-		return first;
-	}
-	public Node addRestButFirst(Node restButFirst) {
-		restButFirst.parentSupernode=this;
-		this.restButFirst=restButFirst;
-		if(this.definition!=null){
-			this.definition.add(restButFirst);
-		}
-		if(restButFirst.definition!=null){
-			restButFirst.definition.add(this);
-		}
-		return restButFirst;
-	}
-	public Node addRestButLast(Node restButLast) {
-		restButLast.parentSupernode=this;
-		this.restButLast=restButLast;
-		if(this.definition!=null){
-			this.definition.add(restButLast);
-		}
-		if(restButLast.definition!=null){
-			restButLast.definition.add(this);
-		}
-		return restButLast;
+		return rest;
 	}
 	public Node addLast(Node last) {
 		last.parentSupernode=this;
@@ -947,22 +948,10 @@ public class Node {
 						depth=parentDepth;
 					}
 				}
-				if(this.getFirst()!=null){
-					int firstDepth=this.getFirst().getDepth(evaluatedNodes);
-					if(firstDepth>depth){
-						depth=firstDepth;
-					}
-				}
-				if(this.getRestButFirst()!=null){
-					int restButFirstDepth=this.getRestButFirst().getDepth(evaluatedNodes);
-					if(restButFirstDepth>depth){
-						depth=restButFirstDepth;
-					}
-				}
-				if(this.getRestButLast()!=null){
-					int restButLastDepth=this.getRestButLast().getDepth(evaluatedNodes);
-					if(restButLastDepth>depth){
-						depth=restButLastDepth;
+				if(this.getRest()!=null){
+					int restDepth=this.getRest().getDepth(evaluatedNodes);
+					if(restDepth>depth){
+						depth=restDepth;
 					}
 				}
 				if(this.getLast()!=null){
@@ -1228,9 +1217,7 @@ public class Node {
 			if(this.parentSupernode!=null){
 				if(equivalentNodes.containsKey(this.parentSupernode)){
 					Node newSupernode=equivalentNodes.get(this.parentSupernode);
-					newSupernode.addFirst(this.parentSupernode.getFirst());
-					newSupernode.addRestButFirst(this.parentSupernode.getRestButFirst());
-					newSupernode.addRestButLast(this.parentSupernode.getRestButLast());
+					newSupernode.addRest(this.parentSupernode.getRest());
 					newSupernode.addLast(this.parentSupernode.getLast());
 					this.parentSupernode=newSupernode;
 				}
@@ -1345,43 +1332,17 @@ public class Node {
 //	}
 	public void childSubnodesFission() {
 		if(this.outOfInstance!=null){
-			if(this.getFirst()!=null){
-				if(this.outOfInstance.in.get(0).getFirst()==null){
-					this.outOfInstance.in.get(0).addFirst(new Node());
+			if(this.getRest()!=null){
+				if(this.outOfInstance.in.get(0).getRest()==null){
+					this.outOfInstance.in.get(0).addRest(new Node());
 				}
-				if(this.outOfInstance.in.get(1).getFirst()==null){
-					this.outOfInstance.in.get(1).addFirst(new Node());
+				if(this.outOfInstance.in.get(1).getRest()==null){
+					this.outOfInstance.in.get(1).addRest(new Node());
 				}
-				if(this.getFirst().outOfInstance==null){
-					Node[] nodes={this.outOfInstance.in.get(0).getFirst(),this.outOfInstance.in.get(1).getFirst(),this.getFirst()};
+				if(this.getRest().outOfInstance==null){
+					Node[] nodes={this.outOfInstance.in.get(0).getRest(),this.outOfInstance.in.get(1).getRest(),this.getRest()};
 					this.definition.add(this.outOfInstance.definition, nodes);
-					this.getFirst().childSubnodesFission();
-				}
-			}
-			if(this.getRestButFirst()!=null){
-				if(this.outOfInstance.in.get(0).getRestButFirst()==null){
-					this.outOfInstance.in.get(0).addRestButFirst(new Node());
-				}
-				if(this.outOfInstance.in.get(1).getRestButFirst()==null){
-					this.outOfInstance.in.get(1).addRestButFirst(new Node());
-				}
-				if(this.getRestButFirst().outOfInstance==null){
-					Node[] nodes={this.outOfInstance.in.get(0).getRestButFirst(),this.outOfInstance.in.get(1).getRestButFirst(),this.getRestButFirst()};
-					this.definition.add(this.outOfInstance.definition, nodes);
-					this.getRestButFirst().childSubnodesFission();
-				}
-			}
-			if(this.getRestButLast()!=null){
-				if(this.outOfInstance.in.get(0).getRestButLast()==null){
-					this.outOfInstance.in.get(0).addRestButLast(new Node());
-				}
-				if(this.outOfInstance.in.get(1).getRestButLast()==null){
-					this.outOfInstance.in.get(1).addRestButLast(new Node());
-				}
-				if(this.getRestButLast().outOfInstance==null){
-					Node[] nodes={this.outOfInstance.in.get(0).getRestButLast(),this.outOfInstance.in.get(1).getRestButLast(),this.getRestButLast()};
-					this.definition.add(this.outOfInstance.definition, nodes);
-					this.getRestButLast().childSubnodesFission();
+					this.getRest().childSubnodesFission();
 				}
 			}
 			if(this.getLast()!=null){
@@ -1397,7 +1358,7 @@ public class Node {
 					this.getLast().childSubnodesFission(); 
 				}
 			}
-			if(this.getFirst()==null&&this.getRestButFirst()==null&this.getRestButLast()==null&&this.getLast()==null){
+			if(this.getRest()==null&&this.getLast()==null){
 				this.outOfInstance.in.get(0).childSubnodesFission();
 				this.outOfInstance.in.get(1).childSubnodesFission();
 			}
@@ -1592,14 +1553,8 @@ public class Node {
 	public void getEquivalentParentSupernode(
 			HashMap<Node, Node> equivalentNodes, Queue<Node> queue) {
 		if(this.parentSupernode!=null){
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.getFirst())&&equivalentNodes.containsKey(this.parentSupernode.getRestButFirst())){
-				queue.remove(this.parentSupernode.getFirst());
-				queue.remove(this.parentSupernode.getRestButFirst());
-				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
-				queue.add(this.parentSupernode);
-			}
-			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.getRestButLast())&&equivalentNodes.containsKey(this.parentSupernode.getLast())){
-				queue.remove(this.parentSupernode.getRestButLast());
+			if(!equivalentNodes.containsKey(this.parentSupernode)&&equivalentNodes.containsKey(this.parentSupernode.getRest())&&equivalentNodes.containsKey(this.parentSupernode.getLast())){
+				queue.remove(this.parentSupernode.getRest());
 				queue.remove(this.parentSupernode.getLast());
 				equivalentNodes.put(this.parentSupernode, equivalentNodes.get(this).parentSupernode);
 				queue.add(this.parentSupernode);
@@ -1611,25 +1566,15 @@ public class Node {
 			parentSubnode.childSubnodesFusion();
 		}
 		if(this.outOfInstance!=null){
-			if(this.getFirst()!=null&&this.getFirst().outOfInstance!=null&&this.getRestButFirst()!=null&&this.getRestButFirst().outOfInstance!=null
-			&&this.getFirst().outOfInstance.in.get(0).parentSupernode!=null&&this.getFirst().outOfInstance.in.get(1).parentSupernode!=null
-			&&this.getRestButFirst().outOfInstance.in.get(0).parentSupernode!=null&&this.getRestButFirst().outOfInstance.in.get(1).parentSupernode!=null
-			&&this.getFirst().outOfInstance.in.get(0).parentSupernode==this.getRestButFirst().outOfInstance.in.get(0).parentSupernode
-			&&this.getFirst().outOfInstance.in.get(1).parentSupernode==this.getRestButFirst().outOfInstance.in.get(1).parentSupernode){
-				this.definition.removeInstance(this.getFirst().outOfInstance);
-				this.definition.removeInstance(this.getRestButFirst().outOfInstance);
-				this.getFirst().outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
-				this.getFirst().outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
-			}
-			if(this.getRestButLast()!=null&&this.getRestButLast().outOfInstance!=null&&this.getLast()!=null&&this.getLast().outOfInstance!=null
-			&&this.getRestButLast().outOfInstance.in.get(0).parentSupernode!=null&&this.getRestButLast().outOfInstance.in.get(1).parentSupernode!=null
+			if(this.getRest()!=null&&this.getRest().outOfInstance!=null&&this.getLast()!=null&&this.getLast().outOfInstance!=null
+			&&this.getRest().outOfInstance.in.get(0).parentSupernode!=null&&this.getRest().outOfInstance.in.get(1).parentSupernode!=null
 			&&this.getLast().outOfInstance.in.get(0).parentSupernode!=null&&this.getLast().outOfInstance.in.get(1).parentSupernode!=null
-			&&this.getRestButLast().outOfInstance.in.get(0).parentSupernode==this.getLast().outOfInstance.in.get(0).parentSupernode
-			&&this.getRestButLast().outOfInstance.in.get(1).parentSupernode==this.getLast().outOfInstance.in.get(1).parentSupernode){
-				this.definition.removeInstance(this.getRestButLast().outOfInstance);
+			&&this.getRest().outOfInstance.in.get(0).parentSupernode==this.getLast().outOfInstance.in.get(0).parentSupernode
+			&&this.getRest().outOfInstance.in.get(1).parentSupernode==this.getLast().outOfInstance.in.get(1).parentSupernode){
+				this.getRest().outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
+				this.getRest().outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
+				this.definition.removeInstance(this.getRest().outOfInstance);
 				this.definition.removeInstance(this.getLast().outOfInstance);
-				this.getRestButLast().outOfInstance.in.get(0).parentSupernode.childSubnodesFusion();
-				this.getRestButLast().outOfInstance.in.get(1).parentSupernode.childSubnodesFusion();
 			}
 			this.outOfInstance.in.get(0).childSubnodesFusion();
 			this.outOfInstance.in.get(1).childSubnodesFusion();
@@ -1755,18 +1700,10 @@ public class Node {
 	}
 	public void mergeParentSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
 		if(this.parentSupernode!=null){
-			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.getFirst())&&queue.contains(this.parentSupernode.getRestButFirst())){
-				queue.remove(this.parentSupernode.getFirst());
-				queue.remove(this.parentSupernode.getRestButFirst());
-				nodes.remove(this.parentSupernode.getFirst());
-				nodes.remove(this.parentSupernode.getRestButFirst());
-				queue.add(this.parentSupernode);
-				nodes.add(this.parentSupernode);
-			}
-			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.getRestButLast())&&queue.contains(this.parentSupernode.getLast())){
-				queue.remove(this.parentSupernode.getRestButLast());
+			if(!queue.contains(this.parentSupernode)&&queue.contains(this.parentSupernode.getRest())&&queue.contains(this.parentSupernode.getLast())){
+				queue.remove(this.parentSupernode.getRest());
 				queue.remove(this.parentSupernode.getLast());
-				nodes.remove(this.parentSupernode.getRestButLast());
+				nodes.remove(this.parentSupernode.getRest());
 				nodes.remove(this.parentSupernode.getLast());
 				queue.add(this.parentSupernode);
 				nodes.add(this.parentSupernode);

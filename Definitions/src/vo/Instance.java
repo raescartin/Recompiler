@@ -81,7 +81,7 @@ public class Instance implements Comparable<Instance> {
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
-		string+=("] ");
+		string+=("]");
 		return string;
 	}
 	public void updateInstance(Definition definition,HashSet<Node> expandedNodes) {

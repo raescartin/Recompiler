@@ -10,7 +10,7 @@ import java.util.BitSet;
 public class FixedBitSet extends BitSet{
 
     /**
-	 * 
+	 * Default size is 64 bits
 	 */
 	private static final long serialVersionUID = 2182495250198420548L;
 	int fixedLength;
@@ -31,7 +31,9 @@ public class FixedBitSet extends BitSet{
     public FixedBitSet nand(FixedBitSet in){
     	FixedBitSet outFBS=(FixedBitSet) this.clone();
 		outFBS.and(in);
-		outFBS.flip(0,outFBS.length());
+		outFBS.flip(0,outFBS.size());
+		outFBS.fixedLength=Integer.max(this.length(), in.length());
+//		outFBS.flip(0,outFBS.length());
 		return outFBS;
     }
     public static FixedBitSet fromString(final String binary) {

@@ -1,5 +1,6 @@
 ﻿TODO
--need to optimize sequential part of recursive definitions?
+-change index to be "rest" and "last"
+-change xor definition
 -generalize toNandInstances
 -print nandDefinition
 -correct parallel cost (nandInstances+cost of other definitions)
@@ -17,6 +18,7 @@
  
 
 DONE
+-no need to optimize sequential part of recursive definitions
 -end minimization doc
 	-representación modelo estandar red booleana vs red nand
 	-n entradas una salida vs nand:
