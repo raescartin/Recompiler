@@ -98,13 +98,34 @@ class test {
      	or.printEval(A,B);
      	System.out.print(definitionDB.toString());
     
-     	//XOR definition//
+//     	//XOR definition// v1
+//    	Definition xor = new Definition(2,1,"xor");
+//    	Node xor0 = new Node();
+//    	Node xor1 = new Node();
+//    	xor.add(or, xor.in.get(0),xor.in.get(1),xor0);
+//    	xor.add(nand, xor.in.get(0),xor.in.get(1),xor1);
+//    	xor.add(and,xor0,xor1,xor.out.get(0)); 
+//    	System.out.println();
+//    	System.out.print("New definition: \n");
+//    	System.out.print(xor.toString());
+//    	xor.printCost();
+//    	xor.printEval(A,B);
+//    	definitionDB.put("xor",xor);
+//     	System.out.print("Optimized definition: \n");
+//    	System.out.print(xor.toString());
+//    	xor.printCost();
+//    	xor.printEval(A,B);
+//    	System.out.print(definitionDB.toString());
+    	
+    	//XOR definition// v2
     	Definition xor = new Definition(2,1,"xor");
     	Node xor0 = new Node();
     	Node xor1 = new Node();
-    	xor.add(or, xor.in.get(0),xor.in.get(1),xor0);
-    	xor.add(nand, xor.in.get(0),xor.in.get(1),xor1);
-    	xor.add(and,xor0,xor1,xor.out.get(0)); 
+    	Node xor2 = new Node();
+    	xor.add(nand, xor.in.get(0),xor.in.get(1),xor0);
+    	xor.add(nand,xor0,xor.in.get(0),xor1); 
+    	xor.add(nand,xor0,xor.in.get(1),xor2); 
+    	xor.add(nand,xor1,xor2,xor.out.get(0));
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(xor.toString());
@@ -175,21 +196,75 @@ class test {
 //    	rxor.addOut(rxor.add(rxor,rxor.in.get(0),rxor.in.get(2)).out.get(0));
 //    	rxor.addOut(rxor.add(xor,rxor.in.get(1),rxor.in.get(3)).out.get(0));
     	
-    	//ADD definition//
-    	// a add b = (a0..n-1 xor b0..n-1) add (a1..n and b1..n) && (an xor bn) 
+    	//SUM full adder definition
+    	Definition sum = new Definition(3,2,"sum");
+    	Node t1 = new Node();
+    	Node t2 = new Node();
+    	Node t3 = new Node();
+    	Node t4 = new Node();
+    	sum.add(xor, sum.in.get(0),sum.in.get(1),t1);
+    	sum.add(and, sum.in.get(0),sum.in.get(1),t2);
+    	sum.add(xor, sum.in.get(0),sum.in.get(1),t4);
+    	sum.add(and, t1,sum.in.get(2),t3);
+    	sum.add(xor, t4,sum.in.get(2),sum.out.get(0));
+    	sum.add(or, t2,t3,sum.out.get(1));
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(sum.toString());
+    	sum.printCost();
+    	sum.printEval(A,B,C);
+    	definitionDB.put("sum",sum);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(sum.toString());
+    	sum.printCost();
+    	sum.printEval(A,B,C);
+    	System.out.print(definitionDB.toString());
+    	
+    	//sumR definition
+    	Definition sumR = new Definition(3,2,"sumR");
+    	Node c1 = new Node();
+    	Node cn = new Node();
+    	Node srestSumR = new Node();
+    	Node snSumR = new Node();
+    	srestSumR.addChildSupernode(sumR.out.get(0));
+    	snSumR.addChildSupernode(sumR.out.get(0));
+    	c1.addChildSupernode(sumR.out.get(1));
+    	cn.addChildSupernode(sumR.out.get(1));
+    	sumR.in.get(0).addRest(new Node());
+    	sumR.in.get(0).addLast(new Node());
+    	sumR.in.get(1).addRest(new Node());
+    	sumR.in.get(1).addLast(new Node());
+    	sumR.add(sum,sumR.in.get(0).getLast(),sumR.in.get(1).getLast(),sumR.in.get(2),snSumR,c1);
+    	sumR.add(sumR,sumR.in.get(0).getRest(),sumR.in.get(1).getRest(),c1,srestSumR,cn);
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(sumR.toString());
+    	sumR.printCost();
+    	sumR.printEval(A,B,D);
+//    	definitionDB.put("sumR",sumR);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(sumR.toString());
+    	sumR.printCost();
+    	sumR.printEval(A,B,D);
+    	System.out.print(definitionDB.toString());
+    	
+    	//ADD definition
     	Definition add = new Definition(2,1,"add");
-    	Node xorOut = new Node();
-    	add.add(xor, add.in.get(0),add.in.get(1),xorOut);
-    	Node addXorRest = new Node();
-    	xorOut.addRest(addXorRest);
-    	Node addXorLast = new Node();
-    	xorOut.addLast(addXorLast);
-    	Node addAndOut = new Node();
-    	add.add(and, add.in.get(0), add.in.get(1),addAndOut);
-    	Node addOut = new Node();
-    	add.add(add, addXorRest,addAndOut,addOut);
-    	addOut.addChildSupernode(add.out.get(0));
-    	addXorLast.addChildSupernode(add.out.get(0));
+    	add.in.get(0).addRest(new Node());
+    	add.in.get(0).addLast(new Node());
+    	add.in.get(1).addRest(new Node());
+    	add.in.get(1).addLast(new Node());
+    	Node cin = new Node();
+    	Node sn = new Node();
+    	Node s = new Node();
+    	Node cout= new Node();
+    	cout.addLast(new Node());
+    	cout.getLast().addChildSupernode(add.out.get(0));
+    	s.addChildSupernode(add.out.get(0));
+    	sn.addChildSupernode(add.out.get(0));
+    	add.add(and,add.in.get(0).getLast(),add.in.get(1).getLast(),cin);
+    	add.add(xor,add.in.get(0).getLast(),add.in.get(1).getLast(),sn);
+    	add.add(sumR,add.in.get(0).getRest(),add.in.get(1).getRest(),cin,s,cout);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(add.toString());
@@ -199,7 +274,37 @@ class test {
      	System.out.print("Optimized definition: \n");
     	System.out.print(add.toString());
     	add.printCost();
-    	add.printEval(A,B);//FIXME
+    	add.printEval(A,B);
+    	System.out.print(definitionDB.toString());
+    	
+    	
+    	//mADD modular add definition//
+    	// add[0,1;2(17&11{2})] =
+    	// xor [0,1;11]  and [0{1..n-1},1{1..n-1};16] 
+    	//		 add [11{1..n-1},16;17] 
+    	Definition mAdd = new Definition(2,1,"mAdd");
+    	Node xorOut = new Node();
+    	mAdd.add(xor, mAdd.in.get(0),mAdd.in.get(1),xorOut);
+    	Node addXorRest = new Node();
+    	xorOut.addRest(addXorRest);
+    	Node addXorLast = new Node();
+    	xorOut.addLast(addXorLast);
+    	Node addAndOut = new Node();
+    	mAdd.add(and, mAdd.in.get(0), mAdd.in.get(1),addAndOut);
+    	Node addOut = new Node();
+    	mAdd.add(mAdd, addXorRest,addAndOut,addOut);
+    	addOut.addChildSupernode(mAdd.out.get(0));
+    	addXorLast.addChildSupernode(mAdd.out.get(0));
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(mAdd.toString());
+    	mAdd.printCost();
+    	mAdd.printEval(A,B);
+    	definitionDB.put("mAdd",mAdd);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(mAdd.toString());
+    	mAdd.printCost();
+    	mAdd.printEval(A,B);//FIXME
     	System.out.print(definitionDB.toString());
     	
     	//ZEROS definition////logic definition of zero values

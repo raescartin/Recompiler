@@ -692,7 +692,7 @@ public class Node {
 				boolean allDiminishingInsAreEmpty=true;
 				for (Node nodeIn : this.outOfInstance.in) {
 					nodeIn.eval(valueMap);
-					if(this.parentSubnodes.size()==2&&this.parentSubnodes.get(0).parentSupernode!=null&&this.parentSubnodes.get(1).parentSupernode!=null&&this.parentSubnodes.get(0).parentSupernode==this.parentSubnodes.get(1).parentSupernode){
+					if(nodeIn.parentSupernode!=null&&nodeIn.parentSupernode.rest==nodeIn){
 						if(valueMap.get(nodeIn).length()!=0){
 							allDiminishingInsAreEmpty=false;
 						}
