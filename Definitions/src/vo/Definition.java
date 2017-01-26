@@ -1458,7 +1458,27 @@ public class Definition {
 		definitionCopy.replaceDefinition(this, definitionCopy);
 		definitionCopy.expand();
 		definitionCopy.expand();
+		System.out.print(definitionCopy.toLFnotation());
 		definitionCopy.expand();
+	}
+	private String toLFnotation() {
+		Definition definitionCopy=this.copy();
+		definitionCopy.replaceDefinition(this, definitionCopy);
+		definitionCopy.trim();
+		String string = new String();
+		for(Node outNode:definitionCopy.out){
+			string+=outNode.toLFnotation();
+		}
+		return string;
+	}
+	private void trim() {
+		for(Instance instance:this.instancesContainingRecursion){
+			for(Node outNode:this.out){
+				outNode.removeOuts(instance.out);
+			}
+			this.removeInstance(instance);
+		}
+		
 	}
 	void expand() {
 //		Definition definitionCopy = this.copy();

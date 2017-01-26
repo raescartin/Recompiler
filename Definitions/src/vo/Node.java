@@ -1863,4 +1863,69 @@ public class Node {
 			}
 		}
 	}
+	public String toLFnotation() {
+		String string = new String();
+		if(!this.parentSubnodes.isEmpty()){
+			for(Node parentSubnode:this.parentSubnodes){
+				string+=parentSubnode.toLFnotation();
+			}
+		}else{
+			string+=this.toString()+"=";
+			string+=this.toLFout();
+			string+="\n";
+		}
+		return string;
+	}
+	private String toLFout() {
+		String string = new String();
+		if(this.outOfInstance!=null&&this.outOfInstance.definition.name=="nand"){
+			string+="!(";
+			string+=this.outOfInstance.in.get(0).toLFout();
+			string+=" ";
+			string+=this.outOfInstance.in.get(1).toLFout();
+			string+=")";
+		}else{
+			string+=this.toIndexString();
+		}
+		return string;
+	}
+	private String toIndexString() {
+		String string = new String();
+		if(this.parentSupernode!=null){
+			if(this.parentSupernode.getLast()==this){
+				int indexed[]=this.parentSupernode.index();
+				string+=(char)(indexed[0]+65);
+				string+=indexed[1];
+			}
+		}
+		return string ;
+	}
+	private int[] index() {
+		int input;
+		int index=0;
+		if(this.parentSupernode!=null){
+			int indexed[]=this.parentSupernode.index();
+			index=indexed[1]+1;
+			input= indexed[0];
+		}else{
+			input=this.definition.in.indexOf(this);
+		}
+		return new int[] {input, index};
+	}
+	public void removeOuts(ArrayList<Node> nodesToRemove) {
+		this.parentSubnodes.removeAll(nodesToRemove);
+		for(Node parentSubnode:this.parentSubnodes){
+			parentSubnode.removeOuts(nodesToRemove);
+		}
+		if(this.parentSupernode!=null){
+			parentSupernode.removeOuts(nodesToRemove);
+			if(!this.parentSupernode.parentSubnodes.isEmpty()
+					&&this.parentSupernode.last==this){
+				Node parentSubnode=this.parentSupernode.parentSubnodes.get(this.parentSupernode.parentSubnodes.size()-1);
+				this.parentSupernode.parentSubnodes.clear();
+				this.parentSupernode=null;
+				this.parentSubnodes.add(parentSubnode);
+			}
+		}
+	}
 }
