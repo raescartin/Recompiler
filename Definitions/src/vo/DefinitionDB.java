@@ -99,13 +99,11 @@ public class DefinitionDB {
 				definition.update();
 			}	
 		}else{//definition has recursion
-			//Optimize the non recursive part of definition	
 			this.optimizeRecursiveIntersection(definition);	
 		}
 		return definition;
 	}
 	private void optimizeRecursiveIntersection(Definition definition) {
-		//PRE: recursion is optimized except self recursive intersection
 		//POST: remove the operations that are repeated during recursion (recursive intersection)
 		//		transforms definition to a new optimized definition containing a new recursive definition  (if needed)
 		//!!!TO OPTIMIZE RECUSIVE INTERSECTION!!!
@@ -130,7 +128,7 @@ public class DefinitionDB {
 		ArrayList <Node> recursiveInInstance = new ArrayList <Node>(); 
 		ArrayList <Node> recursiveOutInstance = new ArrayList <Node>();
 		ArrayList<Node> nodes = new ArrayList<Node>();
-		definition.toNandInstances();
+		definition.toNandInstances();//expands all non recursive instances
 		Definition expandedDefinition = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
 //		expandedDefinition.toNandInstances();//to nands before mapping so all posible subnodes are mapped
 		expandedDefinition.mapNodes(originalNodes);
@@ -141,75 +139,113 @@ public class DefinitionDB {
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
-		this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
-		this.getEquivalentChildSupernodes(equivalentNodes);
-		this.replaceNodes(originalNodes,equivalentNodes);
-		this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
-		expandedDefinition.replaceNodes(equivalentNodes);
-		expandedDefinition.fusion();
-		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
-		expandedDefinition.recoverRecursion(addedNodes, removedInstances);
-		this.extractIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
-		this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
-		this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
-		Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
-		nodes.clear();
-		nodes.addAll(recursiveIn1);
-		nodes.addAll(recursiveOut1);
-		for(Node out:recursiveOut1){
-			out.parentSubnodes.clear();
-			out.outOfInstance=null;
-		}
-		
-		expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
-//		expandedDefinition.update();
-		for(Node node:recursiveIn1){
-			if(expandedToDefinition.containsKey(node)){
-				recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
-			}else{
-				recursiveIn0.add(node);
+		if(!equivalentNodes.isEmpty()){
+			this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
+			this.getEquivalentChildSupernodes(equivalentNodes);
+			this.replaceNodes(originalNodes,equivalentNodes);
+			this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
+			expandedDefinition.replaceNodes(equivalentNodes);
+			expandedDefinition.fusion();
+	//		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
+			expandedDefinition.recoverRecursion(addedNodes, removedInstances);
+			this.extractIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
+			this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
+			this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
+			Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
+			nodes.clear();
+			nodes.addAll(recursiveIn1);
+			nodes.addAll(recursiveOut1);
+			for(Node out:recursiveOut1){
+				out.parentSubnodes.clear();
+				out.outOfInstance=null;
 			}
-		}
-		for(Node node:recursiveOut1){
-			if(expandedToDefinition.containsKey(node)){
-				recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
-			}else{
-				recursiveOut0.add(node);
+			
+			expandedDefinition.add(tempRecursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+	//		expandedDefinition.update();
+			for(Node node:recursiveIn1){
+				if(expandedToDefinition.containsKey(node)){
+					recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+				}else{
+					recursiveIn0.add(node);
+				}
 			}
-		}
-		tempRecursiveDefinition.in=recursiveIn0;
-		tempRecursiveDefinition.out=recursiveOut0;
-		Definition recursiveDefinition=tempRecursiveDefinition.copy();
-		recursiveDefinition.replaceDefinition(tempRecursiveDefinition, recursiveDefinition);
-		recursiveDefinition.name=definition.name+"Recur";
-		recursiveDefinition.update();
-		for(Node node:recursiveIn1){
-			if(expandedToDefinition.containsKey(node)){
-				recursiveInInstance.add(expandedToDefinition.get(node));
-			}else{
-				recursiveInInstance.add(copyToDefinition.get(node));
+			for(Node node:recursiveOut1){
+				if(expandedToDefinition.containsKey(node)){
+					recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+				}else{
+					recursiveOut0.add(node);
+				}
 			}
-		}
-		for(Node node:recursiveOut1){
-			if(expandedToDefinition.containsKey(node)){
-				recursiveOutInstance.add(expandedToDefinition.get(node));
-			}else{
-				recursiveOutInstance.add(copyToDefinition.get(node));
+			tempRecursiveDefinition.in=recursiveIn0;
+			tempRecursiveDefinition.out=recursiveOut0;
+			Definition recursiveDefinition=tempRecursiveDefinition.copy();
+			recursiveDefinition.replaceDefinition(tempRecursiveDefinition, recursiveDefinition);
+			recursiveDefinition.name=definition.name+"Recur";
+			recursiveDefinition.update();
+			for(Node node:recursiveIn1){
+				if(expandedToDefinition.containsKey(node)){
+					recursiveInInstance.add(expandedToDefinition.get(node));
+				}else{
+					recursiveInInstance.add(copyToDefinition.get(node));
+				}
 			}
+			for(Node node:recursiveOut1){
+				if(expandedToDefinition.containsKey(node)){
+					recursiveOutInstance.add(expandedToDefinition.get(node));
+				}else{
+					recursiveOutInstance.add(copyToDefinition.get(node));
+				}
+			}
+			nodes.clear();
+			nodes.addAll(recursiveInInstance);
+			nodes.addAll(recursiveOutInstance);
+			for(Node out:recursiveOutInstance){
+				out.parentSubnodes.clear();
+				out.outOfInstance=null;
+			}
+			definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
+			definition.update();
+	//		if(definition.name=="add"){
+	//			this.put(recursiveDefinition.name, recursiveDefinition);
+	//		}
+			this.definitions.put(recursiveDefinition.name, recursiveDefinition);
+//		}else{
+//			this.recursionUnrolling(definition);//not much sense
 		}
-		nodes.clear();
-		nodes.addAll(recursiveInInstance);
-		nodes.addAll(recursiveOutInstance);
-		for(Node out:recursiveOutInstance){
-			out.parentSubnodes.clear();
-			out.outOfInstance=null;
-		}
-		definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
-		definition.update();
-//		if(definition.name=="add"){
-//			this.put(recursiveDefinition.name, recursiveDefinition);
+	}
+//	public void recursionUnrolling(Definition definition) {
+//		HashMap<Node,Node> definitionToCopy = new HashMap<Node,Node>();
+//		HashMap<Node,Node> copyToDefinition = new HashMap<Node,Node>();
+//		Definition definitionCopy = definition.copyMapping(definitionToCopy,copyToDefinition);//freeze original for expansion
+//		
+//		int thisDepth = definition.depth()+1;
+//		float iterationDepth = thisDepth;
+//		int i = 1;
+//		boolean optimizes=false;
+//		do{
+//			HashSet<Instance> removedInstances = new HashSet<Instance>();
+//			AddedNodes addedNodes = new AddedNodes();
+//			HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
+//			ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
+//			i++;
+//			definitionCopy.expandInstancesMapping(definition,expandedToDefinition,expandedInstances,addedNodes, removedInstances);
+//			definitionCopy.recoverRecursion(addedNodes, removedInstances);
+//			definitionCopy.replaceDefinition(definitionCopy, definition);
+//			float thisIterationDepth=(float)(definitionCopy.depth()+1)/i;
+//			if(thisIterationDepth<iterationDepth){
+//				iterationDepth=thisIterationDepth;
+//				optimizes=true;
+//			}else{
+//				optimizes=false;
+//			}
+//		}while(optimizes);
+//		if(iterationDepth<thisDepth){
+//			int x=0;
 //		}
-		this.definitions.put(recursiveDefinition.name, recursiveDefinition);
+//	}
+	private void remove(Definition definition) {
+		this.definitions.remove(definition);
+		
 	}
 	private void extractIOfromRecursiveInstances(HashSet<Instance> removedInstances, ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes) {
 		for(Instance instance:removedInstances){

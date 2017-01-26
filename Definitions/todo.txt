@@ -1,8 +1,6 @@
 ﻿TODO
--change index to be "rest" and "last"
--change xor definition
--generalize toNandInstances
--print nandDefinition
+-add and mul implementation
+-correct use of arrays
 -correct parallel cost (nandInstances+cost of other definitions)
 -error on "ones"
 -fix cost eval,  unoptimized xor cost is 7 Use aprox cost (exact is partial sum of hipergeometric sucesion)
@@ -14,12 +12,17 @@
 -todo: recursive intersection merge (if/rif)
 -change Definition to Function
 -issue: parallel representation doesn't show otpimal cost for general definitions, only for nand instances
--justify double negation of nands simplification vs Karnaugh Maps simplification
+
  
 
 DONE
+-generalize toNandInstances
+-print nandDefinition
+-change index to be "rest" and "last"
+-change xor definition
 -no need to optimize sequential part of recursive definitions
 -end minimization doc
+	-justify double negation of nands simplification vs Karnaugh Maps simplification
 	-representación modelo estandar red booleana vs red nand
 	-n entradas una salida vs nand:
 		-and de n entradas vs nand de 2 entradas

@@ -893,6 +893,7 @@ public class Node {
 				for(Node inOfInstance:this.outOfInstance.in){
 					inOfInstance.toNandDefinitions(expandedNodes);
 				}
+				expandedNodes.addAll(this.outOfInstance.out);
 				if(this.outOfInstance.definition.name=="nand"){
 					Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
 					this.definition.add(this.outOfInstance.definition,nodes);
@@ -918,6 +919,7 @@ public class Node {
 	}
 	private void expandInstanceToNandInstances(Instance instance) {
 		Definition instanceDefinition=instance.definition.copy();
+		instanceDefinition.replaceDefinition(instance.definition, instanceDefinition);
 		instanceDefinition.toNandInstances();
 		HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
 		for (int i = 0; i < instance.in.size(); i++) {//map in nodes
@@ -1825,6 +1827,39 @@ public class Node {
 					cost.put(parentSubnode,cost.get(this));
 				}
 				parentSubnode.parallelCost(cost);
+			}
+		}
+	}
+	public void expand(HashSet<Node> expandedNodes) {
+		if(!expandedNodes.contains(this)){
+			expandedNodes.add(this);
+			if(this.outOfInstance!=null){
+				for(Node inOfInstance:this.outOfInstance.in){
+					inOfInstance.expand(expandedNodes);
+				}
+				expandedNodes.addAll(this.outOfInstance.out);
+				if(this.outOfInstance.definition.name!="nand"&&this.definition!=this.outOfInstance.definition){
+					 	Instance instance = this.outOfInstance;
+					 	this.definition.removeInstance(instance);
+						Definition instanceDefinition=instance.definition.copy();
+						instanceDefinition.replaceDefinition(instance.definition, instanceDefinition);
+						instanceDefinition.expand();
+						HashMap<Node,Node> definitionToInstanceNodes = new HashMap<Node,Node>();
+						for (int i = 0; i < instance.in.size(); i++) {//map in nodes
+							definitionToInstanceNodes.put(instanceDefinition.in.get(i), instance.in.get(i));
+						}
+						for (int i = 0; i < instance.out.size(); i++) {//map from out nodes way up
+							this.definition.expand(instanceDefinition.out.get(i), instance.out.get(i),definitionToInstanceNodes);
+						}
+				}
+			}else{
+				if(!this.parentSubnodes.isEmpty()){
+					for(Node parent:this.parentSubnodes){
+						parent.expand(expandedNodes);
+					}
+				}else if(this.parentSupernode!=null){
+					this.parentSupernode.expand(expandedNodes);
+				}
 			}
 		}
 	}

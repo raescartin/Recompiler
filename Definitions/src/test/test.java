@@ -222,26 +222,31 @@ class test {
     	
     	//sumR definition
     	Definition sumR = new Definition(3,2,"sumR");
-    	Node c1 = new Node();
+    	Node op1SumR = sumR.in.get(0);
+    	Node op2SumR = sumR.in.get(1);
+    	Node cIn = sumR.in.get(2);
+    	Node sSumR = sumR.out.get(0);
+    	Node cSumR = sumR.out.get(1);
+    	Node cRest = new Node();
     	Node cn = new Node();
     	Node srestSumR = new Node();
     	Node snSumR = new Node();
-    	srestSumR.addChildSupernode(sumR.out.get(0));
-    	snSumR.addChildSupernode(sumR.out.get(0));
-    	c1.addChildSupernode(sumR.out.get(1));
-    	cn.addChildSupernode(sumR.out.get(1));
+    	srestSumR.addChildSupernode(sSumR);
+    	snSumR.addChildSupernode(sSumR);
+    	cRest.addChildSupernode(cSumR);
+    	cn.addChildSupernode(cSumR);
     	sumR.in.get(0).addRest(new Node());
     	sumR.in.get(0).addLast(new Node());
     	sumR.in.get(1).addRest(new Node());
     	sumR.in.get(1).addLast(new Node());
-    	sumR.add(sum,sumR.in.get(0).getLast(),sumR.in.get(1).getLast(),sumR.in.get(2),snSumR,c1);
-    	sumR.add(sumR,sumR.in.get(0).getRest(),sumR.in.get(1).getRest(),c1,srestSumR,cn);
+    	sumR.add(sum,sumR.in.get(0).getLast(),sumR.in.get(1).getLast(),cIn,snSumR,cRest);
+    	sumR.add(sumR,sumR.in.get(0).getRest(),sumR.in.get(1).getRest(),cRest,srestSumR,cn);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(sumR.toString());
     	sumR.printCost();
     	sumR.printEval(A,B,D);
-//    	definitionDB.put("sumR",sumR);
+    	definitionDB.put("sumR",sumR);
      	System.out.print("Optimized definition: \n");
     	System.out.print(sumR.toString());
     	sumR.printCost();
@@ -270,11 +275,100 @@ class test {
     	System.out.print(add.toString());
     	add.printCost();
     	add.printEval(A,B);
+    	add.testExpand();
     	definitionDB.put("add",add);
      	System.out.print("Optimized definition: \n");
     	System.out.print(add.toString());
     	add.printCost();
     	add.printEval(A,B);
+    	System.out.print(definitionDB.toString());
+    	
+    	//andR definition
+    	Definition andR = new Definition(2,1,"andR");
+    	Node andAndR = new Node();
+    	Node andRandR = new Node();
+    	andRandR.addChildSupernode(andR.out.get(0));
+    	andAndR.addChildSupernode(andR.out.get(0));
+    	andR.in.get(0).addRest(new Node());
+    	andR.in.get(0).addLast(new Node());
+    	andR.add(and,andR.in.get(0).getLast(),andR.in.get(1),andAndR);
+    	andR.add(andR,andR.in.get(0).getRest(),andR.in.get(1),andRandR);
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(andR.toString());
+    	andR.printCost();
+    	andR.printEval(A,D);
+    	definitionDB.put("andR",andR);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(andR.toString());
+    	andR.printCost();
+    	andR.printEval(A,D);
+    	System.out.print(definitionDB.toString());
+    	
+    	//mulR definition
+    	Definition mulR = new Definition(3,2,"mulR");
+    	Node op1MulR = mulR.in.get(0);
+    	Node op2MulR = mulR.in.get(1);
+    	Node cInMulR = mulR.in.get(2);
+    	Node cOutArrayMulR = mulR.out.get(0);
+    	Node mulMulR = mulR.out.get(1);
+    	Node mulRestMulR = new Node();
+    	Node andMulR = new Node();
+    	Node addMulR = new Node();
+    	addMulR.addRest(new Node());
+    	addMulR.addLast(new Node());
+    	op2MulR.addRest(new Node());
+    	op2MulR.addLast(new Node());
+    	mulRestMulR.addChildSupernode(mulMulR);
+    	addMulR.getLast().addChildSupernode(mulMulR);
+    	addMulR.getRest().addChildSupernode(cOutArrayMulR);
+    	
+    	mulR.add(and, op1MulR,op2MulR.getLast(),andMulR);
+    	mulR.add(add,cInMulR,andMulR,addMulR);
+    	mulR.add(mulR,op1MulR,op2MulR.getRest(),addMulR.getRest(),cOutArrayMulR,mulRestMulR);
+    	
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(mulR.toString());
+    	mulR.printCost();
+    	mulR.printEval(A,B,D);
+    	definitionDB.put("mulR",mulR);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(mulR.toString());
+    	mulR.printCost();
+    	mulR.printEval(A,B,D);
+    	System.out.print(definitionDB.toString());
+    	
+    	//mul definition
+    	Definition mul = new Definition(3,1,"mul");
+    	Node op1Mul = mul.in.get(0);
+    	Node op2Mul = mul.in.get(1);
+    	Node mulMul = mul.out.get(0);
+    	Node mulRestMul = new Node();
+    	Node cOutArrayMul = new Node();
+    	Node andMul = new Node();
+    	op2Mul.addRest(new Node());
+    	op2Mul.addLast(new Node());
+    	andMul.addRest(new Node());
+    	andMul.addLast(new Node());
+    	cOutArrayMul.addLast(new Node());
+    	cOutArrayMul.getLast().addChildSupernode(mulMul);
+    	mulRestMul.addChildSupernode(mulMul);
+    	andMul.getLast().addChildSupernode(mulMul);
+    	
+    	mul.add(andR, op1Mul,op2Mul.getLast(),andMul);
+    	mul.add(mulR,op1Mul,op2Mul.getRest(),andMul.getRest(),cOutArrayMul,mulRestMul);
+    	
+    	System.out.println();
+    	System.out.print("New definition: \n");
+    	System.out.print(mul.toString());
+    	mul.printCost();
+    	mul.printEval(A,B,D);
+    	definitionDB.put("mul",mul);
+     	System.out.print("Optimized definition: \n");
+    	System.out.print(mul.toString());
+    	mul.printCost();
+    	mul.printEval(A,B,D);
     	System.out.print(definitionDB.toString());
     	
     	
@@ -427,28 +521,28 @@ class test {
 //    	definitionDB.put("for",forDef);
 //    	System.out.print(definitionDB.toString());
     	
-    	//MUL definition//
-    	Definition mul = new Definition(2,1,"mul");
-    	Node mul0 = new Node();
-    	Node mul1 = new Node();
-    	Node mul2 = new Node();
-    	Node mul3 = new Node();
-    	mul.add(eq0,mul.in.get(0),mul0);
-    	mul.add(dec,mul.in.get(0),mul1);
-    	mul.add(mul,mul1,mul.in.get(1),mul2);
-    	mul.add(add,mul2,mul.in.get(1),mul3);
-    	mul.add(rifDef,mul0,mul.in.get(0),mul3,mul.out.get(0));//TODO:Test with ifdef and rifdef
-    	System.out.println();
-    	System.out.print("New definition: \n");
-    	System.out.print(mul.toString());
-    	mul.printCost();
-    	mul.printEval(B,B);
-    	definitionDB.put("mul",mul);
-     	System.out.print("Optimized definition: \n");
-    	System.out.print(mul.toString());
-    	mul.printCost();
-    	mul.printEval(B,B);
-    	System.out.print(definitionDB.toString());
+//    	//MUL definition//
+//    	Definition mul = new Definition(2,1,"mul");
+//    	Node mul0 = new Node();
+//    	Node mul1 = new Node();
+//    	Node mul2 = new Node();
+//    	Node mul3 = new Node();
+//    	mul.add(eq0,mul.in.get(0),mul0);
+//    	mul.add(dec,mul.in.get(0),mul1);
+//    	mul.add(mul,mul1,mul.in.get(1),mul2);
+//    	mul.add(add,mul2,mul.in.get(1),mul3);
+//    	mul.add(rifDef,mul0,mul.in.get(0),mul3,mul.out.get(0));//TODO:Test with ifdef and rifdef
+//    	System.out.println();
+//    	System.out.print("New definition: \n");
+//    	System.out.print(mul.toString());
+//    	mul.printCost();
+//    	mul.printEval(B,B);
+//    	definitionDB.put("mul",mul);
+//     	System.out.print("Optimized definition: \n");
+//    	System.out.print(mul.toString());
+//    	mul.printCost();
+//    	mul.printEval(B,B);
+//    	System.out.print(definitionDB.toString());
     	
 //    	//SQRT definition//
 //    	Definition sqrt = new Definition(1,1,"sqrt");
