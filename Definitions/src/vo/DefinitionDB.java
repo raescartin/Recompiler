@@ -90,8 +90,7 @@ public class DefinitionDB {
 //				definition.mapFission(nodeIO);
 				NandForest nandForest = definition.toNandForest(nandToNode,nodeToNand,equivalentNodes);//non recursive definition to nandforest
 //				definition.chooseFromEquivalentNodes(nandToNodes,equivalentNode,nodeIO);
-				this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
-				this.getEquivalentChildSupernodes(equivalentNodes);
+				this.getEquivalentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
 				definition.replaceNodes(equivalentNodes);
 				definition.fusion();
 //				this.fromNandForest(definition,nandForest,nandToNode);//definition using only instances of nand
@@ -140,8 +139,7 @@ public class DefinitionDB {
 		//TODO: optimize fision with expandedNodes
 		NandForest expandingDefinitionNandForest = expandedDefinition.toNandForest(nandToNode,nodeToNand, equivalentNodes);//non recursive definition to nandforest
 		if(!equivalentNodes.isEmpty()){
-			this.getEquivalentParentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
-			this.getEquivalentChildSupernodes(equivalentNodes);
+			this.getEquivalentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
 			this.replaceNodes(originalNodes,equivalentNodes);
 			this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
 			expandedDefinition.replaceNodes(equivalentNodes);
@@ -156,7 +154,7 @@ public class DefinitionDB {
 			nodes.addAll(recursiveIn1);
 			nodes.addAll(recursiveOut1);
 			for(Node out:recursiveOut1){
-				out.parentSubnodes.clear();
+//				out.parentSubnodes.clear();
 				out.outOfInstance=null;
 			}
 			
@@ -200,7 +198,7 @@ public class DefinitionDB {
 			nodes.addAll(recursiveInInstance);
 			nodes.addAll(recursiveOutInstance);
 			for(Node out:recursiveOutInstance){
-				out.parentSubnodes.clear();
+//				out.parentSubnodes.clear();
 				out.outOfInstance=null;
 			}
 			definition.add(recursiveDefinition, nodes.toArray(new Node[nodes.size()]));
@@ -298,12 +296,12 @@ public class DefinitionDB {
 		Queue<Node> queueIn = new LinkedList<Node>();
 		queueIn.addAll(recursiveIn);
 		while (!queueIn.isEmpty()) {
-			queueIn.peek().mergeParentSupernode(queueIn,recursiveIn);
+			queueIn.peek().mergeSupernode(queueIn,recursiveIn);
 		}
 		Queue<Node> queueOut = new LinkedList<Node>();
 		queueOut.addAll(recursiveOut);
 		while (!queueOut.isEmpty()) {
-			queueOut.peek().mergeParentSupernode(queueOut,recursiveOut);
+			queueOut.peek().mergeSupernode(queueOut,recursiveOut);
 		}
 //		ArrayList<Node> nodes = new ArrayList<Node>();
 //		boolean posibleSupernodes;
@@ -328,13 +326,13 @@ public class DefinitionDB {
 		Queue<Node> queueCandidatesIn = new LinkedList<Node>();
 		queueCandidatesIn.addAll(recursiveIn);
 		while (!queueCandidatesIn.isEmpty()) {
-			queueCandidatesIn.peek().mergeChildSupernode(queueCandidatesIn,recursiveIn);
+			queueCandidatesIn.peek().mergeSupernode(queueCandidatesIn,recursiveIn);
 		}
 //		this.mergeChildrenSupernodes(queueCandidatesIn);
 		Queue<Node> queueCandidatesOut = new LinkedList<Node>();
 		queueCandidatesOut.addAll(recursiveOut);
 		while (!queueCandidatesOut.isEmpty()) {
-			queueCandidatesOut.peek().mergeChildSupernode(queueCandidatesOut,recursiveOut);
+			queueCandidatesOut.peek().mergeSupernode(queueCandidatesOut,recursiveOut);
 		}
 //		this.mergeChildrenSupernodes(queueCandidatesOut);
 //		HashSet<Node> evaluatedNodes = new HashSet<Node>();
@@ -390,33 +388,33 @@ public class DefinitionDB {
 			out.outOfInstance.in.set(1, in2);
 		}
 	}
-	private void nodeOutFusion(ArrayList<Node> nodes, Set<Node> set) {
-		int i=0;
-		while(i<nodes.size()){
-			this.outFusion(i,nodes,set);
-			i++;
-		}
-		
-	}
-	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
-		//TODO: test
-		Node node = nodes.get(i);
-		if(!node.childSupernodes.isEmpty()){
-			for(Node supernodeChildCandidate:set){
-				if(!supernodeChildCandidate.parentSubnodes.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parentSubnodes)){
-					for(Node childrenSupernode:nodes.get(i).childSupernodes){
-						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parentSubnodes.isEmpty()&&childrenSupernode.parentSubnodes.containsAll(supernodeChildCandidate.parentSubnodes)){
-							childrenSupernode.parentSubnodes.set(childrenSupernode.parentSubnodes.indexOf(nodes.get(i)), supernodeChildCandidate);
-							childrenSupernode.parentSubnodes.removeAll(supernodeChildCandidate.parentSubnodes);
-						}
-					}
-					nodes.set(i, supernodeChildCandidate);
-					nodes.removeAll(supernodeChildCandidate.parentSubnodes);
-				}
-			}
-		}
-		
-	}
+//	private void nodeOutFusion(ArrayList<Node> nodes, Set<Node> set) {
+//		int i=0;
+//		while(i<nodes.size()){
+//			this.outFusion(i,nodes,set);
+//			i++;
+//		}
+//		
+//	}
+//	private void outFusion(int i, ArrayList<Node> nodes, Set<Node> set) {
+//		//TODO: test
+//		Node node = nodes.get(i);
+//		if(!node.childSupernodes.isEmpty()){
+//			for(Node supernodeChildCandidate:set){
+//				if(!supernodeChildCandidate.parentSubnodes.isEmpty()&&nodes.containsAll(supernodeChildCandidate.parentSubnodes)){
+//					for(Node childrenSupernode:nodes.get(i).childSupernodes){
+//						if(childrenSupernode!=supernodeChildCandidate&&!childrenSupernode.parentSubnodes.isEmpty()&&childrenSupernode.parentSubnodes.containsAll(supernodeChildCandidate.parentSubnodes)){
+//							childrenSupernode.parentSubnodes.set(childrenSupernode.parentSubnodes.indexOf(nodes.get(i)), supernodeChildCandidate);
+//							childrenSupernode.parentSubnodes.removeAll(supernodeChildCandidate.parentSubnodes);
+//						}
+//					}
+//					nodes.set(i, supernodeChildCandidate);
+//					nodes.removeAll(supernodeChildCandidate.parentSubnodes);
+//				}
+//			}
+//		}
+//		
+//	}
 //	private void nodeInFusion(ArrayList<Node> nodes, Set<Node> set) {
 //		int i=0;
 //		while(i<nodes.size()){
@@ -608,20 +606,20 @@ public class DefinitionDB {
 		}
 		return string;
 	}
-	private void getEquivalentChildSupernodes(HashMap<Node, Node> equivalentNodes) {
+	private void getEquivalentSupernodes(HashMap<Node, Node> equivalentNodes) {
 		Queue<Node> queue = new LinkedList<Node>();
 		queue.addAll(equivalentNodes.keySet());
 		while (!queue.isEmpty()) {
-			queue.poll().getEquivalentChildSupernodes(equivalentNodes,queue);
+			queue.poll().getEquivalentSupernode(equivalentNodes,queue);
 		}
 		
 	}
-	private void getEquivalentParentSupernodes(
-			HashMap<Node, Node> equivalentNodes) {
-		Queue<Node> queue = new LinkedList<Node>();
-		queue.addAll(equivalentNodes.keySet());
-		while (!queue.isEmpty()) {
-			queue.poll().getEquivalentParentSupernode(equivalentNodes,queue);
-		}
-	}
+//	private void getEquivalentParentSupernodes(
+//			HashMap<Node, Node> equivalentNodes) {
+//		Queue<Node> queue = new LinkedList<Node>();
+//		queue.addAll(equivalentNodes.keySet());
+//		while (!queue.isEmpty()) {
+//			queue.poll().getEquivalentParentSupernode(equivalentNodes,queue);
+//		}
+//	}
 }

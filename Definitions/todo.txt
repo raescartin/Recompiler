@@ -1,5 +1,8 @@
 ﻿TODO
--add and mul implementation
+-use only "rest" and "last"
+-BBDD snipet en la memoria
+-mul implementation
+-bubble sort implementation
 -correct use of arrays
 -correct parallel cost (nandInstances+cost of other definitions)
 -error on "ones"
@@ -16,6 +19,7 @@
  
 
 DONE
+-add implementation from full adder
 -generalize toNandInstances
 -print nandDefinition
 -change index to be "rest" and "last"
