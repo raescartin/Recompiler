@@ -171,14 +171,14 @@ class test {
     	Node lastB = new Node();
     	Node rifdef1 = new Node();
     	Node rifdef2 = new Node();
-    	rifDef.in.get(1).setRest(restButLastA);
-    	rifDef.in.get(1).setLast(lastA);
-    	rifDef.in.get(2).setRest(restButLastB);
-    	rifDef.in.get(2).setLast(lastB);
+    	rifDef.in.get(1).setRestChildren(restButLastA);
+    	rifDef.in.get(1).setLastChild(lastA);
+    	rifDef.in.get(2).setRestChildren(restButLastB);
+    	rifDef.in.get(2).setLastChild(lastB);
     	rifDef.add(rifDef,rifDef.in.get(0),restButLastA,restButLastB,rifdef1);
     	rifDef.add(ifDef,rifDef.in.get(0),lastA,lastB,rifdef2);
-    	rifDef.out.get(0).setRest(rifdef1);
-    	rifDef.out.get(0).setLast(rifdef2);
+    	rifDef.out.get(0).setRestParents(rifdef1);
+    	rifDef.out.get(0).setLastParent(rifdef2);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(rifDef.toString());
@@ -231,16 +231,16 @@ class test {
     	Node cn = new Node();
     	Node srestSumR = new Node();
     	Node snSumR = new Node();
-    	sSumR.setRest(srestSumR);
-    	sSumR.setLast(snSumR);
-    	cSumR.setRest(cRest);
-    	cSumR.setLast(cn);
-    	sumR.in.get(0).setRest(new Node());
-    	sumR.in.get(0).setLast(new Node());
-    	sumR.in.get(1).setRest(new Node());
-    	sumR.in.get(1).setLast(new Node());
-    	sumR.add(sum,sumR.in.get(0).getLast(),sumR.in.get(1).getLast(),cIn,snSumR,cRest);
-    	sumR.add(sumR,sumR.in.get(0).getRest(),sumR.in.get(1).getRest(),cRest,srestSumR,cn);
+    	sSumR.setRestParents(srestSumR);
+    	sSumR.setLastParent(snSumR);
+    	cSumR.setRestParents(cRest);
+    	cSumR.setLastParent(cn);
+    	sumR.in.get(0).setRestChildren(new Node());
+    	sumR.in.get(0).setLastChild(new Node());
+    	sumR.in.get(1).setRestChildren(new Node());
+    	sumR.in.get(1).setLastChild(new Node());
+    	sumR.add(sum,sumR.in.get(0).getLastChild(),sumR.in.get(1).getLastChild(),cIn,snSumR,cRest);
+    	sumR.add(sumR,sumR.in.get(0).getRestChildren(),sumR.in.get(1).getRestChildren(),cRest,srestSumR,cn);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(sumR.toString());
@@ -255,23 +255,23 @@ class test {
     	
     	//ADD definition
     	Definition add = new Definition(2,1,"add");
-    	add.in.get(0).setRest(new Node());
-    	add.in.get(0).setLast(new Node());
-    	add.in.get(1).setRest(new Node());
-    	add.in.get(1).setLast(new Node());
+    	add.in.get(0).setRestChildren(new Node());
+    	add.in.get(0).setLastChild(new Node());
+    	add.in.get(1).setRestChildren(new Node());
+    	add.in.get(1).setLastChild(new Node());
     	Node cin = new Node();
     	Node sn = new Node();
     	Node s = new Node();
     	Node cout= new Node();
     	Node rest = new Node();
-    	cout.setLast(new Node());
-    	rest.setRest(cout.getLast());
-    	rest.setLast(s);
-    	add.out.get(0).setRest(rest);
-    	add.out.get(0).setLast(sn);
-    	add.add(and,add.in.get(0).getLast(),add.in.get(1).getLast(),cin);
-    	add.add(xor,add.in.get(0).getLast(),add.in.get(1).getLast(),sn);
-    	add.add(sumR,add.in.get(0).getRest(),add.in.get(1).getRest(),cin,s,cout);
+    	cout.setLastChild(new Node());
+    	rest.setRestParents(cout.getLastChild());
+    	rest.setLastParent(s);
+    	add.out.get(0).setRestParents(rest);
+    	add.out.get(0).setLastParent(sn);
+    	add.add(and,add.in.get(0).getLastChild(),add.in.get(1).getLastChild(),cin);
+    	add.add(xor,add.in.get(0).getLastChild(),add.in.get(1).getLastChild(),sn);
+    	add.add(sumR,add.in.get(0).getRestChildren(),add.in.get(1).getRestChildren(),cin,s,cout);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(add.toString());
@@ -286,15 +286,17 @@ class test {
     	System.out.print(definitionDB.toString());
     	
     	//andR definition
+    	//andR[0,1;2(3&4)]=
+    	//	and[0,1{n};4] andR[0,1{1..n-1};3]
     	Definition andR = new Definition(2,1,"andR");
     	Node andAndR = new Node();
     	Node andRandR = new Node();
-    	andR.out.get(0).setRest(andRandR);
-    	andR.out.get(0).setLast(andAndR);
-    	andR.in.get(0).setRest(new Node());
-    	andR.in.get(0).setLast(new Node());
-    	andR.add(and,andR.in.get(0).getLast(),andR.in.get(1),andAndR);
-    	andR.add(andR,andR.in.get(0).getRest(),andR.in.get(1),andRandR);
+    	andR.out.get(0).setRestParents(andRandR);
+    	andR.out.get(0).setLastParent(andAndR);
+    	andR.in.get(1).setRestChildren(new Node());
+    	andR.in.get(1).setLastChild(new Node());
+    	andR.add(and,andR.in.get(0),andR.in.get(1).getLastChild(),andAndR);
+    	andR.add(andR,andR.in.get(0),andR.in.get(1).getRestChildren(),andRandR);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(andR.toString());
@@ -308,26 +310,32 @@ class test {
     	System.out.print(definitionDB.toString());
     	
     	//mulR definition
+//    	mulR[0,1,2;3(7&6{1..n-1}),4(8&6{n})]=
+//    			andR[1{n},0;5]
+//    			add[2,5;6]  
+//    			mulR[0,1{1..n-1},6{1..n-1};7,8]
     	Definition mulR = new Definition(3,2,"mulR");
     	Node op1MulR = mulR.in.get(0);
     	Node op2MulR = mulR.in.get(1);
     	Node cInMulR = mulR.in.get(2);
-    	Node cOutArrayMulR = mulR.out.get(0);
+    	Node outArrayMulR = mulR.out.get(0);
     	Node mulMulR = mulR.out.get(1);
     	Node mulRestMulR = new Node();
     	Node andMulR = new Node();
     	Node addMulR = new Node();
-    	addMulR.setRest(new Node());
-    	addMulR.setLast(new Node());
-    	op2MulR.setRest(new Node());
-    	op2MulR.setLast(new Node());
-    	mulMulR.setRest(mulRestMulR);
-    	mulMulR.setLast(addMulR.getLast());
-    	cOutArrayMulR.setRest(addMulR.getRest());
+    	Node restArray = new Node();
+    	addMulR.setRestChildren(new Node());
+    	addMulR.setLastChild(new Node());
+    	op2MulR.setRestChildren(new Node());
+    	op2MulR.setLastChild(new Node());
+    	mulMulR.setRestParents(mulRestMulR);
+    	mulMulR.setLastParent(addMulR.getLastChild());
+    	outArrayMulR.setRestParents(restArray);
+    	outArrayMulR.setLastParent(addMulR.getLastChild());
     	
-    	mulR.add(and, op1MulR,op2MulR.getLast(),andMulR);
+    	mulR.add(and,op2MulR.getLastChild(),op1MulR,andMulR);
     	mulR.add(add,cInMulR,andMulR,addMulR);
-    	mulR.add(mulR,op1MulR,op2MulR.getRest(),addMulR.getRest(),cOutArrayMulR,mulRestMulR);
+    	mulR.add(mulR,op1MulR,op2MulR.getRestChildren(),addMulR.getRestChildren(),restArray,mulRestMulR);
     	
     	System.out.println();
     	System.out.print("New definition: \n");
@@ -342,6 +350,9 @@ class test {
     	System.out.print(definitionDB.toString());
     	
     	//mul definition
+//    	mul[0,1,2(4{n}&5&3{n})] =
+//    			andR[1{n},0;3]
+//    			mulR[0,1{1..n-1},3{1..n-1};4,5]
     	Definition mul = new Definition(3,1,"mul");
     	Node op1Mul = mul.in.get(0);
     	Node op2Mul = mul.in.get(1);
@@ -350,18 +361,18 @@ class test {
     	Node cOutArrayMul = new Node();
     	Node andMul = new Node();
     	Node mulRest = new Node();
-    	op2Mul.setRest(new Node());
-    	op2Mul.setLast(new Node());
-    	andMul.setRest(new Node());
-    	andMul.setLast(new Node());
-    	cOutArrayMul.setLast(new Node());
-    	mulRest.setRest(cOutArrayMul);
-    	mulRest.setLast(mulRestMul);
-    	mulMul.setRest(mulRest);
-    	mulMul.setLast(andMul.getLast());
+    	op2Mul.setRestChildren(new Node());
+    	op2Mul.setLastChild(new Node());
+    	andMul.setRestChildren(new Node());
+    	andMul.setLastChild(new Node());
+    	cOutArrayMul.setLastChild(new Node());
+    	mulRest.setRestChildren(cOutArrayMul);
+    	mulRest.setLastChild(mulRestMul);
+    	mulMul.setRestParents(mulRest);
+    	mulMul.setLastParent(andMul.getLastChild());
     	
-    	mul.add(andR, op1Mul,op2Mul.getLast(),andMul);
-    	mul.add(mulR,op1Mul,op2Mul.getRest(),andMul.getRest(),cOutArrayMul,mulRestMul);
+    	mul.add(andR, op1Mul,op2Mul.getLastChild(),andMul);
+    	mul.add(mulR,op1Mul,op2Mul.getRestChildren(),andMul.getRestChildren(),cOutArrayMul,mulRestMul);
     	
     	System.out.println();
     	System.out.print("New definition: \n");
@@ -384,15 +395,15 @@ class test {
     	Node xorOut = new Node();
     	mAdd.add(xor, mAdd.in.get(0),mAdd.in.get(1),xorOut);
     	Node addXorRest = new Node();
-    	xorOut.setRest(addXorRest);
+    	xorOut.setRestChildren(addXorRest);
     	Node addXorLast = new Node();
-    	xorOut.setLast(addXorLast);
+    	xorOut.setLastChild(addXorLast);
     	Node addAndOut = new Node();
     	mAdd.add(and, mAdd.in.get(0), mAdd.in.get(1),addAndOut);
     	Node addOut = new Node();
     	mAdd.add(mAdd, addXorRest,addAndOut,addOut);
-    	mAdd.out.get(0).setRest(addOut);
-    	mAdd.out.get(0).setLast(addXorLast);
+    	mAdd.out.get(0).setRestChildren(addOut);
+    	mAdd.out.get(0).setLastChild(addXorLast);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(mAdd.toString());
@@ -443,17 +454,17 @@ class test {
 //    	Node dec0 = dec.in.get(0).childSubnodes.get(0);
 //    	Node decRest = dec.in.get(0).childSubnodes.get(1);
     	Node decRestButLast = new Node();
-    	dec.in.get(0).setRest(decRestButLast);
+    	dec.in.get(0).setRestChildren(decRestButLast);
     	Node decLast =  new Node();
-    	dec.in.get(0).setLast(decLast);
+    	dec.in.get(0).setLastChild(decLast);
     	Node decNnot = new Node();
     	dec.add(not, decLast,decNnot);
     	Node decRout= new Node();
     	dec.add(dec,decRestButLast,decRout);
     	Node decRif = new Node();
     	dec.add(rifDef,decLast,decRout,decRestButLast,decRif);
-    	dec.out.get(0).setRest(decRif);
-    	dec.out.get(0).setLast(decNnot);
+    	dec.out.get(0).setRestChildren(decRif);
+    	dec.out.get(0).setLastChild(decNnot);
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(dec.toString());
@@ -469,12 +480,12 @@ class test {
     	//CMP definition////definition to test if two values are equal, returns a bit
     	Definition cmp = new Definition(2,1,"cmp");
     	Node cmpAlast =  new Node();
-    	cmp.in.get(0).setLast(cmpAlast);
+    	cmp.in.get(0).setLastChild(cmpAlast);
     	Node cmpArest =  new Node();
     	Node cmpBlast =  new Node();
-    	cmp.in.get(1).setLast(cmpBlast);
+    	cmp.in.get(1).setLastChild(cmpBlast);
     	Node cmpBrest =  new Node();
-    	cmp.in.get(1).setRest(cmpBrest);
+    	cmp.in.get(1).setRestChildren(cmpBrest);
     	Node cmpXor = new Node();
     	cmp.add(xor, cmpAlast,cmpBlast,cmpXor);
     	Node cmpR = new Node();
