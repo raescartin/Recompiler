@@ -179,12 +179,12 @@ public class Definition {
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=("]");
 		
-		string+=(" =\n");
+		string+=(" =\n\t");
 		for(ArrayList<Instance> setOfInstances:this.instances){
 			for (Instance instance : setOfInstances) {//print instances
 			    string+=" "+instance.toString(this);
 			}
-			string+=("\n");
+			string+=("\n\t");
 		}
 		string+=(" root in: ");
 		for (Definition root : this.rootIn){
@@ -1514,6 +1514,7 @@ public class Definition {
 		definitionCopy.expand();
 		System.out.print(definitionCopy.toLFnotation());
 		definitionCopy.expand();
+		System.out.print(definitionCopy.toLFnotation());
 	}
 	private String toLFnotation() {
 		Definition definitionCopy=this.copy();
