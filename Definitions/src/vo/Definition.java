@@ -505,15 +505,16 @@ public class Definition {
 	public void eval(HashMap<Node, FixedBitSet> valueMap){
 		if(this.name=="nand"){//NAND //TODO: fix nand checking
 			//NAND (always 2 ins 1 out)
-			if(valueMap.containsKey(this.in.get(1))&&valueMap.get(this.in.get(1)).length()==0){//if one in is empty, out is the other
-				if(valueMap.containsKey(this.in.get(0))){
-					valueMap.put(this.out.get(0), valueMap.get(this.in.get(0)));
-				}
-			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0){//if one in is empty, out is the other
-				if(valueMap.containsKey(this.in.get(1))){
-					valueMap.put(this.out.get(0), valueMap.get(this.in.get(1)));
-				}
-			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
+//			if(valueMap.containsKey(this.in.get(1))&&valueMap.get(this.in.get(1)).length()==0){//if one in is empty, out is the other
+//				if(valueMap.containsKey(this.in.get(0))){
+//					valueMap.put(this.out.get(0), valueMap.get(this.in.get(0)));
+//				}
+//			}else if(valueMap.containsKey(this.in.get(0))&&valueMap.get(this.in.get(0)).length()==0){//if one in is empty, out is the other
+//				if(valueMap.containsKey(this.in.get(1))){
+//					valueMap.put(this.out.get(0), valueMap.get(this.in.get(1)));
+//				}
+//			}else 
+			if(valueMap.containsKey(this.in.get(0))&&valueMap.containsKey(this.in.get(1))){
 				valueMap.put(this.out.get(0),valueMap.get(this.in.get(0)).nand(valueMap.get(this.in.get(1))));
 			}
 		}else{
@@ -1097,30 +1098,20 @@ public class Definition {
 					}
 				}
 			}
-//			if(!node.parentSubnodes.isEmpty()){
-//				for(int i=0;i<node.parentSubnodes.size();i++){
-//					if(!nodeToCopy.containsKey(node.parentSubnodes.get(i))){
-//						Node copyParent = this.copyNodeMapping(node.parentSubnodes.get(i), nodeToCopy, instanceToCopy, copyDef, copyToNode);
-//						copyParent.addChildSupernode(copyNode);
-//					}else{
-//						nodeToCopy.get(node.parentSubnodes.get(i)).addChildSupernode(copyNode);
-//					}
-//				}
-//			}
-			if(node.getLast()!=null){
-				if(!nodeToCopy.containsKey(node.getLast())){
-					Node copyLast = this.copyNodeMapping(node.getLast(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
-					copyNode.setLastChild(copyLast);
+			if(node.getLastParent()!=null){
+				if(!nodeToCopy.containsKey(node.getLastParent())){
+					Node copyLast = this.copyNodeMapping(node.getLastParent(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
+					copyNode.setLastParent(copyLast);
 				}else{
-					nodeToCopy.get(node.getLast()).setLastChild(copyNode);
+					nodeToCopy.get(node.getLastParent()).setLastParent(copyNode);
 				}
 			}
-			if(node.getRestChildren()!=null){
-				if(!nodeToCopy.containsKey(node.getRestChildren())){
-					Node copyRest = this.copyNodeMapping(node.getRestChildren(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
-					copyNode.setRestChildren(copyRest);
+			if(node.getRestParents()!=null){
+				if(!nodeToCopy.containsKey(node.getRestParents())){
+					Node copyRest = this.copyNodeMapping(node.getRestParents(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
+					copyNode.setRestParents(copyRest);
 				}else{
-					nodeToCopy.get(node.getRestChildren()).setRestChildren(copyNode);
+					nodeToCopy.get(node.getRestParents()).setRestParents(copyNode);
 				}
 			}
 			if(node.outOfInstance!=null){
@@ -1249,13 +1240,13 @@ public class Definition {
 			expandedToDefinition.put(node.getRestChildren(),definitionNode.getRestChildren());
 			mapSubnodeChildrenMapping(node.getRestChildren(), definitionNode.getRestChildren(),definitionToInstanceNodes, expandedToDefinition);
 		}
-		if(definitionNode.getLast()!=null){
-			if(node.getLast()==null){
+		if(definitionNode.getLastChild()!=null){
+			if(node.getLastChild()==null){
 				node.setLastChild(new Node());
 			}
-			definitionToInstanceNodes.put(definitionNode.getLast(),node.getLast());	
-			expandedToDefinition.put(node.getLast(),definitionNode.getLast());
-			mapSubnodeChildrenMapping(node.getLast(), definitionNode.getLast(),definitionToInstanceNodes, expandedToDefinition);
+			definitionToInstanceNodes.put(definitionNode.getLastChild(),node.getLastChild());	
+			expandedToDefinition.put(node.getLastChild(),definitionNode.getLastChild());
+			mapSubnodeChildrenMapping(node.getLastChild(), definitionNode.getLastChild(),definitionToInstanceNodes, expandedToDefinition);
 		}
 	}
 	private void mapParentsMapping(Node node, Node definitionNode, HashMap<Node, Node> definitionToInstanceNodes, HashMap<Node, Node> expandedToDefinition) {
@@ -1289,37 +1280,37 @@ public class Definition {
 					expandedToDefinition.put(newChildSubnode, definitionNode.parent.getRestChildren());
 				}
 			}
-			if(definitionNode.parent.getLast()!=null){
-				if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLast())){
-					definitionToInstanceNodes.get(definitionNode.parent).setLastChild(definitionToInstanceNodes.get(definitionNode.parent.getLast()));
+			if(definitionNode.parent.getLastChild()!=null){
+				if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLastChild())){
+					definitionToInstanceNodes.get(definitionNode.parent).setLastChild(definitionToInstanceNodes.get(definitionNode.parent.getLastChild()));
 				}else{
 					Node newChildSubnode= new Node();
 					definitionToInstanceNodes.get(definitionNode.parent).setLastChild(newChildSubnode);
-					definitionToInstanceNodes.put(definitionNode.parent.getLast(), newChildSubnode);
-					expandedToDefinition.put(newChildSubnode, definitionNode.parent.getLast());
+					definitionToInstanceNodes.put(definitionNode.parent.getLastChild(), newChildSubnode);
+					expandedToDefinition.put(newChildSubnode, definitionNode.parent.getLastChild());
 				}
 			}
 		}else{
-			if(definitionNode.getLast()!=null){
-				if(definitionToInstanceNodes.containsKey(definitionNode.getLast())){
-					node.setLastChild(definitionToInstanceNodes.get(definitionNode.getLast()));
+			if(definitionNode.getLastParent()!=null){
+				if(definitionToInstanceNodes.containsKey(definitionNode.getLastParent())){
+					node.setLastParent(definitionToInstanceNodes.get(definitionNode.getLastParent()));
 				}else{
 					Node newLast= new Node();
-					node.setLastChild(newLast);
-					definitionToInstanceNodes.put(definitionNode.getLast(), newLast);
-					expandedToDefinition.put(newLast, definitionNode.getLast());
-					mapParentsMapping(newLast,definitionNode.getLast(),definitionToInstanceNodes,expandedToDefinition);
+					node.setLastParent(newLast);
+					definitionToInstanceNodes.put(definitionNode.getLastParent(), newLast);
+					expandedToDefinition.put(newLast, definitionNode.getLastParent());
+					mapParentsMapping(newLast,definitionNode.getLastParent(),definitionToInstanceNodes,expandedToDefinition);
 				}
 			}
-			if(definitionNode.getRestChildren()!=null){
-				if(definitionToInstanceNodes.containsKey(definitionNode.getRestChildren())){
-					node.setRestChildren(definitionToInstanceNodes.get(definitionNode.getRestChildren()));
+			if(definitionNode.getRestParents()!=null){
+				if(definitionToInstanceNodes.containsKey(definitionNode.getRestParents())){
+					node.setRestParents(definitionToInstanceNodes.get(definitionNode.getRestParents()));
 				}else{
 					Node newRest= new Node();
-					node.setRestChildren(newRest);
-					definitionToInstanceNodes.put(definitionNode.getLast(), newRest);
-					expandedToDefinition.put(newRest, definitionNode.getLast());
-					mapParentsMapping(newRest,definitionNode.getLast(),definitionToInstanceNodes,expandedToDefinition);
+					node.setRestParents(newRest);
+					definitionToInstanceNodes.put(definitionNode.getRestParents(), newRest);
+					expandedToDefinition.put(newRest, definitionNode.getRestParents());
+					mapParentsMapping(newRest,definitionNode.getRestParents(),definitionToInstanceNodes,expandedToDefinition);
 				}
 			}
 		}
@@ -1363,13 +1354,13 @@ public class Definition {
 						}
 						instanceNodeParent.setRestChildren(instanceChildNode);
 					}
-					if(definitionNode.parent.getLast()!=null){
+					if(definitionNode.parent.getLastChild()!=null){
 						Node instanceChildNode;
-						if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLast())){//needed because instanceNode may be instanceChildNode 
-							instanceChildNode=definitionToInstanceNodes.get(definitionNode.parent.getLast());
+						if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLastChild())){//needed because instanceNode may be instanceChildNode 
+							instanceChildNode=definitionToInstanceNodes.get(definitionNode.parent.getLastChild());
 						}else{
 							instanceChildNode=new Node();
-							definitionToInstanceNodes.put(definitionNode.parent.getLast(), instanceChildNode);
+							definitionToInstanceNodes.put(definitionNode.parent.getLastChild(), instanceChildNode);
 						}
 						instanceNodeParent.setLastChild(instanceChildNode);
 					}
@@ -1384,23 +1375,23 @@ public class Definition {
 //						instanceNodeParent.addChildSupernode(instanceNode);
 //						this.addNandInstances(definitionNode.parentSubnodes.get(i), instanceNodeParent, definitionToInstanceNodes);
 //					}
-					if(definitionNode.getLast()!=null){
-						if(definitionToInstanceNodes.containsKey(definitionNode.getLast())){
+					if(definitionNode.getLastParent()!=null){
+						if(definitionToInstanceNodes.containsKey(definitionNode.getLastParent())){
 							instanceNodeParent=definitionToInstanceNodes.get(definitionNode.outOfInstance.in.get(0));
 						}else{
 							instanceNodeParent=new Node();
 						}
-						instanceNode.setLastChild(instanceNodeParent);
-						this.addNandInstances(definitionNode.getLast(), instanceNodeParent, definitionToInstanceNodes);
+						instanceNode.setLastParent(instanceNodeParent);
+						this.addNandInstances(definitionNode.getLastParent(), instanceNodeParent, definitionToInstanceNodes);
 					}
-					if(definitionNode.getRestChildren()!=null){
-						if(definitionToInstanceNodes.containsKey(definitionNode.getRestChildren())){
+					if(definitionNode.getRestParents()!=null){
+						if(definitionToInstanceNodes.containsKey(definitionNode.getRestParents())){
 							instanceNodeParent=definitionToInstanceNodes.get(definitionNode.outOfInstance.in.get(0));
 						}else{
 							instanceNodeParent=new Node();
 						}
-						instanceNode.setRestChildren(instanceNodeParent);
-						this.addNandInstances(definitionNode.getRestChildren(), instanceNodeParent, definitionToInstanceNodes);
+						instanceNode.setRestParents(instanceNodeParent);
+						this.addNandInstances(definitionNode.getRestParents(), instanceNodeParent, definitionToInstanceNodes);
 					}
 				}
 			}
@@ -1596,13 +1587,13 @@ public class Definition {
 							}
 							instanceNodeParent.setRestChildren(instanceChildNode);
 						}
-						if(definitionNode.parent.getLast()!=null){
+						if(definitionNode.parent.getLastChild()!=null){
 							Node instanceChildNode;
-							if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLast())){//needed because instanceNode may be instanceChildNode 
-								instanceChildNode=definitionToInstanceNodes.get(definitionNode.parent.getLast());
+							if(definitionToInstanceNodes.containsKey(definitionNode.parent.getLastChild())){//needed because instanceNode may be instanceChildNode 
+								instanceChildNode=definitionToInstanceNodes.get(definitionNode.parent.getLastChild());
 							}else{
 								instanceChildNode=new Node();
-								definitionToInstanceNodes.put(definitionNode.parent.getLast(), instanceChildNode);
+								definitionToInstanceNodes.put(definitionNode.parent.getLastChild(), instanceChildNode);
 							}
 							instanceNodeParent.setLastChild(instanceChildNode);
 						}
@@ -1617,23 +1608,23 @@ public class Definition {
 //							instanceNodeParent.addChildSupernode(instanceNode);
 //							this.expand(definitionNode.parentSubnodes.get(i), instanceNodeParent, definitionToInstanceNodes);
 //						}
-						if(definitionNode.getLast()!=null){
-							if(definitionToInstanceNodes.containsKey(definitionNode.getLast())){
-								instanceNodeParent=definitionToInstanceNodes.get(definitionNode.getLast());
+						if(definitionNode.getLastParent()!=null){
+							if(definitionToInstanceNodes.containsKey(definitionNode.getLastParent())){
+								instanceNodeParent=definitionToInstanceNodes.get(definitionNode.getLastParent());
 							}else{
 								instanceNodeParent=new Node();
 							}
-							instanceNode.setLastChild(instanceNodeParent);
-							this.expand(definitionNode.getLast(), instanceNodeParent, definitionToInstanceNodes);
+							instanceNode.setLastParent(instanceNodeParent);
+							this.expand(definitionNode.getLastParent(), instanceNodeParent, definitionToInstanceNodes);
 						}
-						if(definitionNode.getRestChildren()!=null){
-							if(definitionToInstanceNodes.containsKey(definitionNode.getRestChildren())){
-								instanceNodeParent=definitionToInstanceNodes.get(definitionNode.getRestChildren());
+						if(definitionNode.getRestParents()!=null){
+							if(definitionToInstanceNodes.containsKey(definitionNode.getRestParents())){
+								instanceNodeParent=definitionToInstanceNodes.get(definitionNode.getRestParents());
 							}else{
 								instanceNodeParent=new Node();
 							}
-							instanceNode.setRestChildren(instanceNodeParent);
-							this.expand(definitionNode.getRestChildren(), instanceNodeParent, definitionToInstanceNodes);
+							instanceNode.setRestParents(instanceNodeParent);
+							this.expand(definitionNode.getRestParents(), instanceNodeParent, definitionToInstanceNodes);
 						}
 					}
 				}

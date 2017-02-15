@@ -33,6 +33,7 @@ class test {
     	String B="00110011";
     	String C="01010101";
     	String D="1";
+    	String E="01";
     	
 		//=========================================================================================================================================
     	//DEFINITIONS AND DEFINITIONDB//
@@ -276,8 +277,8 @@ class test {
     	System.out.print("New definition: \n");
     	System.out.print(add.toString());
     	add.printCost();
-    	add.printEval(A,B);
-    	add.testExpand();
+    	add.printEval(D,E);
+//    	add.testExpand();
     	definitionDB.put("add",add);
      	System.out.print("Optimized definition: \n");
     	System.out.print(add.toString());

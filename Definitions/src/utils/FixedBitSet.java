@@ -30,9 +30,10 @@ public class FixedBitSet extends BitSet{
     
     public FixedBitSet nand(FixedBitSet in){
     	FixedBitSet outFBS=(FixedBitSet) this.clone();
+    	outFBS.fixedLength=Integer.max(this.length(), in.length());
 		outFBS.and(in);
-		outFBS.flip(0,outFBS.size());
-		outFBS.fixedLength=Integer.max(this.length(), in.length());
+		outFBS.flip(0,Constants.BITSET_SIZE);
+		
 //		outFBS.flip(0,outFBS.length());
 		return outFBS;
     }
@@ -69,6 +70,12 @@ public class FixedBitSet extends BitSet{
     
     public FixedBitSet get(int x, int y){
     	FixedBitSet fbs = new FixedBitSet();
+    	if(x<0){
+    		x=0;
+    	}
+		if(y>=this.length()){
+			y=this.length()-1;
+		}
     	if(x<=y){
 	    	fbs = new FixedBitSet(y-x+1);
 	    	int j=0;

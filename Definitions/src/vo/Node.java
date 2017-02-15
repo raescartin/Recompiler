@@ -823,18 +823,18 @@ public class Node {
 			}else{
 				FixedBitSet fixedBitSet = new FixedBitSet();
 				boolean allExpanded=true;
-				if(this.getLastChild()!=null){
-					this.getLastChild().eval(valueMap);
-					if(valueMap.containsKey(this.getLastChild())){
-						fixedBitSet.concat(valueMap.get(this.getLastChild()));
+				if(this.getRestParents()!=null){
+					this.getRestParents().eval(valueMap);
+					if(valueMap.containsKey(this.getRestParents())){
+						fixedBitSet.concat(valueMap.get(this.getRestParents()));
 					}else{
 						allExpanded=false;
 					}
 				}
-				if(this.getRestChildren()!=null){
-					this.getRestChildren().eval(valueMap);
-					if(valueMap.containsKey(this.getRestChildren())){
-						fixedBitSet.concat(valueMap.get(this.getRestChildren()));
+				if(this.getLastParent()!=null){
+					this.getLastParent().eval(valueMap);
+					if(valueMap.containsKey(this.getLastParent())){
+						fixedBitSet.concat(valueMap.get(this.getLastParent()));
 					}else{
 						allExpanded=false;
 					}
@@ -1009,12 +1009,19 @@ public class Node {
 				if(this.parent!=null){
 					this.parent.toNandDefinitions(expandedNodes);
 				}else{
-					if(this.getLastChild()!=null){
-						this.getLastChild().toNandDefinitions(expandedNodes);
-					}
 					if(this.getRestChildren()!=null){
 						this.getRestChildren().toNandDefinitions(expandedNodes);
 					}
+					if(this.getLastChild()!=null){
+						this.getLastChild().toNandDefinitions(expandedNodes);
+					}
+					if(this.getRestParents()!=null){
+						this.getRestParents().toNandDefinitions(expandedNodes);
+					}
+					if(this.getLastParent()!=null){
+						this.getLastParent().toNandDefinitions(expandedNodes);
+					}
+
 				}
 			}
 		}
@@ -1948,6 +1955,28 @@ public class Node {
 				cost.put(this.parent,cost.get(this));
 			}
 			this.parent.parallelCost(cost);
+		}else{ 
+			if(this.getRestParents()!=null){
+				if(cost.containsKey(this.getRestParents())){
+					if(cost.get(this).sup(cost.get(this.getRestParents()))){
+						cost.put(this.getRestParents(),cost.get(this));
+					}
+				}else{
+					cost.put(this.getRestParents(),cost.get(this));
+				}
+				this.getRestParents().parallelCost(cost);
+			}
+			if(this.getLastParent()!=null){
+				if(cost.containsKey(this.getLastParent())){
+					if(cost.get(this).sup(cost.get(this.getLastParent()))){
+						cost.put(this.getLastParent(),cost.get(this));
+					}
+				}else{
+					cost.put(this.getLastParent(),cost.get(this));
+				}
+				this.getLastParent().parallelCost(cost);
+			}
+				
 //		}else if(!this.parentSubnodes.isEmpty()){
 //			for(Node parentSubnode:this.parentSubnodes){
 //				if(cost.containsKey(parentSubnode)){
