@@ -173,7 +173,7 @@ public class Definition {
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
-		string+=(";");
+		string+=("; ");
 		for (Node node: this.out) {
 			string+=node.toString();
 			string+=(",");
@@ -373,7 +373,7 @@ public class Definition {
 			for(Instance instanceOfRecursiveDefinition:copyDef.instancesContainingRecursion){
 				strCost+=instanceOfRecursiveDefinition.definition.cost()+"+";
 			}
-			copyDef.expandNonRecursiveInstances();
+			copyDef.expandInstancesContainingRecursion();
 			copyDef.removeRecursion(addedNodes, removedInstances);
 			copyDef.toNandInstances();
 			copyDef.fission();
@@ -1476,7 +1476,7 @@ public class Definition {
 //			outNode.cleanBinodes();
 //		}
 	}
-	public void expandNonRecursiveInstances() {
+	public void expandInstancesContainingRecursion() {
 		boolean containsNonRecursiveInstances;
 		do{
 			containsNonRecursiveInstances=false;

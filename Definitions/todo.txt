@@ -1,6 +1,6 @@
 ﻿TODO
--use only "rest" and "last"
--BBDD snipet en la memoria
+-BBDD snipet/trace en la memoria
+-incluir en anexos optimización completa de la suma modular?
 -mul implementation
 -bubble sort implementation
 -correct use of arrays
@@ -19,6 +19,7 @@
  
 
 DONE
+-use only "rest" and "last" as indexes
 -add implementation from full adder
 -generalize toNandInstances
 -print nandDefinition

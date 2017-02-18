@@ -98,9 +98,20 @@ public class DefinitionDB {
 				definition.update();
 			}	
 		}else{//definition has recursion
+//			this.optimizeSequentialPart(definition);//optimize sequential part
 			this.optimizeRecursiveIntersection(definition);	
+//			this.optimizeSequentialPart(definition);//optimize again sequential part since it may have changed
 		}
 		return definition;
+	}
+	private void optimizeSequentialPart(Definition definition) {
+		//Optimize the non recursive part of definition	
+		AddedNodes addedNodes = new AddedNodes();
+		HashSet<Instance> removedInstances = new HashSet<Instance>();
+		definition.expandInstancesContainingRecursion();
+		definition.removeRecursion(addedNodes, removedInstances);
+		this.optimize(definition);
+		definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
 	}
 	private void optimizeRecursiveIntersection(Definition definition) {
 		//POST: remove the operations that are repeated during recursion (recursive intersection)

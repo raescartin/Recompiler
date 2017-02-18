@@ -277,6 +277,7 @@ class test {
     	System.out.print("New definition: \n");
     	System.out.print(add.toString());
     	add.printCost();
+    	add.printEval(A,B);
     	add.printEval(D,E);
 //    	add.testExpand();
     	definitionDB.put("add",add);
@@ -284,6 +285,7 @@ class test {
     	System.out.print(add.toString());
     	add.printCost();
     	add.printEval(A,B);
+    	add.printEval(D,E);
     	System.out.print(definitionDB.toString());
     	
     	//andR definition
