@@ -300,7 +300,7 @@ class test {
     	andR.in.get(1).setLastChild(new Node());
     	andR.add(and,andR.in.get(0),andR.in.get(1).getLastChild(),andAndR);
     	andR.add(andR,andR.in.get(0),andR.in.get(1).getRestChildren(),andRandR);
-    	System.out.println();
+    	System.out.println(); 
     	System.out.print("New definition: \n");
     	System.out.print(andR.toString());
     	andR.printCost();
