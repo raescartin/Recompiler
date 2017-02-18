@@ -309,7 +309,7 @@ class test {
      	System.out.print("Optimized definition: \n");
     	System.out.print(andR.toString());
     	andR.printCost();
-    	andR.printEval(A,D);
+    	andR.printEval(A,D); 
     	System.out.print(definitionDB.toString());
     	
     	//mulR definition
