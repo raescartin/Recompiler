@@ -629,8 +629,8 @@ public class Definition {
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		expandedNodes.addAll(this.in);
 		this.instances.clear();//it's easier to remove all functions and add form top to bottom instead of changing node references
-		this.instancesContainingRecursion.clear();
-		this.selfRecursiveInstances.clear();
+//		this.instancesContainingRecursion.clear();
+//		this.selfRecursiveInstances.clear();
 		for(Node outNode:this.out){
 			outNode.toNandDefinitions(expandedNodes);
 		}
