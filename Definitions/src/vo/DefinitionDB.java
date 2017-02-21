@@ -98,9 +98,9 @@ public class DefinitionDB {
 				definition.update();
 			}	
 		}else{//definition has recursion
-//			this.optimizeSequentialPart(definition);//optimize sequential part
+			this.optimizeSequentialPart(definition);//optimize sequential part
 			this.optimizeRecursiveIntersection(definition);	
-//			this.optimizeSequentialPart(definition);//optimize again sequential part since it may have changed
+			this.optimizeSequentialPart(definition);//optimize again sequential part since it may have changed
 		}
 		return definition;
 	}

@@ -628,7 +628,9 @@ public class Definition {
 		//POST: definition is made exclusively from NAND instances and recursive definitions
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		expandedNodes.addAll(this.in);
-		this.instances.clear();
+		this.instances.clear();//it's easier to remove all functions and add form top to bottom instead of changing node references
+		this.instancesContainingRecursion.clear();
+		this.selfRecursiveInstances.clear();
 		for(Node outNode:this.out){
 			outNode.toNandDefinitions(expandedNodes);
 		}
@@ -991,11 +993,12 @@ public class Definition {
 		this.selfRecursiveInstances.clear();
 		HashSet<Node> expandedNodes = new HashSet<Node>();
 		for(Node inNode:this.in){
-			inNode.mapNode(this);
+			this.add(inNode);
+//			inNode.mapNode(this);
 			expandedNodes.add(inNode);
 		}
 		for(Node outNode:this.out){
-			outNode.updateNode(this,expandedNodes);
+			outNode.update(this,expandedNodes);
 		}
 	}
 	public void clearInstances() {
@@ -1098,20 +1101,20 @@ public class Definition {
 					}
 				}
 			}
-			if(node.getLastParent()!=null){
-				if(!nodeToCopy.containsKey(node.getLastParent())){
-					Node copyLast = this.copyNodeMapping(node.getLastParent(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
-					copyNode.setLastParent(copyLast);
-				}else{
-					nodeToCopy.get(node.getLastParent()).setLastParent(copyNode);
-				}
-			}
 			if(node.getRestParents()!=null){
 				if(!nodeToCopy.containsKey(node.getRestParents())){
 					Node copyRest = this.copyNodeMapping(node.getRestParents(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
 					copyNode.setRestParents(copyRest);
 				}else{
-					nodeToCopy.get(node.getRestParents()).setRestParents(copyNode);
+					copyNode.setRestParents(nodeToCopy.get(node.getRestParents()));
+				}
+			}
+			if(node.getLastParent()!=null){
+				if(!nodeToCopy.containsKey(node.getLastParent())){
+					Node copyLast = this.copyNodeMapping(node.getLastParent(), nodeToCopy, instanceToCopy, copyDef, copyToNode);
+					copyNode.setLastParent(copyLast);
+				}else{
+					copyNode.setLastParent(nodeToCopy.get(node.getLastParent()));
 				}
 			}
 			if(node.outOfInstance!=null){

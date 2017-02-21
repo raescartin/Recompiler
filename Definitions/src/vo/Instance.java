@@ -85,9 +85,9 @@ public class Instance implements Comparable<Instance> {
 		string+=("]");
 		return string;
 	}
-	public void updateInstance(Definition definition,HashSet<Node> expandedNodes) {
+	public void update(Definition definition,HashSet<Node> expandedNodes) {
 			for(Node inNode:this.in){
-				inNode.updateNode(definition, expandedNodes);
+				inNode.update(definition, expandedNodes);
 			}
 			ArrayList<Node> nodes = new ArrayList<Node>();
 			nodes.addAll(this.in);

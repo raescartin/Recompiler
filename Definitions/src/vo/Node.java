@@ -663,19 +663,19 @@ public class Node {
 //			}
 //		}
 //	}
-	public void updateNode(Definition definition,HashSet<Node> expandedNodes) {
+	public void update(Definition definition,HashSet<Node> expandedNodes) {
 		if(!expandedNodes.contains(this)){
 			expandedNodes.add(this);
 			if(this.parent!=null){
-				this.parent.updateNode(definition, expandedNodes);
+				this.parent.update(definition, expandedNodes);
 			}else if(this.outOfInstance!=null){
-				this.outOfInstance.updateInstance(definition, expandedNodes);
+				this.outOfInstance.update(definition, expandedNodes);
 			}else{
-				if(this.getLastChild()!=null){
-					this.getLastChild().updateNode(definition, expandedNodes);
+				if(this.getRestParents()!=null){
+					this.getRestParents().update(definition, expandedNodes);
 				}
-				if(this.getRestChildren()!=null){
-					this.getRestChildren().updateNode(definition, expandedNodes);
+				if(this.getLastParent()!=null){
+					this.getLastParent().update(definition, expandedNodes);
 				}
 			}
 		}
@@ -991,7 +991,7 @@ public class Node {
 				if(this.outOfInstance.definition.name=="nand"){
 					Node[] nodes ={this.outOfInstance.in.get(0),this.outOfInstance.in.get(1),this.outOfInstance.out.get(0)};
 					this.definition.add(this.outOfInstance.definition,nodes);
-				}else if(!this.outOfInstance.definition.selfRecursiveInstances.isEmpty()||!this.outOfInstance.definition.instancesContainingRecursion.isEmpty()){//recursive
+				}else if(this.definition==this.outOfInstance.definition){//recursive
 					ArrayList<Node> nodesArray = new ArrayList<Node>();
 					nodesArray.addAll(this.outOfInstance.in);
 					nodesArray.addAll(this.outOfInstance.out);
@@ -1009,12 +1009,12 @@ public class Node {
 				if(this.parent!=null){
 					this.parent.toNandDefinitions(expandedNodes);
 				}else{
-					if(this.getRestChildren()!=null){
-						this.getRestChildren().toNandDefinitions(expandedNodes);
-					}
-					if(this.getLastChild()!=null){
-						this.getLastChild().toNandDefinitions(expandedNodes);
-					}
+//					if(this.getRestChildren()!=null){
+//						this.getRestChildren().toNandDefinitions(expandedNodes);
+//					}
+//					if(this.getLastChild()!=null){
+//						this.getLastChild().toNandDefinitions(expandedNodes);
+//					}
 					if(this.getRestParents()!=null){
 						this.getRestParents().toNandDefinitions(expandedNodes);
 					}
