@@ -774,11 +774,16 @@ public class Node {
 	public void eval(HashMap<Node, FixedBitSet> valueMap) {
 		if(!valueMap.containsKey(this)){
 			if(this.outOfInstance!=null){
-				boolean allDiminishingInsAreEmpty=true;
+				boolean allDiminishingInsAreEmpty=false;
+				for (Node nodeIn : this.outOfInstance.in) {
+					if(nodeIn.parent!=null&&nodeIn.parent.restChildren==nodeIn){
+						allDiminishingInsAreEmpty=true;//set to true only if there's diminishing ins
+					}
+				}
 				for (Node nodeIn : this.outOfInstance.in) {
 					nodeIn.eval(valueMap);
 					if(nodeIn.parent!=null&&nodeIn.parent.restChildren==nodeIn){
-						if(valueMap.get(nodeIn).length()!=0){
+						if(valueMap.get(nodeIn).length()!=0){//can't use isEmpty since we need length
 							allDiminishingInsAreEmpty=false;
 						}
 					}

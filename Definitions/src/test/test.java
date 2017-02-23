@@ -34,6 +34,8 @@ class test {
     	String C="01010101";
     	String D="1";
     	String E="01";
+    	String F="1011";
+    	String G="1110";
     	
 		//=========================================================================================================================================
     	//DEFINITIONS AND DEFINITIONDB//
@@ -312,112 +314,147 @@ class test {
     	andR.printEval(D,A); 
     	System.out.print(definitionDB.toString());
     	
-    	//mulR definition
-//    	mulR[0,1,2;3(7&6{1..n-1}),4(8&6{n})]=
-//    			andR[1{n},0;5]
-//    			add[2,5;6]  
-//    			mulR[0,1{1..n-1},6{1..n-1};7,8]
-    	Definition mulR = new Definition(3,2,"mulR");
-    	Node op1MulR = mulR.in.get(0);
-    	Node op2MulR = mulR.in.get(1);
-    	Node cInMulR = mulR.in.get(2);
-    	Node outArrayMulR = mulR.out.get(0);
-    	Node mulMulR = mulR.out.get(1);
-    	Node mulRestMulR = new Node();
-    	Node andMulR = new Node();
-    	Node addMulR = new Node();
-    	Node restArray = new Node();
-    	addMulR.setRestChildren(new Node());
-    	addMulR.setLastChild(new Node());
-    	op2MulR.setRestChildren(new Node());
-    	op2MulR.setLastChild(new Node());
-    	mulMulR.setRestParents(mulRestMulR);
-    	mulMulR.setLastParent(addMulR.getLastChild());
-    	outArrayMulR.setRestParents(restArray);
-    	outArrayMulR.setLastParent(addMulR.getLastChild());
-    	
-    	mulR.add(and,op2MulR.getLastChild(),op1MulR,andMulR);
-    	mulR.add(add,cInMulR,andMulR,addMulR);
-    	mulR.add(mulR,op1MulR,op2MulR.getRestChildren(),addMulR.getRestChildren(),restArray,mulRestMulR);
-    	
-    	System.out.println();
-    	System.out.print("New definition: \n");
-    	System.out.print(mulR.toString());
-    	mulR.printCost();
-    	mulR.printEval(A,B,D);
-    	definitionDB.put("mulR",mulR);
-     	System.out.print("Optimized definition: \n");
-    	System.out.print(mulR.toString());
-    	mulR.printCost();
-    	mulR.printEval(A,B,D);
-    	System.out.print(definitionDB.toString());
-    	
     	//mul definition
-//    	mul[0,1,2(4{n}&5&3{n})] =
-//    			andR[1{n},0;3]
-//    			mulR[0,1{1..n-1},3{1..n-1};4,5]
-    	Definition mul = new Definition(3,1,"mul");
+//    	mul[0,1;2(5&3{n})] =
+//    			andR[1{n},0;3], mul[0,1{1..n-1};4]
+//    			add[3{1..n-1},4;5]
+    	Definition mul = new Definition(2,1,"mul");
     	Node op1Mul = mul.in.get(0);
     	Node op2Mul = mul.in.get(1);
-    	Node mulMul = mul.out.get(0);
-    	Node mulRestMul = new Node();
-    	Node cOutArrayMul = new Node();
+    	Node outMul = mul.out.get(0);
     	Node andMul = new Node();
     	Node mulRest = new Node();
+    	Node rMul = new Node();
     	op2Mul.setRestChildren(new Node());
     	op2Mul.setLastChild(new Node());
     	andMul.setRestChildren(new Node());
     	andMul.setLastChild(new Node());
-    	cOutArrayMul.setLastChild(new Node());
-    	mulRest.setRestChildren(cOutArrayMul);
-    	mulRest.setLastChild(mulRestMul);
-    	mulMul.setRestParents(mulRest);
-    	mulMul.setLastParent(andMul.getLastChild());
+    	outMul.setRestParents(mulRest);
+    	outMul.setLastParent(andMul.getLastChild());
     	
-    	mul.add(andR, op1Mul,op2Mul.getLastChild(),andMul);
-    	mul.add(mulR,op1Mul,op2Mul.getRestChildren(),andMul.getRestChildren(),cOutArrayMul,mulRestMul);
+    	mul.add(andR, op2Mul.getLastChild(),op1Mul,andMul);
+    	mul.add(mul,op1Mul,op2Mul.getRestChildren(),rMul);
+    	mul.add(add,andMul.getRestChildren(),rMul,mulRest);
     	
     	System.out.println();
     	System.out.print("New definition: \n");
     	System.out.print(mul.toString());
     	mul.printCost();
-    	mul.printEval(A,B,D);
+    	mul.printEval(A,B);
+    	mul.printEval(F,G);
     	definitionDB.put("mul",mul);
      	System.out.print("Optimized definition: \n");
     	System.out.print(mul.toString());
     	mul.printCost();
-    	mul.printEval(A,B,D);
+    	mul.printEval(A,B);
+    	mul.printEval(F,G);
     	System.out.print(definitionDB.toString());
-    	
-    	
-    	//mADD modular add definition//
-    	// add[0,1;2(17&11{2})] =
-    	// xor [0,1;11]  and [0{1..n-1},1{1..n-1};16] 
-    	//		 add [11{1..n-1},16;17] 
-    	Definition mAdd = new Definition(2,1,"mAdd");
-    	Node xorOut = new Node();
-    	mAdd.add(xor, mAdd.in.get(0),mAdd.in.get(1),xorOut);
-    	Node addXorRest = new Node();
-    	xorOut.setRestChildren(addXorRest);
-    	Node addXorLast = new Node();
-    	xorOut.setLastChild(addXorLast);
-    	Node addAndOut = new Node();
-    	mAdd.add(and, mAdd.in.get(0), mAdd.in.get(1),addAndOut);
-    	Node addOut = new Node();
-    	mAdd.add(mAdd, addXorRest,addAndOut,addOut);
-    	mAdd.out.get(0).setRestChildren(addOut);
-    	mAdd.out.get(0).setLastChild(addXorLast);
-    	System.out.println();
-    	System.out.print("New definition: \n");
-    	System.out.print(mAdd.toString());
-    	mAdd.printCost();
-    	mAdd.printEval(A,B);
-    	definitionDB.put("mAdd",mAdd);
-     	System.out.print("Optimized definition: \n");
-    	System.out.print(mAdd.toString());
-    	mAdd.printCost();
-    	mAdd.printEval(A,B);//FIXME
-    	System.out.print(definitionDB.toString());
+//    	//mulR definition
+////    	mulR[0,1,2;3(7&6{1..n-1}),4(8&6{n})]=
+////    			andR[1{n},0;5]
+////    			add[2,5;6]  
+////    			mulR[0,1{1..n-1},6{1..n-1};7,8]
+//    	Definition mulR = new Definition(3,2,"mulR");
+//    	Node op1MulR = mulR.in.get(0);
+//    	Node op2MulR = mulR.in.get(1);
+//    	Node cInMulR = mulR.in.get(2);
+//    	Node outArrayMulR = mulR.out.get(0);
+//    	Node mulMulR = mulR.out.get(1);
+//    	Node mulRestMulR = new Node();
+//    	Node andMulR = new Node();
+//    	Node addMulR = new Node();
+//    	Node restArray = new Node();
+//    	addMulR.setRestChildren(new Node());
+//    	addMulR.setLastChild(new Node());
+//    	op2MulR.setRestChildren(new Node());
+//    	op2MulR.setLastChild(new Node());
+//    	mulMulR.setRestParents(mulRestMulR);
+//    	mulMulR.setLastParent(addMulR.getLastChild());
+//    	outArrayMulR.setRestParents(restArray);
+//    	outArrayMulR.setLastParent(addMulR.getLastChild());
+//    	
+//    	mulR.add(andR,op2MulR.getLastChild(),op1MulR,andMulR);
+//    	mulR.add(add,cInMulR,andMulR,addMulR);
+//    	mulR.add(mulR,op1MulR,op2MulR.getRestChildren(),addMulR.getRestChildren(),restArray,mulRestMulR);
+//    	
+//    	System.out.println();
+//    	System.out.print("New definition: \n");
+//    	System.out.print(mulR.toString());
+//    	mulR.printCost();
+//    	mulR.printEval(A,B,D);
+//    	definitionDB.put("mulR",mulR);
+//     	System.out.print("Optimized definition: \n");
+//    	System.out.print(mulR.toString());
+//    	mulR.printCost();
+//    	mulR.printEval(A,B,D);
+//    	System.out.print(definitionDB.toString());
+//    	
+//    	//mul definition
+////    	mul[0,1,2(4{n}&5&3{n})] =
+////    			andR[1{n},0;3]
+////    			mulR[0,1{1..n-1},3{1..n-1};4,5]
+//    	Definition mul = new Definition(2,1,"mul");
+//    	Node op1Mul = mul.in.get(0);
+//    	Node op2Mul = mul.in.get(1);
+//    	Node mulMul = mul.out.get(0);
+//    	Node mulRestMul = new Node();
+//    	Node cOutArrayMul = new Node();
+//    	Node andMul = new Node();
+//    	Node mulRest = new Node();
+//    	op2Mul.setRestChildren(new Node());
+//    	op2Mul.setLastChild(new Node());
+//    	andMul.setRestChildren(new Node());
+//    	andMul.setLastChild(new Node());
+//    	cOutArrayMul.setLastChild(new Node());
+//    	mulRest.setRestChildren(cOutArrayMul);
+//    	mulRest.setLastChild(mulRestMul);
+//    	mulMul.setRestParents(mulRest);
+//    	mulMul.setLastParent(andMul.getLastChild());
+//    	
+//    	mul.add(andR, op1Mul,op2Mul.getLastChild(),andMul);
+//    	mul.add(mulR,op1Mul,op2Mul.getRestChildren(),andMul.getRestChildren(),cOutArrayMul,mulRestMul);
+//    	
+//    	System.out.println();
+//    	System.out.print("New definition: \n");
+//    	System.out.print(mul.toString());
+//    	mul.printCost();
+//    	mul.printEval(A,B,D);
+//    	definitionDB.put("mul",mul);
+//     	System.out.print("Optimized definition: \n");
+//    	System.out.print(mul.toString());
+//    	mul.printCost();
+//    	mul.printEval(A,B,D);
+//    	System.out.print(definitionDB.toString());
+//    	
+//    	
+//    	//mADD modular add definition//
+//    	// add[0,1;2(17&11{2})] =
+//    	// xor [0,1;11]  and [0{1..n-1},1{1..n-1};16] 
+//    	//		 add [11{1..n-1},16;17] 
+//    	Definition mAdd = new Definition(2,1,"mAdd");
+//    	Node xorOut = new Node();
+//    	mAdd.add(xor, mAdd.in.get(0),mAdd.in.get(1),xorOut);
+//    	Node addXorRest = new Node();
+//    	xorOut.setRestChildren(addXorRest);
+//    	Node addXorLast = new Node();
+//    	xorOut.setLastChild(addXorLast);
+//    	Node addAndOut = new Node();
+//    	mAdd.add(and, mAdd.in.get(0), mAdd.in.get(1),addAndOut);
+//    	Node addOut = new Node();
+//    	mAdd.add(mAdd, addXorRest,addAndOut,addOut);
+//    	mAdd.out.get(0).setRestChildren(addOut);
+//    	mAdd.out.get(0).setLastChild(addXorLast);
+//    	System.out.println();
+//    	System.out.print("New definition: \n");
+//    	System.out.print(mAdd.toString());
+//    	mAdd.printCost();
+//    	mAdd.printEval(A,B);
+//    	definitionDB.put("mAdd",mAdd);
+//     	System.out.print("Optimized definition: \n");
+//    	System.out.print(mAdd.toString());
+//    	mAdd.printCost();
+//    	mAdd.printEval(A,B);//FIXME
+//    	System.out.print(definitionDB.toString());
     	
     	//ZEROS definition////logic definition of zero values
     	Definition zeros = new Definition(1,1,"zeros");
