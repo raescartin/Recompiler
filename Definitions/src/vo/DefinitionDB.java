@@ -125,6 +125,7 @@ public class DefinitionDB {
 		HashMap<Node,Node> definitionToCopy = new HashMap<Node,Node>();
 		HashMap<Node,Node> copyToDefinition = new HashMap<Node,Node>();
 		HashMap<Node,Node> expandedToDefinition = new HashMap<Node,Node>();
+		HashMap<Node,Node> expandedToCopy = new HashMap<Node,Node>();
 		HashSet<Node> originalNodes = new HashSet<Node>();
 		HashSet<Instance> removedInstances = new HashSet<Instance>();
 		AddedNodes addedNodes = new AddedNodes();
@@ -143,8 +144,9 @@ public class DefinitionDB {
 //		expandedDefinition.toNandInstances();//to nands before mapping so all posible subnodes are mapped
 		expandedDefinition.mapNodes(originalNodes);
 		ArrayList<Instance> expandedInstances = new ArrayList<Instance>();
- 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,expandedInstances,addedNodes, removedInstances);
-		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
+ 		expandedDefinition.expandInstancesMapping(definition,expandedToDefinition,originalNodes,expandedToCopy, definitionToCopy);
+		expandedDefinition.removeRecursion(addedNodes, removedInstances);
+ 		//expandedToDefinition includes both original copy to definition and expanded copy to definition nodes map
 // 		expandedDefinition.toNandInstances();//to nands after expanding
 		expandedDefinition.fission();//fission of nodes to minimum size needed, also removes redundant subnodes
 		//TODO: optimize fision with expandedNodes
@@ -152,14 +154,14 @@ public class DefinitionDB {
 		if(!equivalentNodes.isEmpty()){
 			this.getEquivalentSupernodes(equivalentNodes);//TODO: do this in toNands for efficiency
 			this.replaceNodes(originalNodes,equivalentNodes);
-			this.replaceNodes(definitionToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
+			this.replaceNodes(expandedToCopy,copyToDefinition,expandedToDefinition,equivalentNodes);
 			expandedDefinition.replaceNodes(equivalentNodes);
 			expandedDefinition.fusion();
 	//		expandedDefinition.mapNewOriginalNodes(originalNodes);//update originalNodes to keep track of new nodes derived from originalNodes
 			expandedDefinition.recoverRecursion(addedNodes, removedInstances);
 			this.extractIO(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,removedInstances);
 			this.extractIOparentSupernodes(recursiveIn1,recursiveOut1);
-			this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition,expandedInstances);
+			this.extractIOchildrenSupernodes(recursiveIn1,recursiveOut1,originalNodes,expandedDefinition);//,expandedInstances
 			Definition tempRecursiveDefinition = new Definition(recursiveIn1.size(),recursiveOut1.size(),definition.name+"Recur");
 			nodes.clear();
 			nodes.addAll(recursiveIn1);
@@ -173,14 +175,14 @@ public class DefinitionDB {
 	//		expandedDefinition.update();
 			for(Node node:recursiveIn1){
 				if(expandedToDefinition.containsKey(node)){
-					recursiveIn0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+					recursiveIn0.add(expandedToCopy.get(node));
 				}else{
 					recursiveIn0.add(node);
 				}
 			}
 			for(Node node:recursiveOut1){
 				if(expandedToDefinition.containsKey(node)){
-					recursiveOut0.add(definitionToCopy.get(expandedToDefinition.get(node)));
+					recursiveOut0.add(expandedToCopy.get(node));
 				}else{
 					recursiveOut0.add(node);
 				}
@@ -267,25 +269,40 @@ public class DefinitionDB {
 			}
 		}
 	}
-	private void replaceNodes(HashMap<Node, Node> definitionToCopy,
+	private void replaceNodes(HashMap<Node, Node> expandedToCopy,
 			HashMap<Node, Node> copyToDefinition,
 			HashMap<Node, Node> expandedToDefinition, HashMap<Node, Node> equivalentNodes) {
-		
 			HashSet<Node> nodesCopy = new HashSet<Node>();
 			nodesCopy.addAll(copyToDefinition.keySet());
 			for(Node node:nodesCopy){
+				if(equivalentNodes.containsKey(copyToDefinition.get(node))){
+					copyToDefinition.put(node, equivalentNodes.get(copyToDefinition.get(node)));
+				}
 				if(equivalentNodes.containsKey(node)){
 					copyToDefinition.put(equivalentNodes.get(node), copyToDefinition.get(node));
-					definitionToCopy.remove(copyToDefinition.get(node));
-					definitionToCopy.put(copyToDefinition.get(node), equivalentNodes.get(node));
 					copyToDefinition.remove(node);
 				}
 			}
 			nodesCopy.clear();
 			nodesCopy.addAll(expandedToDefinition.keySet());
 			for(Node node:nodesCopy){
+				if(equivalentNodes.containsKey(expandedToDefinition.get(node))){
+					expandedToDefinition.put(node, equivalentNodes.get(expandedToDefinition.get(node)));
+				}
 				if(equivalentNodes.containsKey(node)){
 					expandedToDefinition.put(equivalentNodes.get(node), expandedToDefinition.get(node));
+					expandedToDefinition.remove(node);
+				}
+			}
+			nodesCopy.clear();
+			nodesCopy.addAll(expandedToCopy.keySet());
+			for(Node node:nodesCopy){
+				if(equivalentNodes.containsKey(expandedToCopy.get(node))){
+					expandedToCopy.put(node, equivalentNodes.get(expandedToCopy.get(node)));
+				}
+				if(equivalentNodes.containsKey(node)){
+					expandedToCopy.put(equivalentNodes.get(node), expandedToCopy.get(node));
+					expandedToCopy.remove(node);
 				}
 			}
 		
@@ -307,12 +324,12 @@ public class DefinitionDB {
 		Queue<Node> queueIn = new LinkedList<Node>();
 		queueIn.addAll(recursiveIn);
 		while (!queueIn.isEmpty()) {
-			queueIn.peek().mergeSupernode(queueIn,recursiveIn);
+			queueIn.peek().mergeParentSupernode(queueIn,recursiveIn);
 		}
 		Queue<Node> queueOut = new LinkedList<Node>();
 		queueOut.addAll(recursiveOut);
 		while (!queueOut.isEmpty()) {
-			queueOut.peek().mergeSupernode(queueOut,recursiveOut);
+			queueOut.peek().mergeParentSupernode(queueOut,recursiveOut);
 		}
 //		ArrayList<Node> nodes = new ArrayList<Node>();
 //		boolean posibleSupernodes;
@@ -332,18 +349,17 @@ public class DefinitionDB {
 //			}
 //		}while(posibleSupernodes);
 	}
-	private void extractIOchildrenSupernodes(ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes, Definition expandedDefinition, ArrayList<Instance> expandedInstances) {
-
-		Queue<Node> queueCandidatesIn = new LinkedList<Node>();
-		queueCandidatesIn.addAll(recursiveIn);
-		while (!queueCandidatesIn.isEmpty()) {
-			queueCandidatesIn.peek().mergeSupernode(queueCandidatesIn,recursiveIn);
+	private void extractIOchildrenSupernodes(ArrayList<Node> recursiveIn, ArrayList<Node> recursiveOut, HashSet<Node> originalNodes, Definition expandedDefinition) {//, ArrayList<Instance> expandedInstances
+		Queue<Node> queueCandidates = new LinkedList<Node>();
+		queueCandidates.addAll(expandedDefinition.nodes);
+		while (!queueCandidates.isEmpty()) {
+			queueCandidates.peek().mergeChildSupernode(queueCandidates,recursiveIn);
 		}
 //		this.mergeChildrenSupernodes(queueCandidatesIn);
 		Queue<Node> queueCandidatesOut = new LinkedList<Node>();
-		queueCandidatesOut.addAll(recursiveOut);
+		queueCandidatesOut.addAll(expandedDefinition.nodes);
 		while (!queueCandidatesOut.isEmpty()) {
-			queueCandidatesOut.peek().mergeSupernode(queueCandidatesOut,recursiveOut);
+			queueCandidatesOut.peek().mergeChildSupernode(queueCandidatesOut,recursiveOut);
 		}
 //		this.mergeChildrenSupernodes(queueCandidatesOut);
 //		HashSet<Node> evaluatedNodes = new HashSet<Node>();

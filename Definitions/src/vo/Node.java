@@ -196,11 +196,11 @@ public class Node {
 //				parent.mapOutParents(nandToNode,nodeToNand, nandForest, equivalentNode);
 //			}
 		}else{
-			if(this.getLastChild()!=null){
-				this.getLastChild().mapOutParents(nandToNode,nodeToNand, nandForest, equivalentNode);
+			if(this.getRestParents()!=null){
+				this.getRestParents().mapOutParents(nandToNode,nodeToNand, nandForest, equivalentNode);
 			}
-			if(this.getRestChildren()!=null){
-				this.getRestChildren().mapOutParents(nandToNode,nodeToNand, nandForest, equivalentNode);
+			if(this.getLastParent()!=null){
+				this.getLastParent().mapOutParents(nandToNode,nodeToNand, nandForest, equivalentNode);
 			}
 		}
 	}
@@ -1254,11 +1254,11 @@ public class Node {
 				this.parent.extractIn(recursiveIn, originalNodes);
 			}
 		}else{
-			if(this.getRestChildren()!=null){
-				this.getRestChildren().extractOut(recursiveIn, recursiveOut, originalNodes);
+			if(this.getRestParents()!=null){
+				this.getRestParents().extractOut(recursiveIn, recursiveOut, originalNodes);
 			}
-			if(this.getLastChild()!=null){
-				this.getLastChild().extractOut(recursiveIn, recursiveOut, originalNodes);
+			if(this.getLastParent()!=null){
+				this.getLastParent().extractOut(recursiveIn, recursiveOut, originalNodes);
 			}
 		}
 	}
@@ -1379,18 +1379,30 @@ public class Node {
 					this.outOfInstance.in.get(1).replaceNodes(expandedNodes, equivalentNodes);
 				}
 			}
-		}
-		if(this.getRestChildren()!=null){
-			if(equivalentNodes.containsKey(this.getRestChildren())){
-				this.setRestChildren(equivalentNodes.get(this.getRestChildren()));
+			if(this.getRestParents()!=null){
+				if(equivalentNodes.containsKey(this.getRestParents())){
+					this.setRestParents(equivalentNodes.get(this.getRestParents()));
+				}
+				this.getRestParents().replaceNodes(expandedNodes, equivalentNodes);
 			}
-			this.getRestChildren().replaceNodes(expandedNodes, equivalentNodes);
-		}
-		if(this.getLastChild()!=null){
-			if(equivalentNodes.containsKey(this.getLastChild())){
-				this.setLastChild(equivalentNodes.get(this.getLastChild()));
+			if(this.getLastParent()!=null){
+				if(equivalentNodes.containsKey(this.getLastParent())){
+					this.setLastParent(equivalentNodes.get(this.getLastParent()));
+				}
+				this.getLastParent().replaceNodes(expandedNodes, equivalentNodes);
 			}
-			this.getLastChild().replaceNodes(expandedNodes, equivalentNodes);
+			if(this.getRestChildren()!=null){
+				if(equivalentNodes.containsKey(this.getRestChildren())){
+					this.setRestChildren(equivalentNodes.get(this.getRestChildren()));
+				}
+				this.getRestChildren().replaceNodes(expandedNodes, equivalentNodes);
+			}
+			if(this.getLastChild()!=null){
+				if(equivalentNodes.containsKey(this.getLastChild())){
+					this.setLastChild(equivalentNodes.get(this.getLastChild()));
+				}
+				this.getLastChild().replaceNodes(expandedNodes, equivalentNodes);
+			}
 		}
 	}
 	public void clean(HashSet<Node> expandedNodes,ArrayList<Instance> instancesToKeep) {
@@ -1845,7 +1857,7 @@ public class Node {
 //		}
 //		
 //	}
-	public void mergeSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
+	public void mergeParentSupernode(Queue<Node> queue, ArrayList<Node> nodes) {
 		if(this.parent!=null){
 			if(!queue.contains(this.parent)&&queue.contains(this.parent.getRestChildren())&&queue.contains(this.parent.getLastChild())){
 				queue.remove(this.parent.getRestChildren());
@@ -1858,17 +1870,16 @@ public class Node {
 		}
 		queue.remove(this);
 	}
-//	public void mergeChildSupernode(Queue<Node> queue, ArrayList<Node> recursiveIn) {
-//		for(Node childSupernode:this.childSupernodes){
-//			if(queue.containsAll(childSupernode.parentSubnodes)){
-//				queue.removeAll(childSupernode.parentSubnodes);//replace with queue.remove() if candidates needed because multiple childSupernodes are posible
-//				recursiveIn.removeAll(childSupernode.parentSubnodes);
-//				queue.add(childSupernode);
-//				recursiveIn.add(childSupernode);
-//			}
-//		}
-//		queue.remove(this);
-//	}
+	public void mergeChildSupernode(Queue<Node> queue, ArrayList<Node> recursiveIn) {
+			if(recursiveIn.contains(this.restParents)&&recursiveIn.contains(this.lastParent)){
+				recursiveIn.remove(this.restParents);
+				recursiveIn.remove(this.lastParent);
+				queue.add(this.restParents);
+				queue.add(this.lastParent);
+				recursiveIn.add(this);
+			}
+			queue.remove(this);
+	}
 	public void getNewOriginalNodes(HashSet<Node> originalNodes) {
 //		for(Node parentSubnode:this.parentSubnodes){
 //			if(originalNodes.contains(this)) originalNodes.add(parentSubnode);
