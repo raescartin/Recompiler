@@ -14,6 +14,7 @@ import utils.FixedBitSet;
 public class NandNode{
 	NandNode in1;
 	NandNode in2;
+	int id;
 	public NandNode() {
 	}
 	public FixedBitSet eval(FixedBitSet[] inValues, ArrayList<NandNode> in) {
@@ -88,6 +89,11 @@ public class NandNode{
 			if(this.in2!=null) this.in2.extractNewRecursionNandIO(expandedDefinitionNandForest,originalNandNodes,newRecursiveDefinitionNandIn,newRecursiveDefinitionNandOut);
 		}
 		
+	}
+	public String toString() {
+		String string = new String();
+		string+=this.id;
+		return string;
 	}
 }
 

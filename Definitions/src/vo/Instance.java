@@ -173,10 +173,10 @@ public class Instance implements Comparable<Instance> {
 		BigInteger thisBigInt;
 		BigInteger otherBigInt;
 		for(Node outNode:this.out){
-			thisOutString=thisOutString.concat(String.valueOf(outNode.idForDefinition));
+			thisOutString=thisOutString.concat(String.valueOf(outNode.id));
 		}
 		for(Node outNode:otherInstance.out){
-			otherOutString=otherOutString.concat(String.valueOf(outNode.idForDefinition));
+			otherOutString=otherOutString.concat(String.valueOf(outNode.id));
 		}
 		thisBigInt = new BigInteger(thisOutString);
 		otherBigInt = new BigInteger(otherOutString);

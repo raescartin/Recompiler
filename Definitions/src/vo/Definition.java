@@ -152,7 +152,7 @@ public class Definition {
 	}
 	public void add(Node node){
 		if(!this.nodes.contains(node)){
-			node.idForDefinition=this.maxNode;//debugging only
+			node.id=this.maxNode;//debugging only
 			this.maxNode++;
 			node.definition=this;
 			this.nodes.add(node);
@@ -1204,7 +1204,7 @@ private void expandRecursiveInstanceMapping(Instance instance,
 	for(ArrayList<Instance> setOfInstances:this.instances){
 		for(Instance oneInstance : setOfInstances){
 			if(oneInstance.definition==instance.definition){
-				recursiveInstances.add(instance);
+				recursiveInstances.add(oneInstance);
 			}
 		}
 	}

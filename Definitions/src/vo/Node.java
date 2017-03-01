@@ -27,7 +27,7 @@ public class Node {
 	public Instance outOfInstance;
 	public Definition definition;
 	//DEBUGGING ONLY
-	public int idForDefinition;//id of node for the definition where it's used
+	public int id;//id of node for the definition where it's used
 	//END OF DEBUGGING ONLY
 	
 	public Node() { 
@@ -142,7 +142,7 @@ public class Node {
 			if(this.parent.getRestChildren()==this) string+="{1..n-1}";
 			else if(this.parent.getLastChild()==this) string+="{n}";
 		}else{
-			string+=this.idForDefinition;
+			string+=this.id;
 		}
 		if(this.getRestParents()!=null){
 			string+="(";
@@ -683,7 +683,7 @@ public class Node {
 //	 
 	public void mapNode(Definition definition) {
 		if(!definition.nodes.contains(this)){
-			this.idForDefinition=definition.maxNode;//debugging only
+			this.id=definition.maxNode;//debugging only
 			definition.maxNode++;
 			this.definition=definition;
 			definition.nodes.add(this);

@@ -4,11 +4,10 @@
  *******************************************************************************/
 package vo;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
-import utils.Constants;
 import utils.FixedBitSet;
 
 //DESCRIPTION
@@ -40,20 +39,24 @@ public class NandForest {//multiple nand trees
 	public ArrayList<NandNode> in = new ArrayList<NandNode>(); //NEEDED
 	public ArrayList<NandNode> out = new ArrayList<NandNode>(); //NEEDED
 	public HashMap<NandNode,HashMap<NandNode,NandNode>>  outNodes = new HashMap<NandNode,HashMap<NandNode,NandNode>>();//used to keep record of UNIQUE nodes
-    public HashMap<NandNode,Integer>  nodes = new HashMap<NandNode,Integer>();
+    public HashSet<NandNode>  nodes = new HashSet<NandNode>();
     public int numNodes;
 	public NandForest(int numberOfInputs) {
 		this.numNodes=0;
 		for (int i = 0; i < numberOfInputs; i++) {//add in nodes to nandForest
 			NandNode nandNode = new NandNode();
 			this.in.add(nandNode);
-			this.nodes.put(nandNode,this.numNodes);
-			this.numNodes++;
+			this.add(nandNode);
 		}
+	}
+	private void add(NandNode nandNode) {
+		this.nodes.add(nandNode);
+		nandNode.id=this.numNodes;
+		this.numNodes++;
 	}
 	public NandNode add(NandNode in1,NandNode in2){
 		NandNode node;
-		if(this.nodes.get(in2)<this.nodes.get(in1)) {//Order nodes so A NAND B == B NAND A, always represented as A NAND B
+		if(in2.id<in1.id) {//Order nodes so A NAND B == B NAND A, always represented as A NAND B
 			node=in1;
 			in1=in2;
 			in2=node;
@@ -71,8 +74,7 @@ public class NandForest {//multiple nand trees
 				node = new NandNode();
 				node.in1=in1;
 				node.in2=in2;
-				this.nodes.put(node,this.numNodes);
-				this.numNodes++;
+				this.add(node);
 				if(this.outNodes.containsKey(in1)){
 					this.outNodes.get(in1).put(in2,node);
 				}else{
@@ -96,12 +98,12 @@ public class NandForest {//multiple nand trees
 		String string = new String();
 		if(in.size()>0)string=("(");
 		for (NandNode nandNode: this.in) {
-			string+=(this.nodes.get(nandNode)+",");
+			string+=(nandNode.id+",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=(";");
 		for (NandNode nandNode: this.out) {
-			string+=(this.nodes.get(nandNode)+",");
+			string+=(nandNode.id+",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
 		string+=(")=");
@@ -123,7 +125,7 @@ public class NandForest {//multiple nand trees
 			string+=this.printNode(node.in2,in);
 			string+=(")");
 		}else{
-			string+=this.nodes.get(node);
+			string+=node.id;
 		}
 		return string;
 	}
@@ -132,8 +134,7 @@ public class NandForest {//multiple nand trees
 		this.nodes.clear();
 		this.numNodes=0;
 		for (NandNode nandNode : this.in) {
-			this.nodes.put(nandNode,this.numNodes);
-			this.numNodes++;
+			this.add(nandNode);
 		}
 		for (NandNode node : this.out) {
 			this.optimizeByLevel(node);
@@ -141,11 +142,10 @@ public class NandForest {//multiple nand trees
 		
 	}
 	private NandNode optimizeByLevel(NandNode node) {
-		if(this.nodes.containsKey(node)){
+		if(this.nodes.contains(node)){
 			return node;
 		}else{
-			this.nodes.put(node,this.numNodes);
-			this.numNodes++;
+			this.add(node);
 			return this.add(optimizeByLevel(node.in1), optimizeByLevel(node.in2));
 		}
 	}
@@ -159,8 +159,7 @@ public class NandForest {//multiple nand trees
 	public NandNode addIn() {
 		NandNode nandNode = new NandNode();
 		this.in.add(nandNode);
-		this.nodes.put(nandNode,this.numNodes);
-		this.numNodes++;
+		this.add(nandNode);
 		return nandNode;
 	}
 	public ArrayList<NandNode> setOuts(ArrayList<NandNode> nandNodes){
