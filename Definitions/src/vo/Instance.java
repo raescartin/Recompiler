@@ -70,19 +70,19 @@ public class Instance implements Comparable<Instance> {
 	}
 	public String toString(Definition definition){
 		String string = new String();
-		string+=(this.definition.name+" [");
+		string+=(this.definition.name+"[");
 		for (int i = 0; i < this.in.size(); i++) {//print in nodes
 			string+=this.in.get(i).toString();
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
-		string+=(";");
+		string+=("; ");
 		for (int i = 0; i < this.out.size(); i++) {//print out nodes
 			string+=this.out.get(i).toString();
 			string+=(",");
 		}
 		string=string.substring(0, string.length() - 1);//remove last enumeration ","
-		string+=("]");
+		string+=("] ");
 		return string;
 	}
 	public void update(Definition definition,HashSet<Node> expandedNodes) {

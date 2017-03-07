@@ -139,8 +139,8 @@ public class Node {
 		String string = new String();
 		if(this.parent!=null){
 			string+=this.parent.toString();
-			if(this.parent.getRestChildren()==this) string+="{1..n-1}";
-			else if(this.parent.getLastChild()==this) string+="{n}";
+			if(this.parent.getRestChildren()==this) string+="{n-1..1}";
+			else if(this.parent.getLastChild()==this) string+="{0}";
 		}else{
 			string+=this.id;
 		}
