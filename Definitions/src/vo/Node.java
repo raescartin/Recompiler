@@ -119,17 +119,23 @@ public class Node {
 //		}else{
 			if(nodeToNand.containsKey(this)){//this map is to keep track of evaluated nodes
 				nandNode=nodeToNand.get(this);//evaluated node
-			}else{//node is out of an instance of NAND definition
-				Node node1=this.outOfInstance.in.get(0);
-				Node node2=this.outOfInstance.in.get(1);
-				NandNode nandNode1=node1.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
-				NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
-				nandNode=nandForest.add(nandNode1,nandNode2);
-				nodeToNand.put(this, nandNode);
-				if(nandToNode.containsKey(nandNode)){
-					equivalentNode.put(this,nandToNode.get(nandNode));
-				}else{
-					nandToNode.put(nandNode, this);
+			}else{
+				if(this.parent.restParents!=null&&this.parent.restChildren==this){//array evaluation
+					nandNode=this.parent.restParents.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+				}else if(this.parent.lastParent!=null&&this.parent.lastChild==this){//array evaluation
+					nandNode=this.parent.lastParent.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+				}else{//node is out of an instance of NAND definition
+					Node node1=this.outOfInstance.in.get(0);
+					Node node2=this.outOfInstance.in.get(1);
+					NandNode nandNode1=node1.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
+					NandNode nandNode2=node2.toNands(nandToNode,nodeToNand,nandForest,equivalentNode);
+					nandNode=nandForest.add(nandNode1,nandNode2);
+					nodeToNand.put(this, nandNode);
+					if(nandToNode.containsKey(nandNode)){
+						equivalentNode.put(this,nandToNode.get(nandNode));
+					}else{
+						nandToNode.put(nandNode, this);
+					}
 				}
 			}
 //		}
@@ -817,12 +823,18 @@ public class Node {
 //					valueMap.put(this, fixedBitSet);
 ////				}
 			}else if(this.parent!=null){
-				this.parent.eval(valueMap);
-				if(valueMap.containsKey(this.parent)){
-					if(parent.getRestChildren()==this){
-						valueMap.put(this,valueMap.get(this.parent).get(0,valueMap.get(this.parent).length()-2));
-					}else if(parent.getLastChild()==this){
-						valueMap.put(this,valueMap.get(this.parent).get(valueMap.get(this.parent).length()-1,valueMap.get(this.parent).length()-1));
+				if(this.parent.restParents!=null&&this.parent.restChildren==this){//array evaluation
+					this.parent.restParents.eval(valueMap);
+				}else if(this.parent.lastParent!=null&&this.parent.lastChild==this){//array evaluation
+					this.parent.lastParent.eval(valueMap);
+				}else{
+					this.parent.eval(valueMap);
+					if(valueMap.containsKey(this.parent)){
+						if(parent.getRestChildren()==this){
+							valueMap.put(this,valueMap.get(this.parent).get(0,valueMap.get(this.parent).length()-2));
+						}else if(parent.getLastChild()==this){
+							valueMap.put(this,valueMap.get(this.parent).get(valueMap.get(this.parent).length()-1,valueMap.get(this.parent).length()-1));
+						}
 					}
 				}
 			}else{

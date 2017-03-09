@@ -112,6 +112,7 @@ public class DefinitionDB {
 		definition.removeRecursion(addedNodes, removedInstances);
 		this.optimize(definition);
 		definition.recoverRecursion(addedNodes, removedInstances);//recover recursion
+		definition.update();
 	}
 	private void optimizeRecursiveIntersection(Definition definition) {
 		//POST: remove the operations that are repeated during recursion (recursive intersection)
