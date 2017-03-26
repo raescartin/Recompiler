@@ -37,16 +37,32 @@ public class Node {
 	}
 	//getters
 	public Node getRestParents(){
-		return this.restParents;
+		Node node = this.restParents;
+		if(this.restParents!=null){
+			node=this.restParents.equivalentNode();
+		}
+		return node;
 	}
 	public Node getLastParent(){
-		return this.lastParent;
+		Node node = this.lastParent;
+		if(this.lastParent!=null){
+			node=this.lastParent.equivalentNode();
+		}
+		return node;
 	}
 	public Node getRestChildren(){
-		return this.restChildren;
+		Node node=this.restChildren;
+		if(this.restParents!=null){
+			node=this.getRestParents();
+		}
+		return node;
 	}
 	public Node getLastChild(){
-		return this.lastChild;
+		Node node = this.lastChild;
+		if(this.lastParent!=null){
+			node=this.getLastParent();
+		}
+		return node;
 	}
 	//setters
 	public Node setRestParents(Node restParents) {
@@ -120,10 +136,8 @@ public class Node {
 			if(nodeToNand.containsKey(this)){//this map is to keep track of evaluated nodes
 				nandNode=nodeToNand.get(this);//evaluated node
 			}else{
-				if(this.parent.restParents!=null&&this.parent.restChildren==this){//array evaluation
-					nandNode=this.parent.restParents.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
-				}else if(this.parent.lastParent!=null&&this.parent.lastChild==this){//array evaluation
-					nandNode=this.parent.lastParent.toNands(nandToNode, nodeToNand, nandForest, equivalentNode);
+				if(this.parent!=null){//array evaluation
+					nandNode=this.equivalentNode().toNands(nandToNode, nodeToNand, nandForest, equivalentNode);//array evaluation
 				}else{//node is out of an instance of NAND definition
 					Node node1=this.outOfInstance.in.get(0);
 					Node node2=this.outOfInstance.in.get(1);
@@ -140,6 +154,17 @@ public class Node {
 			}
 //		}
 		return nandNode;
+	}
+	private Node equivalentNode() {
+		Node node = this;
+		if(this.parent!=null){
+			if(this.parent.restChildren==this){
+				node=this.parent.equivalentNode().getRestChildren();
+			}else if(this.parent.lastChild==this){
+				node=this.parent.equivalentNode().getLastChild();
+			}
+		}
+		return node;
 	}
 	public String toString() {
 		String string = new String();
@@ -823,10 +848,9 @@ public class Node {
 //					valueMap.put(this, fixedBitSet);
 ////				}
 			}else if(this.parent!=null){
-				if(this.parent.restParents!=null&&this.parent.restChildren==this){//array evaluation
-					this.parent.restParents.eval(valueMap);
-				}else if(this.parent.lastParent!=null&&this.parent.lastChild==this){//array evaluation
-					this.parent.lastParent.eval(valueMap);
+				Node equivalentNode=this.equivalentNode();
+				if(equivalentNode!=this){//array evaluation
+					equivalentNode.eval(valueMap);
 				}else{
 					this.parent.eval(valueMap);
 					if(valueMap.containsKey(this.parent)){
