@@ -15,7 +15,7 @@ sum[A,B,Cin; S,Cout] =
 &nbsp;&nbsp;&nbsp;&nbsp;and[t1, Cin; t3], xor[t4,C; S]  
 &nbsp;&nbsp;&nbsp;&nbsp;or[t2,t3; Cout]  
     
-The addition of natural numbers algorithm (using full adders) is:
+The algorithm for the addition of natural numbers (using full adders) is:
 
 add[A,B; C(D{0}&E&F)] =  
 &nbsp;&nbsp;&nbsp;&nbsp;and [A{0},B{0}; t1] xor [A{0},B{0}; F]   
