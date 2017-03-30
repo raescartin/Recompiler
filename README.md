@@ -7,7 +7,8 @@ The intermediate language uses only the logic NAND function and recursion.
 Two main data structures are used: a database of recursive functions and a forest of two input NAND functions.  
 The forest of NAND functions is very similar to the And Inverter Graphs used in state of the art circuit minimization methods, like  Berkley's ABC.  
 A representation for functions has been developped that extends a netlist by adding recursivity.  
-![alt text](https://en.wikipedia.org/wiki/Adder_(electronics)#/media/File:1-bit_full-adder.svg "Logo Title Text 1")
+![Alt text](http://potherca.github.io/StackOverflow/question.13808020.include-an-svg-hosted-on-github-in-markdown/controllers_brief.svg)
+<img src="http://potherca.github.io/StackOverflow/question.13808020.include-an-svg-hosted-on-github-in-markdown/controllers_brief.svg">
 A full adder is represented:
 
 sum[A,B,Cin; S,Cout] =  
