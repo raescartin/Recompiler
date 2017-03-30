@@ -1,5 +1,6 @@
 # Recompiler
-A proposal for object code optimization through an intermediate language
+An approach to algorithm optimization through circuit minimization
+techniques.
 
 A novel approach to code optimization by using circuit minimization techniques.  
 This project is centered around the backend of a recompiler: optimization of an intermediate language.  
