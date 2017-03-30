@@ -6,9 +6,10 @@ This project is centered around the backend of a recompiler: optimization of an 
 The intermediate language uses only the logic NAND function and recursion.  
 Two main data structures are used: a database of recursive functions and a forest of two input NAND functions.  
 The forest of NAND functions is very similar to the And Inverter Graphs used in state of the art circuit minimization methods, like  Berkley's ABC.  
-A representation for functions has been developped that extends a netlist by adding recursivity.  
+A representation for functions has been developped that extends a netlist by adding recursivity.
+A full adder:
 ![Alt text](https://upload.wikimedia.org/wikipedia/commons/4/48/1-bit_full-adder.svg)
-A full adder is represented:
+Is represented:
 
 sum[A,B,Cin; S,Cout] =  
 &nbsp;&nbsp;&nbsp;&nbsp;xor[A,B; t1], and[A,B; t2], xor[A,B; t4]  
