@@ -11,15 +11,15 @@ A full adder is represented:
 
 sum[A,B,Cin; S,Cout] =  
 &nbsp;&nbsp;&nbsp;&nbsp;xor[A,B; t1], and[A,B; t2], xor[A,B; t4]  
-        and[t1, Cin; t3], xor[t4,C; S]  
-        or[t2,t3; Cout]  
+&nbsp;&nbsp;&nbsp;&nbsp;and[t1, Cin; t3], xor[t4,C; S]  
+&nbsp;&nbsp;&nbsp;&nbsp;or[t2,t3; Cout]  
     
 The addition of natural numbers algorithm (using full adders) is:
 
 add[A,B; C(D{0}&E&F)] =  
-	and [A{0},B{0}; t1] xor [A{0},B{0}; F]   
-	sumR [A{n-1..1},1{n-1..1},t1; E,D]  
+&nbsp;&nbsp;&nbsp;&nbsp;and [A{0},B{0}; t1] xor [A{0},B{0}; F]   
+&nbsp;&nbsp;&nbsp;&nbsp;sumR [A{n-1..1},1{n-1..1},t1; E,D]  
 sumR[A,B,C; D(E&F),G(H&I)] =  
-	sum [A{0},B{0},C; F,H]  
-	sumR [A{n-1..1},B{n-1..1},H; E,I]  
+&nbsp;&nbsp;&nbsp;&nbsp;sum [A{0},B{0},C; F,H]  
+&nbsp;&nbsp;&nbsp;&nbsp;sumR [A{n-1..1},B{n-1..1},H; E,I]  
 
