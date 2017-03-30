@@ -10,9 +10,9 @@ A representation for functions has been developped that extends a netlist by add
 A full adder is represented:
 
 sum[A,B,Cin; S,Cout] =  
-     xor[A,B; t1], and[A,B; t2], xor[A,B; t4]  
-     and[t1, Cin; t3], xor[t4,C; S]  
-     or[t2,t3; Cout]  
+   xor[A,B; t1], and[A,B; t2], xor[A,B; t4]  
+   and[t1, Cin; t3], xor[t4,C; S]  
+   or[t2,t3; Cout]  
     
 The addition of natural numbers algorithm (using full adders) is:
 
