@@ -2,7 +2,7 @@
 An approach to algorithm optimization through circuit minimization
 techniques.
   
-This project is a novel approach to code optimization, centered around the backend of a recompiler: optimization of an intermediate language.  
+This project is a novel approach to code optimization, centered around the middle end of a compiler: optimization of an intermediate language.  
 The intermediate language uses only the logic NAND function and recursion.  
 Two main data structures are used: a database of recursive functions and a forest of two input NAND functions.  
 The forest of NAND functions is very similar to the [And Inverter Graphs](https://en.wikipedia.org/wiki/And-inverter_graph) used in state of the art circuit minimization methods, like [Berkley's ABC](https://people.eecs.berkeley.edu/~alanmi/abc/).  
